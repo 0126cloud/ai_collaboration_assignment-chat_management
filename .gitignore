@@ -1,6 +1,12 @@
+.claude/
 01_draft/
+
 node_modules/
+package-lock.json
+
 dist/
+
 *.sqlite
+
 .env
 .env.local
