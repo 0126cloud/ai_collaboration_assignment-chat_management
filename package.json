@@ -1,0 +1,23 @@
+{
+  "name": "chat-management",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npx nodemon src/server.ts",
+    "db:migrate": "cd server && npx knex migrate:latest",
+    "db:seed": "cd server && npx knex seed:run",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write .",
+    "build": "cd client && npm run build"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "prettier": "^3.4.2"
+  }
+}

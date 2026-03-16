@@ -1,0 +1,278 @@
+# RFC: 專案初始化
+
+## 1. 背景
+
+根據 [PRD](00_doc/prd_00-chat_management_backstage.md)，需建立一個聊天管理後台系統，涵蓋 9 個功能模組、2 種管理員角色。本 RFC 定義「從零到可以開始寫功能模組」之間的所有技術決策與基礎設施建設。
+
+**範圍界定**：本 RFC 僅涵蓋專案初始化，不含 Auth、個別模組 API 或個別資料表 Schema（這些將在各模組的 RFC 中定義）。
+
+---
+
+## 2. 目標
+
+- 建立可運行的前後端開發環境
+- 確立專案目錄結構
+- 建立 DB migration / seed 基礎設施
+- 建立前端 Design System 基礎（Antd 5.x Theme Token）
+- 建立 Dev Scripts（一鍵啟動前後端）
+
+---
+
+## 3. 提案
+
+### 3.1 Tech Stack 選型
+
+| Layer         | Technology              | 版本              | 理由                                  |
+| ------------- | ----------------------- | ----------------- | ------------------------------------- |
+| Language      | TypeScript              | 5.x               | 前後端統一語言，型別安全              |
+| Frontend      | React + Vite            | React 18 / Vite 5 | 快速開發、HMR、生態豐富               |
+| UI Library    | Ant Design + antd-style | 5.x / 3.x         | 專為後台管理設計，內建表格/表單/Modal |
+| HTTP Client   | Axios                   | 1.x               | 搭配 JWT interceptor                  |
+| Routing       | React Router            | v6                | 支援 protected routes、nested layout  |
+| Backend       | Express.js              | 4.x               | 輕量、快速原型開發                    |
+| Database      | SQLite + better-sqlite3 | —                 | 零配置，Demo 系統理想選擇             |
+| Query Builder | Knex.js                 | 3.x               | 管理 migrations/seeds，未來可切換 DB  |
+| Auth          | jsonwebtoken + bcryptjs | —                 | JWT + 密碼雜湊                        |
+| Dev Tools     | nodemon + concurrently  | —                 | 熱重載、同時啟動前後端                |
+
+### 3.2 開發環境配置
+
+- **Node.js**：>= 18 LTS
+- **Package Manager**：npm
+- **ESLint**：`@typescript-eslint/parser` + `eslint-plugin-react-hooks`
+- **Prettier**：統一程式碼風格（semi, singleQuote, printWidth 等）
+- **.gitignore**：排除 `node_modules/`、`.env`、`*.sqlite`、`dist/`
+
+---
+
+## 4. 高層設計
+
+### 4.1 專案目錄結構
+
+```
+chat-management/
+├── package.json                    # 根層 — concurrently 啟動 client + server
+├── .eslintrc.cjs                   # ESLint 配置
+├── .prettierrc                     # Prettier 配置
+├── .gitignore
+├── doc/                            # 設計文件
+├── client/                         # React + Vite 前端
+│   ├── package.json
+│   ├── vite.config.ts              # Vite 配置（含 proxy）
+│   ├── index.html
+│   ├── .env                        # 前端環境變數
+│   └── src/
+│       ├── main.tsx                # 進入點
+│       ├── App.tsx                 # ConfigProvider + AuthProvider + RouterProvider
+│       ├── api/                    # Axios 實例 + API 封裝
+│       ├── context/                # React Context（Auth, Theme）
+│       ├── layouts/                # AdminLayout（Sidebar + Header + Content）
+│       ├── pages/                  # 各功能頁面
+│       ├── components/             # 共用元件
+│       └── theme/                  # Antd Design Token
+│           ├── index.ts            # 主出口 — 組裝 ThemeConfig
+│           ├── tokens/
+│           │   ├── colors.ts       # 品牌色、語意色（Seed Tokens）
+│           │   ├── typography.ts   # 字體、字級
+│           │   ├── spacing.ts      # 圓角、間距、控件高度
+│           │   └── index.ts
+│           └── components/
+│               ├── button.ts       # Button component tokens
+│               ├── table.ts        # Table component tokens
+│               ├── form.ts         # Form/Input component tokens
+│               ├── layout.ts       # Layout/Menu/Sider component tokens
+│               └── index.ts
+└── server/                         # Express 後端
+    ├── package.json
+    ├── .env                        # serverAddress, serverPort, encoding, maxChattingRecordNum
+    ├── knexfile.ts                 # Knex 配置
+    ├── src/
+    │   ├── app.ts                  # Express app（middleware、路由掛載、error handler）
+    │   └── server.ts               # HTTP server 啟動
+    ├── db/
+    │   ├── migrations/             # Knex migration 檔案
+    │   └── seeds/                  # Mock data seed 檔案
+    ├── middleware/                  # auth, permission, operationLogger
+    └── module/                     # 模組化路由
+        └── {moduleName}/
+            ├── controller.ts
+            ├── service.ts
+            └── route.ts
+```
+
+### 4.2 Monorepo 結構
+
+採用 client / server 分離的簡易 monorepo，透過根層 `concurrently` 統一管理：
+
+| 層級    | package.json 職責                                             |
+| ------- | ------------------------------------------------------------- |
+| 根層    | `concurrently` 啟動 client + server、共用 lint/format scripts |
+| client/ | React + Vite + Antd 相關依賴                                  |
+| server/ | Express + SQLite + Knex 相關依賴                              |
+
+---
+
+## 5. 詳細設計
+
+### 5.1 後端基礎設施
+
+**Express App 骨架**（`server/src/app.ts`）：
+
+```
+express()
+  ├── express.json()               # body parser
+  ├── cors()                       # CORS 設定
+  ├── 路由掛載區                    # /api/* routes（Phase 2+ 逐步掛載）
+  ├── GET /api/health              # health check
+  └── error handler middleware     # 統一錯誤處理，回傳 { error, message }
+```
+
+**環境變數**（`server/.env`）：
+
+```
+SERVER_ADDRESS=localhost
+SERVER_PORT=3000
+ENCODING=utf-8
+MAX_CHATTING_RECORD_NUM=200
+JWT_SECRET=dev-secret-key
+```
+
+**啟動分離**：`app.ts` 負責 Express 設定、`server.ts` 負責監聽 port，方便測試時直接 import app。
+
+### 5.2 資料庫基礎設施
+
+**Knex 配置**（`server/knexfile.ts`）：
+
+```ts
+export default {
+  client: 'better-sqlite3',
+  connection: { filename: './db/dev.sqlite' },
+  useNullAsDefault: true,
+  migrations: { directory: './db/migrations' },
+  seeds: { directory: './db/seeds' },
+};
+```
+
+**Migration 機制**：
+
+- 檔案命名慣例：`YYYYMMDDHHMMSS_create_tablename.ts`
+- 每個 migration 包含 `up()` 和 `down()`
+- 此階段僅建立 migration 基礎設施，個別 table 的 migration 在各模組開發時建立
+
+**Seed 機制**：
+
+- Seeds 以數字前綴控制執行順序：`01_admins.ts`、`02_chatrooms.ts`...
+- `npm run db:seed` 重新填入所有 Mock Data
+
+### 5.3 前端基礎設施
+
+**Vite 配置**（`client/vite.config.ts`）：
+
+```ts
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': 'http://localhost:3000', // 代理到後端
+    },
+  },
+});
+```
+
+**Antd 5.x Theme Token 架構**：
+
+採用三層 Token 架構：
+
+| 層級             | 說明                                      | 範例                        |
+| ---------------- | ----------------------------------------- | --------------------------- |
+| Seed Tokens      | ~20 個核心值，Antd 演算法自動推導整套色彩 | `colorPrimary: '#1B5EBF'`   |
+| Map Tokens       | ~100 個自動衍生值，通常不需覆寫           | `colorPrimaryBg`（自動）    |
+| Component Tokens | 針對個別元件微調                          | `Table.headerBg: '#F5F7FA'` |
+
+**theme/ 目錄結構**：
+
+- `tokens/colors.ts` — 品牌色（Seed Tokens）
+- `tokens/typography.ts` — 字體、字級
+- `tokens/spacing.ts` — 圓角、間距、控件高度
+- `components/button.ts`、`table.ts`、`form.ts`、`layout.ts` — 各元件 token
+- `index.ts` — 組裝 `ThemeConfig`，啟用 `cssVar: true`、`hashed: false`
+
+**套用方式**：在 `App.tsx` 以 `ConfigProvider` 包裹整個應用。
+
+**自訂元件使用 Token 的方式**：
+
+| 方法                                | 適用場景                                            |
+| ----------------------------------- | --------------------------------------------------- |
+| `antd-style` 的 `createStyles`      | **首選**。所有元件樣式，整合 token，無 inline style |
+| `theme.useToken()` hook             | 在 JS 邏輯中讀取 token 值（非樣式用途）             |
+| CSS 變數 `var(--ant-color-primary)` | 全域 CSS 或第三方元件覆寫時使用                     |
+
+**關鍵原則**：
+
+- 不硬編碼顏色，一律用 `token.*` 或 CSS 變數
+- 禁用 inline style object，一律用 `createStyles` 管理元件樣式
+- 不用 `!important` 或全域 CSS 覆蓋
+- 全部用 TypeScript，享受型別檢查
+- Seed Token 優先，不夠再用 Component Token
+
+**App.tsx 骨架**：
+
+```tsx
+<ConfigProvider theme={theme}>
+  <AuthProvider>
+    {' '}
+    {/* Phase 2 加入 */}
+    <RouterProvider router={router} />
+  </AuthProvider>
+</ConfigProvider>
+```
+
+**路由配置骨架**（React Router v6）：
+
+```tsx
+const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
+  {
+    path: '/',
+    element: <AdminLayout />, // Sidebar + Header + Content
+    children: [
+      // Phase 2+ 逐步加入各頁面路由
+    ],
+  },
+]);
+```
+
+### 5.4 Dev Scripts
+
+| Script               | 指令                                                     | 說明                     |
+| -------------------- | -------------------------------------------------------- | ------------------------ |
+| `npm run dev`        | `concurrently "npm run dev:client" "npm run dev:server"` | 一鍵啟動前後端           |
+| `npm run dev:client` | `cd client && npm run dev`                               | Vite dev server（HMR）   |
+| `npm run dev:server` | `cd server && npx nodemon src/server.ts`                 | Express + nodemon 熱重載 |
+| `npm run db:migrate` | `cd server && npx knex migrate:latest`                   | 執行所有 migration       |
+| `npm run db:seed`    | `cd server && npx knex seed:run`                         | 填入 Mock Data           |
+| `npm run lint`       | `eslint . --ext .ts,.tsx`                                | 程式碼檢查               |
+| `npm run format`     | `prettier --write .`                                     | 程式碼格式化             |
+| `npm run build`      | `cd client && npm run build`                             | 前端 production build    |
+
+---
+
+## 6. 風險與緩解
+
+| 風險                            | 影響                         | 緩解方式                                                         |
+| ------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
+| SQLite 不支援並發寫入           | 多用戶同時操作時可能鎖表     | Demo 環境為單用戶場景，足夠使用。Knex 抽象層讓日後切換 DB 成本低 |
+| better-sqlite3 為 native module | 安裝時需要 node-gyp 編譯環境 | 確保開發機有 C++ 編譯工具（macOS: Xcode CLI Tools）              |
+| 前後端分 port                   | 開發時需處理 CORS / proxy    | Vite proxy 設定解決開發環境跨域問題                              |
+
+---
+
+## 7. 完成標準
+
+- [ ] `npm run dev` 一鍵啟動前後端
+- [ ] `GET /api/health` 回傳 200 `{ status: 'ok' }`
+- [ ] 前端頁面顯示 Ant Design 元件，套用自訂主題色彩
+- [ ] `npm run lint` 可執行且通過
+- [ ] `npm run db:migrate` 正常執行，SQLite 檔案產生
+- [ ] .gitignore 正確排除 node_modules、.env、\*.sqlite

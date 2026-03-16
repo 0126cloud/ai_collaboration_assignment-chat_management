@@ -1,0 +1,30 @@
+{
+  "name": "chat-management-server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "better-sqlite3": "^11.8.1",
+    "knex": "^3.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "ts-node": "^10.9.2",
+    "nodemon": "^3.1.9",
+    "@types/express": "^5.0.0",
+    "@types/cors": "^2.8.17",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.13.10"
+  }
+}
