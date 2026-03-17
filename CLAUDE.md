@@ -5,19 +5,21 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_03-chatroom-and-chat.md (Phase 3 已完成)
+- **Current progress**: 00_doc/tasks_05-nickname-and-report.md (Phase 5 待實作)
 
 ## Document Routing
 
 Read the relevant document BEFORE starting any task:
 
-| Task Type                     | Read First                                   |
-| ----------------------------- | -------------------------------------------- |
-| Product scope & requirements  | `00_doc/prd_00-chat_management_backstage.md` |
-| Project init technical design | `00_doc/rfc_00-project_tech_stack.md`        |
-| Auth & response design        | `00_doc/rfc_01-auth-and-response.md`         |
-| Operation logs design         | `00_doc/rfc_02-operation-logs.md`            |
-| Chatroom & chat design        | `00_doc/rfc_03-chatroom-and-chat.md`         |
+| Task Type                      | Read First                                   |
+| ------------------------------ | -------------------------------------------- |
+| Product scope & requirements   | `00_doc/prd_00-chat_management_backstage.md` |
+| Project init technical design  | `00_doc/rfc_00-project_tech_stack.md`        |
+| Auth & response design         | `00_doc/rfc_01-auth-and-response.md`         |
+| Operation logs design          | `00_doc/rfc_02-operation-logs.md`            |
+| Chatroom & chat design         | `00_doc/rfc_03-chatroom-and-chat.md`         |
+| Blacklist & IP blocking design | `00_doc/rfc_04-blacklist-and-ip-blocking.md` |
+| Nickname & report design       | `00_doc/rfc_05-nickname-and-report.md`       |
 
 ## Skill 使用指引
 
