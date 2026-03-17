@@ -2,14 +2,18 @@
   "name": "chat-management",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:client": "cd client && npm run dev",
-    "dev:server": "cd server && npx nodemon src/server.ts",
+    "dev:server": "cd server && npm run dev",
     "db:migrate": "cd server && npx knex migrate:latest",
     "db:seed": "cd server && npx knex seed:run",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write .",
-    "build": "cd client && npm run build"
+    "build": "cd client && npm run build",
+    "test": "npm run test:server && npm run test:client",
+    "test:server": "cd server && npx vitest run",
+    "test:client": "cd client && npx vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.18.0",
@@ -18,6 +22,11 @@
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "prettier": "^3.4.2"
+    "jsdom": "^29.0.0",
+    "prettier": "^3.4.2",
+    "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
   }
 }

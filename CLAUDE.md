@@ -5,7 +5,7 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_00-project_init.md (finished)
+- **Current progress**: 00_doc/tasks_01-auth-and-response.md (Phase 1 驗收中)
 
 ## Document Routing
 
@@ -15,6 +15,7 @@ Read the relevant document BEFORE starting any task:
 | ----------------------------- | -------------------------------------------- |
 | Product scope & requirements  | `00_doc/prd_00-chat_management_backstage.md` |
 | Project init technical design | `00_doc/rfc_00-project_tech_stack.md`        |
+| Auth & response design        | `00_doc/rfc_01-auth-and-response.md`         |
 
 ## Skill 使用指引
 
@@ -37,7 +38,7 @@ Read the relevant document BEFORE starting any task:
 
 - Follow SOLID CleanCode principles
 - React: Follow react-best-practice skill
-- All operations must be logged to operation_logs (using operationLogModule)
+- All operations must be logged to operation_logs (using operationLogger afterware middleware, see rfc_02)
 - No hardcoded colors — use Antd design tokens or CSS variables
 - Frontend styling: 一律用 `createStyles` from `antd-style`，禁用 inline style object
   - 有用到 token（顏色/間距....）：`createStyles(({ token }) => ({...}))`
