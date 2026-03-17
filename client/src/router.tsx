@@ -4,6 +4,8 @@ import AdminLayout from './layouts/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFoundPage from './pages/NotFoundPage';
 import OperationLogPage from './pages/OperationLogPage';
+import ChatroomPage from './pages/ChatroomPage';
+import ChatMonitoringPage from './pages/ChatMonitoringPage';
 
 const router = createBrowserRouter([
   {
@@ -23,6 +25,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="operation_log:read">
             <OperationLogPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'chatrooms',
+        element: (
+          <ProtectedRoute permission="chatroom:read">
+            <ChatroomPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'chat',
+        element: (
+          <ProtectedRoute permission="chat:read">
+            <ChatMonitoringPage />
           </ProtectedRoute>
         ),
       },
