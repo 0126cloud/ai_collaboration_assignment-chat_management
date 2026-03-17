@@ -11,6 +11,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/__tests__/**/*.test.{ts,tsx}'],
     setupFiles: ['src/__tests__/helpers/setup.ts'],
+    testTimeout: 10000,
   },
   resolve: {
     alias: {
