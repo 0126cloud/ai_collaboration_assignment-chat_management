@@ -127,3 +127,31 @@ Feature: 操作紀錄
     And 管理員請求操作紀錄列表，篩選操作類型為 "CHANGE_PASSWORD"
     Then 最新一筆紀錄的 operator 為 "admin01"
     And 最新一筆紀錄的 request.payload 中密碼欄位為 "***"
+
+  @integration
+  Scenario: 登入後自動產生操作紀錄
+    When 管理員以 username "admin01" password "123456" 登入
+    Then 系統回傳 200 狀態碼
+    And operation_logs 最新一筆的 operation_type 為 "LOGIN"
+    And 最新一筆紀錄的 operator 為 "admin01"
+    And 最新一筆紀錄的 request.payload 中密碼欄位為 "***"
+
+  @integration
+  Scenario: 登入失敗不產生操作紀錄
+    When 管理員以 username "admin01" password "wrong_password" 登入
+    Then 系統回傳 401 狀態碼
+    And operation_logs 無新增 "LOGIN" 紀錄
+
+  @integration
+  Scenario: 登出後自動產生操作紀錄
+    Given 管理員 "admin01" 已登入
+    When 管理員執行登出
+    Then 系統回傳 200 狀態碼
+    And operation_logs 最新一筆的 operation_type 為 "LOGOUT"
+    And 最新一筆紀錄的 operator 為 "admin01"
+
+  @integration
+  Scenario: 未登入直接登出不產生操作紀錄
+    When 管理員未帶 Token 執行登出
+    Then 系統回傳 401 狀態碼
+    And operation_logs 無新增 "LOGOUT" 紀錄

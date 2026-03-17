@@ -489,7 +489,7 @@ export function requirePermission(...requiredPermissions: string[]) {
 
 ```ts
 // 單一權限
-router.get('/api/chat/messages', auth, requirePermission('chat:read'), ctrl.list);
+router.get('/api/chat_messages', auth, requirePermission('chat:read'), ctrl.list);
 
 // 多個權限（OR 邏輯）
 router.put(
@@ -591,8 +591,8 @@ router.put(
 | POST   | `/api/auth/logout`                   | —                          | 僅需 auth |
 | PUT    | `/api/auth/password`                 | `auth:change_own_password` |           |
 | GET    | `/api/auth/permissions`              | —                          | 僅需 auth |
-| GET    | `/api/chat/messages`                 | `chat:read`                | Phase 2+  |
-| DELETE | `/api/chat/messages/:id`             | `chat:delete`              | Phase 2+  |
+| GET    | `/api/chat_messages`                 | `chat:read`                | Phase 3   |
+| DELETE | `/api/chat_messages/:id`             | `chat:delete`              | Phase 3   |
 | GET    | `/api/blacklist`                     | `blacklist:read`           | Phase 2+  |
 | POST   | `/api/blacklist`                     | `blacklist:create`         | Phase 2+  |
 | DELETE | `/api/blacklist/:id`                 | `blacklist:delete`         | Phase 2+  |

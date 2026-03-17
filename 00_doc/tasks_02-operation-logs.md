@@ -268,6 +268,54 @@ curl -H "Authorization: Bearer $TOKEN" "http://localhost:3000/api/operation-logs
 
 ---
 
+## Task 2.7: 新增 LOGIN / LOGOUT 操作紀錄
+
+新增登入與登出的操作紀錄寫入。LOGIN 路由不經過 auth middleware，需由 controller 手動帶入 operator 資訊。
+
+**修改檔案：**
+
+1. `shared/types/operationLog.ts`
+   - `OPERATION_TYPES` 新增 `'LOGIN'`、`'LOGOUT'`
+   - `OPERATION_TYPE_LABELS` 新增 `LOGIN: '管理員登入'`、`LOGOUT: '管理員登出'`
+
+2. `server/src/middleware/operationLogger.ts`
+   - operator 來源改為：`logData.operatorId ?? req.user?.id`
+   - operator 帳號改為：`logData.operator ?? req.user?.username`
+   - 允許 controller 透過 `res.locals.operationLog` 覆寫 operator 資訊
+   - 參照 [rfc_02 §5.2 更新](rfc_02-operation-logs.md)
+
+3. `server/src/module/auth/controller.ts`
+   - `login` 成功後設定：
+     `res.locals.operationLog = { operationType: 'LOGIN', operatorId: result.user.id, operator: result.user.username }`
+     （因 login 不經過 auth middleware，需手動帶入 operator）
+   - `logout` 成功前設定：
+     `res.locals.operationLog = { operationType: 'LOGOUT' }`
+     （logout 經過 auth middleware，`req.user` 有值，不需額外處理）
+
+### 驗證方式
+
+- 登入後 `operation_logs` 有 `LOGIN` 紀錄，operator 正確，password 為 `***`
+- 登出後 `operation_logs` 有 `LOGOUT` 紀錄
+- 登入失敗（401）不產生紀錄
+- 未登入直接登出（401）不產生紀錄
+- 現有測試（`npm test`）仍全部通過
+
+### Task 2.7t: Integration Tests — LOGIN / LOGOUT 操作紀錄
+
+**建立** `server/src/__tests__/integration/auth.operationLog.test.ts`
+
+**測試案例：**
+
+- 登入成功 → operation_logs 有 LOGIN 紀錄，operator 為登入者（`@integration`）
+- 登入成功 → request.payload 中 password 為 `***`（`@integration`）
+- 登入失敗（密碼錯誤）→ 不產生紀錄（`@integration`）
+- 登出成功 → operation_logs 有 LOGOUT 紀錄（`@integration`）
+- 未登入直接登出（401）→ 不產生紀錄（`@integration`）
+
+對應 Gherkin：`@integration 登入後自動產生操作紀錄`、`@integration 登入失敗不產生操作紀錄`、`@integration 登出後自動產生操作紀錄`、`@integration 未登入直接登出不產生操作紀錄`
+
+---
+
 ## Task 2.6: CLAUDE.md 更新
 
 **修改** `CLAUDE.md`
@@ -296,23 +344,27 @@ Task 2.4 → 2.4t（GET API + 測試）
 Task 2.5 → 2.5t（前端頁面 + 測試）
   ↓
 Task 2.6（CLAUDE.md 更新）
+  ↓
+Task 2.7 → 2.7t（LOGIN / LOGOUT 操作紀錄 + 測試）
 ```
 
-> Task 2.1~2.3 為重構現有程式碼，必須依序執行。Task 2.4 起為新功能開發，每個功能 task 後緊接對應的測試 task。
+> Task 2.1~2.3 為重構現有程式碼，必須依序執行。Task 2.4 起為新功能開發，每個功能 task 後緊接對應的測試 task。Task 2.7 需在 2.2 完成後才可執行（依賴 operationLogger middleware）。
 
 ## Progress
 
-| Task      | 狀態 | 完成日期 | 備註 |
-| --------- | ---- | -------- | ---- |
-| Task 2.1  | ⬜   |          |      |
-| Task 2.2  | ⬜   |          |      |
-| Task 2.3  | ⬜   |          |      |
-| Task 2.3t | ⬜   |          |      |
-| Task 2.4  | ⬜   |          |      |
-| Task 2.4t | ⬜   |          |      |
-| Task 2.5  | ⬜   |          |      |
-| Task 2.5t | ⬜   |          |      |
-| Task 2.6  | ⬜   |          |      |
+| Task      | 狀態 | 完成日期   | 備註                                     |
+| --------- | ---- | ---------- | ---------------------------------------- |
+| Task 2.1  | ✅   | 2026-03-17 | Migration 新 schema + 20 筆 seed data   |
+| Task 2.2  | ✅   | 2026-03-17 | operationLogger afterware middleware     |
+| Task 2.3  | ✅   | 2026-03-17 | admin/auth controller 改用 res.locals    |
+| Task 2.3t | ✅   | 2026-03-17 | unit + integration tests                 |
+| Task 2.4  | ✅   | 2026-03-17 | GET /api/operation-logs + shared types   |
+| Task 2.4t | ✅   | 2026-03-17 | 13 個 integration tests                  |
+| Task 2.5  | ✅   | 2026-03-17 | OperationLogPage + 路由 + API 封裝       |
+| Task 2.5t | ✅   | 2026-03-17 | 6 個 component tests                     |
+| Task 2.6  | ✅   | 2026-03-17 | CLAUDE.md + tasks 狀態更新               |
+| Task 2.7  | ✅   | 2026-03-17 | LOGIN/LOGOUT + operationLogger 覆寫支援  |
+| Task 2.7t | ✅   | 2026-03-17 | 6 個 integration tests                   |
 
 ## 完成檢查清單
 
@@ -320,6 +372,9 @@ Task 2.6（CLAUDE.md 更新）
 - [ ] `operationLogger` afterware middleware 正常運作
 - [ ] 新增管理員帳號後 operation_logs 自動寫入（afterware 模式）
 - [ ] 修改密碼後 operation_logs 自動寫入
+- [ ] 登入後 operation_logs 自動寫入（LOGIN），operator 正確，password 為 `***`
+- [ ] 登出後 operation_logs 自動寫入（LOGOUT）
+- [ ] 登入失敗（401）不產生紀錄
 - [ ] `GET /api/operation-logs` 回傳分頁資料
 - [ ] 篩選條件正常運作（operationType / operator / startDate / endDate）
 - [ ] request JSON 中密碼欄位已過濾為 `***`

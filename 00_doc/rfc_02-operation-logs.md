@@ -226,8 +226,10 @@ export function operationLogger(req: Request, res: Response, next: NextFunction)
       const db = getDb();
       await db('operation_logs').insert({
         operation_type: logData.operationType,
-        operator_id: req.user?.id,
-        operator: req.user?.username,
+        // operator 來源優先順序：res.locals.operationLog > req.user
+        // LOGIN 路由不經 auth middleware，需由 controller 手動帶入
+        operator_id: logData.operatorId ?? req.user?.id,
+        operator: logData.operator ?? req.user?.username,
         request: JSON.stringify({
           url: req.originalUrl,
           method: req.method,
@@ -318,8 +320,12 @@ app.use(operationLogger);
 | `APPROVE_NICKNAME` | 核准暱稱變更    | nickname  |
 | `REJECT_NICKNAME`  | 駁回暱稱變更    | nickname  |
 | `CHANGE_PASSWORD`  | 修改自己密碼    | auth      |
+| `LOGIN`            | 管理員登入      | auth      |
+| `LOGOUT`           | 管理員登出      | auth      |
 
 > 此枚舉定義在 `shared/types/operationLog.ts`，前後端共用。目前僅 `CREATE_ADMIN` 與 `CHANGE_PASSWORD` 有實際寫入，其餘在各模組開發時逐步啟用。
+>
+> **注意**：`LOGIN` 路由不經過 `auth` middleware，`req.user` 不存在。`operationLogger` 需支援從 `res.locals.operationLog` 讀取 `operatorId` 和 `operator` 作為覆寫來源。`LOGOUT` 路由經過 `auth` middleware，無此問題。
 
 ### 5.4 後端 Module — operationLog
 
@@ -522,6 +528,9 @@ export const operationLogApi = {
 - [ ] `operationLogger` afterware middleware 正常運作
 - [ ] 新增管理員帳號後，operation_logs 自動寫入（afterware 模式）
 - [ ] 修改密碼後，operation_logs 自動寫入
+- [ ] 登入後，operation_logs 自動寫入（LOGIN），operator 正確，password 為 `***`
+- [ ] 登出後，operation_logs 自動寫入（LOGOUT）
+- [ ] 登入失敗（401）不產生紀錄
 - [ ] `GET /api/operation-logs` 回傳分頁資料
 - [ ] 篩選條件正常運作（operationType / operator / startDate / endDate）
 - [ ] request JSON 中密碼欄位已過濾為 `***`
