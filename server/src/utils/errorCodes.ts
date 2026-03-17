@@ -16,6 +16,9 @@ export enum ErrorCode {
 
   // 管理員管理
   ADMIN_USERNAME_DUPLICATE = 'ADMIN_USERNAME_DUPLICATE',
+
+  // 聊天訊息
+  CHAT_MESSAGE_NOT_FOUND = 'CHAT_MESSAGE_NOT_FOUND',
 }
 
 export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: string }> = {
@@ -29,4 +32,5 @@ export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: st
   [ErrorCode.AUTH_OLD_PASSWORD_INCORRECT]: { statusCode: 400, message: '舊密碼不正確' },
   [ErrorCode.FORBIDDEN_INSUFFICIENT_PERMISSIONS]: { statusCode: 403, message: '權限不足' },
   [ErrorCode.ADMIN_USERNAME_DUPLICATE]: { statusCode: 409, message: '帳號已存在' },
+  [ErrorCode.CHAT_MESSAGE_NOT_FOUND]: { statusCode: 404, message: '訊息不存在或已刪除' },
 };

@@ -9,6 +9,8 @@ import { initDatabase } from './config/database';
 import { createAuthRoutes } from './module/auth/route';
 import { createAdminRoutes } from './module/admin/route';
 import { createOperationLogRoutes } from './module/operationLog/route';
+import { createChatroomRoutes } from './module/chatroom/route';
+import { createChatMessageRoutes } from './module/chatMessage/route';
 import { operationLogger } from './middleware/operationLogger';
 
 dotenv.config();
@@ -41,6 +43,8 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.use('/api/auth', createAuthRoutes(db));
 app.use('/api/admins', createAdminRoutes(db));
 app.use('/api/operation-logs', createOperationLogRoutes(db));
+app.use('/api/chatrooms', createChatroomRoutes(db));
+app.use('/api/chat_messages', createChatMessageRoutes(db));
 
 // 404 handler
 app.use((_req: Request, _res: Response, next: NextFunction) => {
