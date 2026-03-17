@@ -28,6 +28,7 @@ ROLE_PERMISSIONS.senior_manager = [
   'admin:reset_password',
   'broadcast:read',
   'broadcast:create',
+  'broadcast:delete',
 ];
 
 export function getPermissionsForRole(role: string): string[] {

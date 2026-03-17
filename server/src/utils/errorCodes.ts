@@ -31,6 +31,9 @@ export enum ErrorCode {
   // 玩家檢舉
   REPORT_NOT_FOUND = 'REPORT_NOT_FOUND',
   REPORT_ALREADY_REVIEWED = 'REPORT_ALREADY_REVIEWED',
+
+  // 廣播訊息
+  BROADCAST_NOT_FOUND = 'BROADCAST_NOT_FOUND',
 }
 
 export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: string }> = {
@@ -54,4 +57,5 @@ export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: st
   },
   [ErrorCode.REPORT_NOT_FOUND]: { statusCode: 404, message: '檢舉紀錄不存在' },
   [ErrorCode.REPORT_ALREADY_REVIEWED]: { statusCode: 409, message: '該檢舉已審核過' },
+  [ErrorCode.BROADCAST_NOT_FOUND]: { statusCode: 404, message: '廣播紀錄不存在或已下架' },
 };
