@@ -382,7 +382,7 @@ export function zodToAntdRules<T extends ZodRawShape>(
 
 此工具將 Zod schema 的各欄位驗證規則轉換為 Antd Form 的 `rules` 格式，供 `Form.Item` 使用。
 
-### 5.5 權限矩陣（21 權限 × 2 角色）
+### 5.5 權限矩陣（22 權限 × 2 角色）
 
 | Category      | Permission Code            | 說明            | General Mgr | Senior Mgr |
 | ------------- | -------------------------- | --------------- | :---------: | :--------: |
@@ -407,6 +407,7 @@ export function zodToAntdRules<T extends ZodRawShape>(
 | admin         | `admin:reset_password`     | 重設管理員密碼  |             |     v      |
 | broadcast     | `broadcast:read`           | 查看廣播紀錄    |             |     v      |
 | broadcast     | `broadcast:create`         | 發送廣播訊息    |             |     v      |
+| broadcast     | `broadcast:delete`         | 下架廣播訊息    |             |     v      |
 
 **權限設定檔**（`server/src/config/permissions.ts`）：
 
@@ -441,6 +442,7 @@ ROLE_PERMISSIONS.senior_manager = [
   'admin:reset_password',
   'broadcast:read',
   'broadcast:create',
+  'broadcast:delete',
 ];
 
 export function getPermissionsForRole(role: string): string[] {
@@ -647,8 +649,9 @@ router.put(
 | POST   | `/api/blacklist/ip`                       | `ip_block:create`          | Phase 4   |
 | DELETE | `/api/blacklist/ip/:id`                   | `ip_block:delete`          | Phase 4   |
 | GET    | `/api/chatrooms`                          | `chatroom:read`            | Phase 2+  |
-| GET    | `/api/broadcasts`                         | `broadcast:read`           | Phase 2+  |
-| POST   | `/api/broadcasts`                         | `broadcast:create`         | Phase 2+  |
+| GET    | `/api/broadcasts`                         | `broadcast:read`           | Phase 6   |
+| POST   | `/api/broadcasts`                         | `broadcast:create`         | Phase 6   |
+| DELETE | `/api/broadcasts/:id`                     | `broadcast:delete`         | Phase 6   |
 | GET    | `/api/operation-logs`                     | `operation_log:read`       | Phase 2+  |
 | GET    | `/api/reports`                            | `report:read`              | Phase 5   |
 | POST   | `/api/reports/:id/approve`                | `report:review`            | Phase 5   |
