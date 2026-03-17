@@ -24,3 +24,14 @@ export type { TChatroomItem, TChatroomQuery } from './types/chatroom';
 export type { TChatMessageItem, TChatMessageQuery } from './types/chatMessage';
 export { chatroomQuerySchema } from './schemas/chatroom';
 export { chatMessageQuerySchema } from './schemas/chatMessage';
+export type {
+  TBlacklistItem,
+  TBlacklistQuery,
+  TCreatePlayerBlockPayload,
+  TCreateIpBlockPayload,
+} from './types/blacklist';
+export {
+  blacklistQuerySchema,
+  createPlayerBlockSchema,
+  createIpBlockSchema,
+} from './schemas/blacklist';
