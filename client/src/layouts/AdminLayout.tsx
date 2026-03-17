@@ -51,7 +51,7 @@ const allMenuItems = [
   },
   {
     key: '/blacklist',
-    label: '黑名單管理',
+    label: '黑名單管理 (IP, Player)',
     icon: <StopOutlined />,
     permission: 'blacklist:read',
   },

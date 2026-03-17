@@ -24,6 +24,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { chatMessageApi } from '../api/chatMessage';
 import { chatroomApi } from '../api/chatroom';
+import CreateBlacklistModal from '../components/CreateBlacklistModal';
 import type { TChatMessageItem, TChatMessageQuery } from '@shared/types/chatMessage';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -59,6 +60,14 @@ const ChatMonitoringPage = () => {
 
   // 聊天室選項
   const [chatroomOptions, setChatroomOptions] = useState<{ label: string; value: string }[]>([]);
+
+  // 封鎖玩家 Modal 狀態
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const [blockModalInitialValues, setBlockModalInitialValues] = useState<{
+    blockType?: 'player' | 'ip';
+    target?: string;
+    chatroomId?: string;
+  }>({});
 
   // 篩選狀態
   const [chatroomId, setChatroomId] = useState<string | undefined>();
@@ -131,6 +140,15 @@ const ChatMonitoringPage = () => {
     fetchData(paginationConfig.current || 1, paginationConfig.pageSize || 30);
   };
 
+  const handleBlock = (record: TChatMessageItem) => {
+    setBlockModalInitialValues({
+      blockType: 'player',
+      target: record.player_username,
+      chatroomId: record.chatroom_id,
+    });
+    setBlockModalOpen(true);
+  };
+
   const handleDelete = (record: TChatMessageItem) => {
     Modal.confirm({
       title: '確認刪除',
@@ -196,11 +214,14 @@ const ChatMonitoringPage = () => {
           >
             刪除
           </Button>
-          <Tooltip title="功能開發中">
-            <Button type="link" size="small" icon={<StopOutlined />} disabled>
-              封鎖
-            </Button>
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            icon={<StopOutlined />}
+            onClick={() => handleBlock(record)}
+          >
+            封鎖
+          </Button>
           <Tooltip title="功能開發中">
             <Button type="link" size="small" icon={<EditOutlined />} disabled>
               重設暱稱
@@ -260,6 +281,14 @@ const ChatMonitoringPage = () => {
           </Space>
         </div>
       </Card>
+      <CreateBlacklistModal
+        open={blockModalOpen}
+        onClose={() => setBlockModalOpen(false)}
+        onSuccess={() => {
+          message.success('已成功封鎖玩家');
+        }}
+        initialValues={blockModalInitialValues}
+      />
       <Table<TChatMessageItem>
         rowKey="id"
         columns={columns}

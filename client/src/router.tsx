@@ -6,6 +6,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import OperationLogPage from './pages/OperationLogPage';
 import ChatroomPage from './pages/ChatroomPage';
 import ChatMonitoringPage from './pages/ChatMonitoringPage';
+import BlacklistPage from './pages/BlacklistPage';
 
 const router = createBrowserRouter([
   {
@@ -41,6 +42,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="chat:read">
             <ChatMonitoringPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'blacklist',
+        element: (
+          <ProtectedRoute permission="blacklist:read">
+            <BlacklistPage />
           </ProtectedRoute>
         ),
       },
