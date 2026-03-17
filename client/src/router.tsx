@@ -9,6 +9,7 @@ import ChatMonitoringPage from './pages/ChatMonitoringPage';
 import BlacklistPage from './pages/BlacklistPage';
 import NicknameReviewPage from './pages/NicknameReviewPage';
 import ReportReviewPage from './pages/ReportReviewPage';
+import BroadcastPage from './pages/BroadcastPage';
 
 const router = createBrowserRouter([
   {
@@ -68,6 +69,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="report:read">
             <ReportReviewPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'broadcasts',
+        element: (
+          <ProtectedRoute permission="broadcast:read">
+            <BroadcastPage />
           </ProtectedRoute>
         ),
       },
