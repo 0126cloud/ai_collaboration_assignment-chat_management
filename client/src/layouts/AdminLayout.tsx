@@ -80,7 +80,7 @@ const allMenuItems = [
     permission: 'report:read',
   },
   {
-    key: '/nickname-requests',
+    key: '/nickname-reviews',
     label: '暱稱審核',
     icon: <UserOutlined />,
     permission: 'nickname:read',

@@ -7,6 +7,8 @@ import OperationLogPage from './pages/OperationLogPage';
 import ChatroomPage from './pages/ChatroomPage';
 import ChatMonitoringPage from './pages/ChatMonitoringPage';
 import BlacklistPage from './pages/BlacklistPage';
+import NicknameReviewPage from './pages/NicknameReviewPage';
+import ReportReviewPage from './pages/ReportReviewPage';
 
 const router = createBrowserRouter([
   {
@@ -50,6 +52,22 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="blacklist:read">
             <BlacklistPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'nickname-reviews',
+        element: (
+          <ProtectedRoute permission="nickname:read">
+            <NicknameReviewPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'reports',
+        element: (
+          <ProtectedRoute permission="report:read">
+            <ReportReviewPage />
           </ProtectedRoute>
         ),
       },
