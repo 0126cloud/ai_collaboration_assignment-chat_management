@@ -54,7 +54,10 @@ export async function setupTestSchema(database: Knex): Promise<void> {
   await database.schema.createTable('players', (table) => {
     table.string('username', 50).primary();
     table.string('nickname', 50).notNullable();
-    table.boolean('nickname_approved').notNullable().defaultTo(true);
+    table.string('nickname_review_status', 20).nullable();
+    table.string('nickname_reviewed_by', 50).nullable();
+    table.datetime('nickname_reviewed_at').nullable();
+    table.datetime('nickname_apply_at').nullable();
     table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
     table.timestamp('updated_at').notNullable().defaultTo(database.fn.now());
     table.timestamp('deleted_at').nullable();
@@ -98,6 +101,25 @@ export async function setupTestSchema(database: Knex): Promise<void> {
 
     table.unique(['block_type', 'target', 'chatroom_id']);
     table.index(['block_type', 'target']);
+    table.index('created_at');
+  });
+
+  await database.schema.createTable('reports', (table) => {
+    table.increments('id').primary();
+    table.string('reporter_username', 50).notNullable();
+    table.string('target_username', 50).notNullable();
+    table.string('chatroom_id', 50).notNullable();
+    table.integer('chat_message_id').nullable();
+    table.text('chat_message').notNullable();
+    table.string('reason', 20).notNullable();
+    table.string('status', 20).notNullable().defaultTo('pending');
+    table.string('reviewed_by', 50).nullable();
+    table.datetime('reviewed_at').nullable();
+    table.datetime('created_at').defaultTo(database.fn.now());
+
+    table.index('status');
+    table.index('reporter_username');
+    table.index('target_username');
     table.index('created_at');
   });
 }
