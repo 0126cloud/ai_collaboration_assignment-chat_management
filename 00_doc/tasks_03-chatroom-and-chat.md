@@ -444,36 +444,36 @@ Task 3.8（rfc_01 更新 + CLAUDE.md 更新）
 
 ## Progress
 
-| Task      | 狀態 | 完成日期 | 備註 |
-| --------- | ---- | -------- | ---- |
-| Task 3.1  | ⬜   |          |      |
-| Task 3.2  | ⬜   |          |      |
-| Task 3.3  | ⬜   |          |      |
-| Task 3.4  | ⬜   |          |      |
-| Task 3.4t | ⬜   |          |      |
-| Task 3.5  | ⬜   |          |      |
-| Task 3.5t | ⬜   |          |      |
-| Task 3.6  | ⬜   |          |      |
-| Task 3.6t | ⬜   |          |      |
-| Task 3.7  | ⬜   |          |      |
-| Task 3.7t | ⬜   |          |      |
-| Task 3.8  | ⬜   |          |      |
+| Task      | 狀態 | 完成日期   | 備註                         |
+| --------- | ---- | ---------- | ---------------------------- |
+| Task 3.1  | ✅   | 2026-03-17 | 4 張表 migration + testDb    |
+| Task 3.2  | ✅   | 2026-03-17 | 5 聊天室 + 18 玩家 + 64 訊息 |
+| Task 3.3  | ✅   | 2026-03-17 | types + schemas + index 更新 |
+| Task 3.4  | ✅   | 2026-03-17 | GET /api/chatrooms           |
+| Task 3.4t | ✅   | 2026-03-17 | 10 integration tests         |
+| Task 3.5  | ✅   | 2026-03-17 | GET + DELETE /api/chat_messages |
+| Task 3.5t | ✅   | 2026-03-17 | 21 integration tests         |
+| Task 3.6  | ✅   | 2026-03-17 | ChatroomPage + api + router  |
+| Task 3.6t | ✅   | 2026-03-17 | 7 component tests            |
+| Task 3.7  | ✅   | 2026-03-17 | ChatMonitoringPage + api     |
+| Task 3.7t | ✅   | 2026-03-17 | 10 component tests           |
+| Task 3.8  | ✅   | 2026-03-17 | 文件更新 + prettier          |
 
 ## 完成檢查清單
 
-- [ ] 4 張 migration 正常執行，DB 表結構正確
-- [ ] Seed data 正常載入（5 聊天室 + 15~20 玩家 + 50~100 訊息）
-- [ ] `GET /api/chatrooms` 回傳分頁聊天室列表
-- [ ] `GET /api/chatrooms?name=xxx` 模糊搜尋正常
-- [ ] `GET /api/chat_messages` 回傳分頁訊息列表
-- [ ] `GET /api/chat_messages` 多條件篩選正常
-- [ ] `DELETE /api/chat_messages/:id` 軟刪除成功
-- [ ] 刪除訊息後 operation_logs 有紀錄
-- [ ] 已軟刪除的訊息不出現在 GET 列表中
-- [ ] 前端 ChatroomPage 正確顯示聊天室列表
-- [ ] 前端 ChatMonitoringPage 正確顯示訊息列表
-- [ ] 前端刪除功能正常（確認 Modal + 刪除 + 重新查詢）
-- [ ] 前端封鎖玩家 / 暱稱重設按鈕為 disabled 狀態
-- [ ] 前端時間顯示為 UTC+8 格式
-- [ ] rfc_01 Route 權限對照表已同步更新
-- [ ] `npm test` 全部通過
+- [x] 4 張 migration 正常執行，DB 表結構正確
+- [x] Seed data 正常載入（5 聊天室 + 18 玩家 + 64 訊息）
+- [x] `GET /api/chatrooms` 回傳分頁聊天室列表
+- [x] `GET /api/chatrooms?name=xxx` 模糊搜尋正常
+- [x] `GET /api/chat_messages` 回傳分頁訊息列表
+- [x] `GET /api/chat_messages` 多條件篩選正常
+- [x] `DELETE /api/chat_messages/:id` 軟刪除成功
+- [x] 刪除訊息後 operation_logs 有紀錄
+- [x] 已軟刪除的訊息不出現在 GET 列表中
+- [x] 前端 ChatroomPage 正確顯示聊天室列表
+- [x] 前端 ChatMonitoringPage 正確顯示訊息列表
+- [x] 前端刪除功能正常（確認 Modal + 刪除 + 重新查詢）
+- [x] 前端封鎖玩家 / 暱稱重設按鈕為 disabled 狀態
+- [x] 前端時間顯示為 UTC+8 格式
+- [x] rfc_01 Route 權限對照表已同步更新（原已正確）
+- [x] `npm test` 全部通過（server 116 + client 42 = 158 tests）
