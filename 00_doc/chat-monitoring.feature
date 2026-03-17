@@ -173,15 +173,15 @@ Feature: 聊天監控
   # ─── 前端 UI 佔位 ───
 
   @ui_only
-  Scenario: 封鎖玩家按鈕存在但不可操作
+  Scenario: 封鎖玩家按鈕可點擊並開啟 Modal
     Given 管理員 "admin01" 已登入
     When 前端渲染聊天監控頁面
     Then 每筆訊息的操作欄有「封鎖玩家」按鈕
-    And 「封鎖玩家」按鈕為 disabled 狀態
+    And 「封鎖玩家」按鈕為 enabled 狀態（可點擊）
 
   @ui_only
   Scenario: 重設暱稱按鈕存在但不可操作
     Given 管理員 "admin01" 已登入
     When 前端渲染聊天監控頁面
     Then 每筆訊息的操作欄有「重設暱稱」按鈕
-    And 「重設暱稱」按鈕為 disabled 狀態
+    And 「重設暱稱」按鈕為 disabled 狀態（暱稱審核功能尚未整合至此頁面）

@@ -5,7 +5,7 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_05-nickname-and-report.md (Phase 5 待實作)
+- **Current progress**: 00_doc/tasks_05-nickname-and-report.md (Phase 5C ✅ 完成)
 
 ## Document Routing
 
@@ -20,6 +20,7 @@ Read the relevant document BEFORE starting any task:
 | Chatroom & chat design         | `00_doc/rfc_03-chatroom-and-chat.md`         |
 | Blacklist & IP blocking design | `00_doc/rfc_04-blacklist-and-ip-blocking.md` |
 | Nickname & report design       | `00_doc/rfc_05-nickname-and-report.md`       |
+| Broadcast message design       | `00_doc/rfc_06-broadcast-message.md`         |
 
 ## Skill 使用指引
 
@@ -33,7 +34,7 @@ Read the relevant document BEFORE starting any task:
 
 ## Tech Stack
 
-- Frontend: React 18 + Vite + TypeScript + Ant Design 5.x
+- Frontend: React 18 + Vite + TypeScript + Ant Design 6.x
 - Backend: Express.js + TypeScript + SQLite (better-sqlite3) + Knex.js
 - Auth: JWT + bcryptjs
 - Dev: nodemon + concurrently

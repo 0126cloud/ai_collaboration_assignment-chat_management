@@ -149,12 +149,14 @@ chat-management/
 
 | 欄位              | 型別                               | 說明                 |
 | ----------------- | ---------------------------------- | -------------------- |
-| username          | VARCHAR(50) PRIMARY KEY            | 玩家帳號（唯一識別） |
-| nickname          | VARCHAR(50) NOT NULL               | 目前暱稱             |
-| nickname_approved | BOOLEAN DEFAULT true               | 暱稱是否已核准       |
-| created_at        | DATETIME DEFAULT CURRENT_TIMESTAMP |                      |
-| updated_at        | DATETIME DEFAULT CURRENT_TIMESTAMP |                      |
-| deleted_at        | DATETIME nullable                  | 軟刪除標記           |
+| username               | VARCHAR(50) PRIMARY KEY            | 玩家帳號（唯一識別）                                          |
+| nickname               | VARCHAR(50) NOT NULL               | 目前暱稱                                                      |
+| nickname_review_status | VARCHAR(20) nullable               | 'pending' \| 'approved' \| 'rejected' \| null                 |
+| nickname_reviewed_by   | VARCHAR(50) nullable               | 審核管理員帳號                                                |
+| nickname_reviewed_at   | DATETIME nullable                  | 審核時間                                                      |
+| created_at             | DATETIME DEFAULT CURRENT_TIMESTAMP |                                                               |
+| updated_at             | DATETIME DEFAULT CURRENT_TIMESTAMP |                                                               |
+| deleted_at             | DATETIME nullable                  | 軟刪除標記                                                    |
 
 > 此表為多模組共用基礎表，後續黑名單、暱稱審核模組皆依賴 `players.username`。
 
@@ -385,8 +387,8 @@ export function createChatMessageRoutes(db: Knex): Router {
 
 分佈不同暱稱，包含：
 
-- 正常玩家（nickname_approved = true）
-- 待審核玩家（nickname_approved = false）— 為後續暱稱審核模組做準備
+- 正常玩家（nickname_review_status IS NULL）— 未申請暱稱審核
+- 待審核玩家（nickname_review_status = 'pending'）— 為後續暱稱審核模組做準備
 
 #### chatroom_players
 

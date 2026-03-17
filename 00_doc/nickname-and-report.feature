@@ -1,10 +1,10 @@
 Feature: 暱稱審核（Nickname Review）
 
   Background:
-    Given 系統已存在管理員帳號「admin01」（general_manager 角色）
+    Given 系統已存在管理員帳號「admin01」（senior_manager 角色）
     And 已有玩家「player016」申請將暱稱改為「DragonKing」，申請時間為 2026-03-15 10:00:00
     And 已有玩家「player017」申請將暱稱改為「LuckyStrike99」，申請時間為 2026-03-15 11:30:00
-    And 已有玩家「player019」的暱稱已核准（nickname_approved = true）
+    And 已有玩家「player019」的暱稱已核准（nickname_review_status = 'approved'）
 
   # ------- 列表查詢 -------
 
@@ -13,7 +13,7 @@ Feature: 暱稱審核（Nickname Review）
     Given 管理員已登入
     When 管理員請求 GET /api/nickname_reviews
     Then 回應應為 200，並回傳待審核玩家列表
-    And 列表應只包含 nickname_approved = false 的玩家
+    And 列表應只包含 nickname_review_status = 'pending' 的玩家
     And 列表應依 nickname_apply_at 遞增排序
 
   @happy_path
@@ -44,8 +44,8 @@ Feature: 暱稱審核（Nickname Review）
     Given 管理員已登入
     When 管理員請求 POST /api/nickname_reviews/player016/approve
     Then 回應應為 200，訊息為「暱稱申請已核准」
-    And 玩家「player016」的 nickname_approved 應變為 true
-    And 玩家「player016」的 nickname_apply_at 應變為 null
+    And 玩家「player016」的 nickname_review_status 應變為 'approved'
+    And 玩家「player016」的 nickname_reviewed_by 應為「admin01」
     And 操作紀錄應包含 operationType 為「APPROVE_NICKNAME」的紀錄
 
   # ------- 駁回暱稱 -------
@@ -56,8 +56,8 @@ Feature: 暱稱審核（Nickname Review）
     When 管理員請求 POST /api/nickname_reviews/player016/reject
     Then 回應應為 200，訊息為「暱稱申請已駁回，暱稱已重設為帳號名稱」
     And 玩家「player016」的 nickname 應變為「player016」（即 username）
-    And 玩家「player016」的 nickname_approved 應變為 true
-    And 玩家「player016」的 nickname_apply_at 應變為 null
+    And 玩家「player016」的 nickname_review_status 應變為 'rejected'
+    And 玩家「player016」的 nickname_reviewed_by 應為「admin01」
     And 操作紀錄應包含 operationType 為「REJECT_NICKNAME」的紀錄
 
   # ------- 錯誤情境 -------
@@ -65,7 +65,7 @@ Feature: 暱稱審核（Nickname Review）
   @validation
   Scenario: 對無待審核申請的玩家執行核准
     Given 管理員已登入
-    And 玩家「player019」的暱稱已核准（nickname_approved = true）
+    And 玩家「player019」的暱稱已核准（nickname_review_status = 'approved'）
     When 管理員請求 POST /api/nickname_reviews/player019/approve
     Then 回應應為 409，錯誤碼為「PLAYER_NICKNAME_NOT_PENDING」
 
@@ -91,7 +91,7 @@ Feature: 暱稱審核（Nickname Review）
 Feature: 玩家檢舉審核（Player Report Review）
 
   Background:
-    Given 系統已存在管理員帳號「admin01」（general_manager 角色）
+    Given 系統已存在管理員帳號「admin01」（senior_manager 角色）
     And 玩家「player003」已被「player001」在「baccarat_001」聊天室以「spam」原因檢舉（status=pending）
     And 玩家「player007」已被「player002」在「blackjack_001」聊天室以「abuse」原因檢舉（status=pending）
     And 玩家「player010」已被「player004」的檢舉已審核（status=approved）

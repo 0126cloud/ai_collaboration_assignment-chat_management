@@ -28,7 +28,7 @@ Feature: 黑名單與 IP 封鎖管理
     Then 回應狀態碼為 200
     And 回應包含 data 陣列和 pagination
     And data 中所有紀錄的 block_type 均為 "player"
-    And data 中所有紀錄的 deleted_at 均為 null（僅顯示有效封鎖）
+    And data 中所有紀錄的 is_blocked 均為 true（僅顯示有效封鎖）
 
   @happy_path
   Scenario: 依 target 模糊搜尋玩家黑名單
@@ -39,10 +39,10 @@ Feature: 黑名單與 IP 封鎖管理
 
   @happy_path
   Scenario: 成功解封玩家
-    Given 黑名單中有 id=1、block_type="player"、deleted_at=null 的封鎖紀錄
+    Given 黑名單中有 id=1、block_type="player"、is_blocked=true 的封鎖紀錄
     When 管理員送出 DELETE /api/blacklist/player/1
     Then 回應狀態碼為 200
-    And 該筆紀錄的 deleted_at 已設定為解封時間
+    And 該筆紀錄的 is_blocked 應變為 false
     And operation_logs 有一筆 operation_type="UNBLOCK_PLAYER" 的紀錄
 
   # ==========================================
@@ -71,10 +71,10 @@ Feature: 黑名單與 IP 封鎖管理
 
   @happy_path
   Scenario: 成功解除 IP 封鎖
-    Given 黑名單中有 id=8、block_type="ip"、deleted_at=null 的封鎖紀錄
+    Given 黑名單中有 id=8、block_type="ip"、is_blocked=true 的封鎖紀錄
     When 管理員送出 DELETE /api/blacklist/ip/8
     Then 回應狀態碼為 200
-    And 該筆紀錄的 deleted_at 已設定
+    And 該筆紀錄的 is_blocked 應變為 false
     And operation_logs 有一筆 operation_type="UNBLOCK_IP" 的紀錄
 
   # ==========================================
@@ -83,15 +83,15 @@ Feature: 黑名單與 IP 封鎖管理
 
   @soft_delete
   Scenario: 解封玩家後可重新封鎖（upsert 行為）
-    Given 黑名單中有一筆已解封紀錄（deleted_at IS NOT NULL），target="player123"、chatroom_id="baccarat_001"
+    Given 黑名單中有一筆已解封紀錄（is_blocked=false），target="player123"、chatroom_id="baccarat_001"
     When 管理員再次送出 POST /api/blacklist/player，帶 target="player123"、chatroom_id="baccarat_001"
     Then 回應狀態碼為 201
-    And 該筆紀錄的 deleted_at 已清除（重新生效）
+    And 該筆紀錄的 is_blocked 應變為 true（重新生效）
     And 資料庫中不會產生重複紀錄
 
   @soft_delete
   Scenario: 已解封的玩家不出現在黑名單列表中
-    Given 黑名單中有一筆 deleted_at IS NOT NULL 的紀錄
+    Given 黑名單中有一筆 is_blocked=false 的紀錄
     When 管理員送出 GET /api/blacklist/player
     Then 回應 data 中不包含已解封的紀錄
 
@@ -133,7 +133,7 @@ Feature: 黑名單與 IP 封鎖管理
 
   @validation
   Scenario: 解封已解封的紀錄
-    Given 黑名單中有一筆 deleted_at IS NOT NULL 的紀錄，id=5
+    Given 黑名單中有一筆 is_blocked=false 的紀錄，id=5
     When 管理員送出 DELETE /api/blacklist/player/5
     Then 回應狀態碼為 404
     And 回應 error.code 為 "BLACKLIST_ENTRY_NOT_FOUND"

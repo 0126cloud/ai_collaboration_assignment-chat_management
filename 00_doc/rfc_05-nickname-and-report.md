@@ -37,7 +37,7 @@ Phase 4（[rfc_04](rfc_04-blacklist-and-ip-blocking.md)）已完成黑名單與 
 
 | 表名      | 變更          | 說明                                              |
 | --------- | ------------- | ------------------------------------------------- |
-| `players` | 新增 1 個欄位 | `nickname_apply_at DATETIME nullable`（申請時間） |
+| `players` | 新增 4 個欄位 | `nickname_apply_at DATETIME nullable`（申請時間，審核後**保留**）、`nickname_review_status VARCHAR(20) nullable`（審核狀態）、`nickname_reviewed_by VARCHAR(50) nullable`（審核者）、`nickname_reviewed_at DATETIME nullable`（審核時間）|
 
 **新增資料表：**
 
@@ -190,17 +190,18 @@ export async function down(knex: Knex): Promise<void> {
 - **需權限**：`nickname:read`
 - **Query Parameters**：
 
-| 參數           | 型別   | 必填 | 說明                       | 預設值 |
-| -------------- | ------ | ---- | -------------------------- | ------ |
-| username       | string | 否   | 玩家帳號（模糊搜尋）       | —      |
-| nickname       | string | 否   | 申請暱稱（模糊搜尋）       | —      |
-| applyStartDate | string | 否   | 申請時間起（UTC ISO 8601） | —      |
-| applyEndDate   | string | 否   | 申請時間迄（UTC ISO 8601） | —      |
-| page           | number | 否   | 頁碼                       | 1      |
-| pageSize       | number | 否   | 每頁筆數                   | 20     |
+| 參數           | 型別   | 必填 | 說明                                          | 預設值    |
+| -------------- | ------ | ---- | --------------------------------------------- | --------- |
+| status         | string | 否   | `'pending'` \| `'approved'` \| `'rejected'`   | `pending` |
+| username       | string | 否   | 玩家帳號（模糊搜尋）                          | —         |
+| nickname       | string | 否   | 申請暱稱（模糊搜尋）                          | —         |
+| applyStartDate | string | 否   | 申請時間起（UTC ISO 8601）                    | —         |
+| applyEndDate   | string | 否   | 申請時間迄（UTC ISO 8601）                    | —         |
+| page           | number | 否   | 頁碼                                          | 1         |
+| pageSize       | number | 否   | 每頁筆數                                      | 20        |
 
 - **篩選邏輯**：
-  - 固定加上 `WHERE nickname_approved = false AND deleted_at IS NULL`（只顯示待審核）
+  - `WHERE nickname_review_status = status`（預設 `'pending'`），以及 `deleted_at IS NULL`
   - `username` LIKE `%value%`
   - `nickname` LIKE `%value%`
   - `applyStartDate` / `applyEndDate` 範圍查詢 `nickname_apply_at`
@@ -215,7 +216,10 @@ export async function down(knex: Knex): Promise<void> {
     {
       "username": "player016",
       "nickname": "DragonKing",
-      "nickname_apply_at": "2026-03-15 10:00:00"
+      "nickname_apply_at": "2026-03-15 10:00:00",
+      "nickname_review_status": "pending",
+      "nickname_reviewed_by": null,
+      "nickname_reviewed_at": null
     }
   ],
   "pagination": {
@@ -234,8 +238,9 @@ export async function down(knex: Knex): Promise<void> {
 - **路徑參數**：`username`（players.username）
 - **Request Body**：無
 - **行為**：
-  - 查詢 player 確認存在且 `nickname_approved = false`，否則拋出對應錯誤
-  - `UPDATE players SET nickname_approved = true, nickname_apply_at = null, updated_at = now() WHERE username = :username`
+  - 查詢 player 確認存在且 `nickname_review_status = 'pending'`，否則拋出對應錯誤
+  - `UPDATE players SET nickname_review_status = 'approved', nickname_reviewed_by = operator, nickname_reviewed_at = now(), updated_at = now() WHERE username = :username`
+  - 備註：`nickname_apply_at` 審核後保留，不設為 null
   - 觸發操作紀錄：`res.locals.operationLog = { operationType: 'APPROVE_NICKNAME', targetId: username }`
 
 - **Response 200**：
@@ -259,8 +264,8 @@ export async function down(knex: Knex): Promise<void> {
 - **路徑參數**：`username`
 - **Request Body**：無
 - **行為**：
-  - 查詢 player 確認存在且 `nickname_approved = false`，否則拋出對應錯誤
-  - `UPDATE players SET nickname = username, nickname_approved = true, nickname_apply_at = null, updated_at = now() WHERE username = :username`
+  - 查詢 player 確認存在且 `nickname_review_status = 'pending'`，否則拋出對應錯誤
+  - `UPDATE players SET nickname = username, nickname_review_status = 'rejected', nickname_reviewed_by = operator, nickname_reviewed_at = now(), updated_at = now() WHERE username = :username`
   - 觸發操作紀錄：`res.locals.operationLog = { operationType: 'REJECT_NICKNAME', targetId: username }`
 
 - **Response 200**：
@@ -425,9 +430,9 @@ export function createNicknameReviewRoutes(db: Knex): Router {
 
 **service.ts** 關鍵方法：
 
-- `list(query)` — 篩選 `nickname_approved = false` + 搜尋條件 + 分頁
-- `approve(username)` — 確認存在且 pending → UPDATE nickname_approved = true, nickname_apply_at = null
-- `reject(username)` — 確認存在且 pending → UPDATE nickname = username, nickname_approved = true, nickname_apply_at = null
+- `list(query)` — 篩選 `nickname_review_status = status`（預設 `'pending'`）+ 搜尋條件 + 分頁
+- `approve(username, operator)` — 確認存在且 `nickname_review_status = 'pending'` → UPDATE `nickname_review_status = 'approved'`, `reviewed_by`, `reviewed_at`
+- `reject(username, operator)` — 確認存在且 `nickname_review_status = 'pending'` → UPDATE `nickname = username`, `nickname_review_status = 'rejected'`, `reviewed_by`, `reviewed_at`
 
 **controller.ts** 關鍵方法：
 
@@ -470,15 +475,15 @@ export function createReportRoutes(db: Knex): Router {
 
 #### 修改 players（`server/db/seeds/04_players.ts`）
 
-在既有 3 筆 nickname_approved=false 的玩家（player016/017/018）補上 `nickname_apply_at`，並新增 player019 / player020 以達成 PRD §7 要求的 5 筆待審核：
+在既有 3 筆 `nickname_review_status = 'pending'` 的玩家（player016/017/018）補上 `nickname_apply_at`，並新增 player019 / player020 以達成 PRD §7 要求的 5 筆待審核：
 
-| username  | nickname      | nickname_approved | nickname_apply_at   |
-| --------- | ------------- | :---------------: | ------------------- |
-| player016 | DragonKing    |       false       | 2026-03-15 10:00:00 |
-| player017 | LuckyStrike99 |       false       | 2026-03-15 11:30:00 |
-| player018 | PokerGod777   |       false       | 2026-03-16 09:00:00 |
-| player019 | CasinoMaster  |       false       | 2026-03-16 14:00:00 |
-| player020 | GoldenChip_X  |       false       | 2026-03-17 08:00:00 |
+| username  | nickname      | nickname_review_status | nickname_apply_at   |
+| --------- | ------------- | :--------------------: | ------------------- |
+| player016 | DragonKing    |        pending         | 2026-03-15 10:00:00 |
+| player017 | LuckyStrike99 |        pending         | 2026-03-15 11:30:00 |
+| player018 | PokerGod777   |        pending         | 2026-03-16 09:00:00 |
+| player019 | CasinoMaster  |        pending         | 2026-03-16 14:00:00 |
+| player020 | GoldenChip_X  |        pending         | 2026-03-17 08:00:00 |
 
 #### 新增 reports（`server/db/seeds/08_reports.ts`）
 
@@ -603,13 +608,19 @@ ReportReviewPage
 **`shared/types/nicknameReview.ts`**：
 
 ```ts
+export type TNicknameReviewStatus = 'pending' | 'approved' | 'rejected';
+
 export type TNicknameReviewItem = {
   username: string;
   nickname: string;
   nickname_apply_at: string;
+  nickname_review_status: TNicknameReviewStatus;
+  nickname_reviewed_by: string | null;
+  nickname_reviewed_at: string | null;
 };
 
 export type TNicknameReviewQuery = {
+  status?: TNicknameReviewStatus;
   username?: string;
   nickname?: string;
   applyStartDate?: string;
@@ -708,12 +719,12 @@ export const reportQuerySchema = z.object({
 
 **nicknameReview**：
 
-- GET 列出待審核暱稱（`nickname_approved=false`）
+- GET 列出待審核暱稱（`nickname_review_status=pending`）
 - GET 搜尋條件篩選（username / nickname / 日期範圍）
-- POST approve 核准暱稱 → `nickname_approved=true`, `nickname_apply_at=null`
+- POST approve 核准暱稱 → `nickname_review_status=approved`, `nickname_reviewed_by` 有值
 - POST approve 對已核准玩家 → 409 `PLAYER_NICKNAME_NOT_PENDING`
 - POST approve 對不存在玩家 → 404 `PLAYER_NOT_FOUND`
-- POST reject 駁回暱稱 → `nickname=username`, `nickname_approved=true`
+- POST reject 駁回暱稱 → `nickname=username`, `nickname_review_status=rejected`
 
 **report**：
 
@@ -753,10 +764,10 @@ export const reportQuerySchema = z.object({
 
 - [ ] `20260317000008` migration 執行後 players 表含 `nickname_apply_at` 欄位
 - [ ] `20260317000009` migration 執行後 reports 表結構正確
-- [ ] Seed 執行後有 5 筆 `nickname_approved=false` 玩家（含 nickname_apply_at）
+- [ ] Seed 執行後有 5 筆 `nickname_review_status=pending` 玩家（含 nickname_apply_at）
 - [ ] Seed 執行後有 5 筆 reports（含 pending / approved / rejected 三種狀態）
 - [ ] `GET /api/nickname_reviews` 正確回傳待審核列表（分頁 + 篩選）
-- [ ] `POST /api/nickname_reviews/:username/approve` 核准後 nickname_approved=true
+- [ ] `POST /api/nickname_reviews/:username/approve` 核准後 `nickname_review_status=approved`
 - [ ] `POST /api/nickname_reviews/:username/reject` 駁回後 nickname=username
 - [ ] 重複 approve / reject 回傳 409 `PLAYER_NICKNAME_NOT_PENDING`
 - [ ] `GET /api/reports` 正確回傳列表（預設 status=pending，分頁 + 篩選）

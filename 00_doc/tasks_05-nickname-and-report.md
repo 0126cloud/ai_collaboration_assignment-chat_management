@@ -397,42 +397,334 @@ Task 5.6 (前端 NicknameReviewPage)  ←→  Task 5.7 (前端 ReportReviewPage)
 
 ### DB & Seed
 
-- [ ] migration 20260317000008 執行後 players 表含 `nickname_apply_at` 欄位
-- [ ] migration 20260317000009 執行後 reports 表結構正確（無 deleted_at）
-- [ ] Seed 執行後有 5 筆 `nickname_approved=false` 玩家（含 nickname_apply_at）
-- [ ] Seed 執行後有 5 筆 reports（pending / approved / rejected 三種狀態皆有）
+- [x] migration 20260317000008 執行後 players 表含 `nickname_apply_at` 欄位
+- [x] migration 20260317000009 執行後 reports 表結構正確（無 deleted_at）
+- [x] Seed 執行後有 5 筆 `nickname_approved=false` 玩家（含 nickname_apply_at）
+- [x] Seed 執行後有 5 筆 reports（pending / approved / rejected 三種狀態皆有）
 
 ### 後端 API
 
-- [ ] `GET /api/nickname_reviews` 回傳待審核列表（含分頁與篩選）
-- [ ] `POST /api/nickname_reviews/:username/approve` 核准後 `nickname_approved=true`, `nickname_apply_at=null`
-- [ ] `POST /api/nickname_reviews/:username/reject` 駁回後 `nickname=username`
-- [ ] 重複操作已核准玩家 → 409 `PLAYER_NICKNAME_NOT_PENDING`
-- [ ] `GET /api/reports` 預設回傳 status=pending 列表（含分頁與篩選）
-- [ ] `POST /api/reports/:id/approve` 核准後 `status=approved` + 目標玩家被封鎖
-- [ ] `POST /api/reports/:id/approve` 目標玩家已封鎖時不報錯
-- [ ] `POST /api/reports/:id/reject` 駁回後 `status=rejected`
-- [ ] 重複操作已審核 report → 409 `REPORT_ALREADY_REVIEWED`
-- [ ] 所有操作寫入 operation_logs（APPROVE_NICKNAME, REJECT_NICKNAME, APPROVE_REPORT, REJECT_REPORT）
-- [ ] 未攜帶 JWT → 401；缺少對應 permission → 403
+- [x] `GET /api/nickname_reviews` 回傳待審核列表（含分頁與篩選）
+- [x] `POST /api/nickname_reviews/:username/approve` 核准後 `nickname_approved=true`, `nickname_apply_at=null`
+- [x] `POST /api/nickname_reviews/:username/reject` 駁回後 `nickname=username`
+- [x] 重複操作已核准玩家 → 409 `PLAYER_NICKNAME_NOT_PENDING`
+- [x] `GET /api/reports` 預設回傳 status=pending 列表（含分頁與篩選）
+- [x] `POST /api/reports/:id/approve` 核准後 `status=approved` + 目標玩家被封鎖
+- [x] `POST /api/reports/:id/approve` 目標玩家已封鎖時不報錯
+- [x] `POST /api/reports/:id/reject` 駁回後 `status=rejected`
+- [x] 重複操作已審核 report → 409 `REPORT_ALREADY_REVIEWED`
+- [x] 所有操作寫入 operation_logs（APPROVE_NICKNAME, REJECT_NICKNAME, APPROVE_REPORT, REJECT_REPORT）
+- [x] 未攜帶 JWT → 401；缺少對應 permission → 403
 
 ### 前端
 
-- [ ] NicknameReviewPage 正確顯示待審核列表
-- [ ] 核准 / 駁回流程含確認 Modal 與 per-row loading state
-- [ ] ReportReviewPage 正確顯示待審核列表（預設 status=pending）
-- [ ] 核准 Modal 有「自動封鎖」提示
-- [ ] 非 pending 紀錄的操作按鈕 disabled
-- [ ] Sidebar `/nickname-reviews` key 修正，選單高亮正確
+- [x] NicknameReviewPage 正確顯示待審核列表
+- [x] 核准 / 駁回流程含確認 Modal 與 per-row loading state
+- [x] ReportReviewPage 正確顯示待審核列表（預設 status=pending）
+- [x] 核准 Modal 有「自動封鎖」提示
+- [x] 非 pending 紀錄的操作按鈕 disabled
+- [x] Sidebar `/nickname-reviews` key 修正，選單高亮正確
 
 ### 測試
 
-- [ ] `npm test` 全部通過
-- [ ] Integration: nicknameReview.test.ts 全綠
-- [ ] Integration: report.test.ts 全綠（含 approve → block 場景）
-- [ ] Component: NicknameReviewPage.test.tsx 全綠
-- [ ] Component: ReportReviewPage.test.tsx 全綠
+- [x] `npm test` 全部通過
+- [x] Integration: nicknameReview.test.ts 全綠
+- [x] Integration: report.test.ts 全綠（含 approve → block 場景）
+- [x] Component: NicknameReviewPage.test.tsx 全綠
+- [x] Component: ReportReviewPage.test.tsx 全綠
 
 ### 文件
 
-- [ ] rfc_01 §5.9 Route 權限對照表已更新（新增 Phase 5 路由）
+- [x] rfc_01 §5.9 Route 權限對照表已更新（新增 Phase 5 路由）
+
+---
+
+## Phase 5C：Nickname Review 改用 Status 設計
+
+**背景**：Phase 5 使用 `nickname_approved`（boolean）標記待審核狀態，設計與 `reports.status`（'pending' | 'approved' | 'rejected'）不一致。本 Phase 統一為 status 欄位設計，並在 NicknameReviewPage 加入 status 篩選器與欄位。
+
+**關鍵設計決策**：
+- `nickname_apply_at` 在 approve/reject 後**保留**（不設 null），對齊 `reports.created_at` 永不清除的慣例，歷史列表可按申請時間排序
+- 所有狀態的列表皆以 `ORDER BY nickname_apply_at ASC` 排序
+
+**受影響檔案**：
+
+| 動作   | 路徑                                                                           |
+| ------ | ------------------------------------------------------------------------------ |
+| Create | `server/db/migrations/20260318000010_nickname_review_status.ts`                |
+| Modify | `server/db/seeds/04_players.ts`                                                |
+| Modify | `shared/types/nicknameReview.ts`                                               |
+| Modify | `shared/schemas/nicknameReview.ts`                                             |
+| Modify | `server/src/module/nicknameReview/service.ts`                                  |
+| Modify | `server/src/module/nicknameReview/controller.ts`                               |
+| Modify | `server/src/__tests__/helpers/testDb.ts`                                       |
+| Modify | `server/src/__tests__/integration/nicknameReview.test.ts`                      |
+| Modify | `server/src/__tests__/integration/report.test.ts`（移除 nickname_approved）    |
+| Modify | `client/src/pages/NicknameReviewPage.tsx`                                      |
+| Modify | `client/src/__tests__/pages/NicknameReviewPage.test.tsx`                       |
+| Modify | `00_doc/rfc_03-chatroom-and-chat.md`                                           |
+| Modify | `00_doc/rfc_05-nickname-and-report.md`                                         |
+| Modify | `00_doc/prd_00-chat_management_backstage.md`                                   |
+
+---
+
+## Task 5C.1: DB Migration — 新增 nickname_review_status，移除 nickname_approved
+
+### 建立 / 修改檔案
+
+1. `server/db/migrations/20260318000010_nickname_review_status.ts`
+
+   - `up()`：
+     1. `alterTable('players')` 新增 `nickname_review_status VARCHAR(20) nullable`、`nickname_reviewed_by VARCHAR(50) nullable`、`nickname_reviewed_at DATETIME nullable`
+     2. 資料遷移：`knex('players').whereRaw('nickname_approved = ? AND nickname_apply_at IS NOT NULL', [false]).update({ nickname_review_status: 'pending' })`
+     3. `alterTable('players')` dropColumn `nickname_approved`
+   - `down()`：
+     1. `alterTable('players')` 新增回 `nickname_approved BOOLEAN NOT NULL DEFAULT true`
+     2. 資料回遷：`nickname_review_status='pending'` → `nickname_approved=false`
+     3. `alterTable('players')` dropColumn 三個新欄位
+
+2. `server/db/seeds/04_players.ts`
+   - 移除所有 `nickname_approved` 欄位
+   - player016~020 改為 `nickname_review_status: 'pending'`（不帶 `nickname_apply_at: null` 設定，保留原有值）
+   - player001~015 不帶 `nickname_review_status`（null）
+
+### 步驟
+
+- [ ] 新增 migration `20260318000010_nickname_review_status.ts`
+- [ ] 更新 `server/db/seeds/04_players.ts`
+- [ ] `git add server/db/migrations/20260318000010_nickname_review_status.ts server/db/seeds/04_players.ts`
+- [ ] `git commit -m "feat(db): 新增 nickname_review_status 欄位，移除 nickname_approved"`
+
+---
+
+## Task 5C.2: Shared Layer — 更新 Types 與 Schema
+
+### 建立 / 修改檔案
+
+1. `shared/types/nicknameReview.ts`
+
+   ```typescript
+   export type TNicknameReviewStatus = 'pending' | 'approved' | 'rejected';
+
+   export type TNicknameReviewItem = {
+     username: string;
+     nickname: string;
+     nickname_apply_at: string | null;
+     nickname_review_status: TNicknameReviewStatus | null;
+     nickname_reviewed_by: string | null;
+     nickname_reviewed_at: string | null;
+   };
+
+   export type TNicknameReviewQuery = {
+     status?: TNicknameReviewStatus;
+     username?: string;
+     nickname?: string;
+     applyStartDate?: string;
+     applyEndDate?: string;
+     page?: number;
+     pageSize?: number;
+   };
+   ```
+
+2. `shared/schemas/nicknameReview.ts`
+   - 新增 `status: z.enum(['pending', 'approved', 'rejected']).optional()` 至 `nicknameReviewQuerySchema`
+
+### 步驟
+
+- [ ] 更新 `shared/types/nicknameReview.ts`
+- [ ] 更新 `shared/schemas/nicknameReview.ts`
+- [ ] `git commit -m "feat(shared): nicknameReview 改用 TNicknameReviewStatus 設計"`
+
+---
+
+## Task 5C.3: 後端 Service + Controller — 改用 nickname_review_status
+
+### 建立 / 修改檔案
+
+1. `server/src/module/nicknameReview/service.ts`
+
+   - `list()`：`status = query.status ?? 'pending'`，改為 `.where('nickname_review_status', status)`；`select()` 新增三個新欄位；排序維持 `ORDER BY nickname_apply_at ASC`
+   - `approve(username, operator)`：
+     - 加入 `operator: string` 第二參數
+     - 檢查改為 `player.nickname_review_status !== 'pending'` → 拋 `PLAYER_NICKNAME_NOT_PENDING`
+     - update 改為 `{ nickname_review_status: 'approved', nickname_reviewed_by: operator, nickname_reviewed_at: db.fn.now(), updated_at: db.fn.now() }`（**移除 `nickname_apply_at: null`**）
+   - `reject(username, operator)`：
+     - 同上，status 改為 `'rejected'`，保留 `nickname: username` 重設，**移除 `nickname_apply_at: null`**
+
+2. `server/src/module/nicknameReview/controller.ts`
+   - `approve` 與 `reject` 的 service 呼叫補上 `req.user!.username` 作為第二個參數
+
+### 步驟
+
+- [ ] 更新 `service.ts`
+- [ ] 更新 `controller.ts`
+- [ ] `git commit -m "feat(server): nicknameReview 改用 nickname_review_status，保留 nickname_apply_at"`
+
+---
+
+## Task 5C.4: Test Helper + Integration Tests
+
+### 建立 / 修改檔案
+
+1. `server/src/__tests__/helpers/testDb.ts`
+   - players schema：移除 `table.boolean('nickname_approved').notNullable().defaultTo(true)`
+   - 新增三欄：`nickname_review_status VARCHAR(20) nullable`、`nickname_reviewed_by VARCHAR(50) nullable`、`nickname_reviewed_at DATETIME nullable`
+
+2. `server/src/__tests__/integration/nicknameReview.test.ts`
+   - `beforeAll` 插入資料：移除所有 `nickname_approved`，pending 玩家改用 `nickname_review_status: 'pending'`，`player021` 改用 `nickname_review_status: 'approved'`
+   - approve 斷言：移除 `expect(player.nickname_approved).toBe(1)`，改為 `expect(player.nickname_review_status).toBe('approved')`，新增 `expect(player.nickname_reviewed_by).toBeTruthy()`
+   - approve 斷言：`nickname_apply_at` **不再斷言為 null**（已保留）
+   - reject 斷言：同上，status 改為 `'rejected'`，`nickname_apply_at` 同樣保留
+   - 新增測試：`GET /api/nickname_reviews?status=approved` → 回傳 approved 列表
+
+3. `server/src/__tests__/integration/report.test.ts`
+   - 插入 players 資料：移除所有 `nickname_approved: true`（欄位已不存在）
+
+### 步驟
+
+- [ ] 更新 `testDb.ts` players schema
+- [ ] 更新 `nicknameReview.test.ts` 資料插入與斷言，新增 status 篩選測試
+- [ ] 更新 `report.test.ts` 移除 `nickname_approved: true`
+- [ ] 執行 `npx vitest run server/src/__tests__/integration/nicknameReview.test.ts` 確認全綠
+- [ ] 執行 `npx vitest run server/src/__tests__/integration/report.test.ts` 確認全綠
+- [ ] `git commit -m "test(server): 更新 integration tests 對齊 nickname_review_status"`
+
+---
+
+## Task 5C.5: 前端 NicknameReviewPage — Status 篩選 + 欄位
+
+### 建立 / 修改檔案
+
+`client/src/pages/NicknameReviewPage.tsx`
+
+- Import 新增：`Select`、`Tag`（from `antd`）；`TNicknameReviewStatus` from shared
+- 新增常數（仿照 `ReportReviewPage`）：
+  ```typescript
+  const STATUS_COLOR: Record<TNicknameReviewStatus, string> = {
+    pending: 'orange',
+    approved: 'green',
+    rejected: 'red',
+  };
+  const STATUS_LABEL: Record<TNicknameReviewStatus, string> = {
+    pending: '待審核',
+    approved: '已核准',
+    rejected: '已駁回',
+  };
+  ```
+- 新增 state：`const [statusFilter, setStatusFilter] = useState<TNicknameReviewStatus>('pending')`
+- `fetchData` params 加入 `params.status = statusFilter`
+- `handleReset` 加入 `setStatusFilter('pending')`
+- 篩選列最前面加 `<Select>` 選擇狀態（對齊 `ReportReviewPage` 的 statusFilter Select）
+- `columns` 新增 `nickname_review_status` 欄（Tag）與 `nickname_reviewed_by` 欄（`val ?? '—'`）
+- 操作欄：`const isPending = record.nickname_review_status === 'pending'`；按鈕 `disabled={!isPending || (loadingUsername !== null && loadingUsername !== record.username)}`
+
+### 步驟
+
+- [ ] 更新 `NicknameReviewPage.tsx`
+- [ ] `git commit -m "feat(client): NicknameReviewPage 加入 status 篩選與 status/審核者欄位"`
+
+---
+
+## Task 5C.6: 前端元件測試更新
+
+### 建立 / 修改檔案
+
+`client/src/__tests__/pages/NicknameReviewPage.test.tsx`
+
+- `mockData` 各筆加入 `nickname_review_status: 'pending'`、`nickname_reviewed_by: null`、`nickname_reviewed_at: null`
+- 新增測試：頁面初始 API 呼叫帶有 `status: 'pending'`
+- 新增測試：`nickname_review_status: 'approved'` 的列 — 核准/駁回按鈕為 disabled
+
+### 步驟
+
+- [ ] 更新 `mockData`
+- [ ] 新增兩個測試案例
+- [ ] 執行 `npx vitest run` 確認全綠
+- [ ] `git commit -m "test(client): NicknameReviewPage 測試對齊 status 設計"`
+
+---
+
+## Task 5C.7: 更新 RFC + PRD 文件
+
+### 建立 / 修改檔案
+
+1. `00_doc/rfc_03-chatroom-and-chat.md`
+   - players schema 表格：移除 `nickname_approved BOOLEAN DEFAULT true`，新增三欄（`nickname_review_status`、`nickname_reviewed_by`、`nickname_reviewed_at`）
+   - seed 描述（line 388~389）：`nickname_approved = true/false` → `nickname_review_status IS NULL / = 'pending'`
+
+2. `00_doc/rfc_05-nickname-and-report.md`
+   - §3.1 DB Schema 表格：改為 status 三欄，說明 `nickname_apply_at` 審核後保留
+   - §5.3 篩選邏輯：`WHERE nickname_approved = false` → `WHERE nickname_review_status = status`；Response 範例新增三欄
+   - §5.4 approve 行為：update 欄位改為 status/reviewed_by/reviewed_at，移除 `nickname_apply_at = null` 說明
+   - §5.5 reject 行為：同上
+   - §5.10 service 方法說明：更新 approve/reject 簽名與邏輯
+   - §5.12 seed 表格：移除 `nickname_approved` 欄，加 `nickname_review_status` 欄
+   - §5.16 shared types 程式碼：更新為新型別定義
+   - §6.2 integration test scenarios：`nickname_approved=false/true` → `nickname_review_status`
+   - §8 完成標準：更新 nickname_approved 相關條目
+
+3. `00_doc/prd_00-chat_management_backstage.md`
+   - §7 seed 資料說明（line 218）：`5 筆 nickname_approved=false` → `5 筆 nickname_review_status='pending'`
+
+### 步驟
+
+- [ ] 更新 `rfc_03-chatroom-and-chat.md`
+- [ ] 更新 `rfc_05-nickname-and-report.md`
+- [ ] 更新 `prd_00-chat_management_backstage.md`
+- [ ] `git commit -m "docs: 更新 rfc_03/rfc_05/prd_00 對齊 nickname_review_status 設計"`
+
+---
+
+## Task 5C.8: Prettier Format
+
+### 步驟
+
+- [ ] 執行 prettier 格式化所有本次修改的程式碼檔案：
+  ```bash
+  npx prettier --write \
+    server/db/migrations/20260318000010_nickname_review_status.ts \
+    server/db/seeds/04_players.ts \
+    shared/types/nicknameReview.ts \
+    shared/schemas/nicknameReview.ts \
+    server/src/module/nicknameReview/service.ts \
+    server/src/module/nicknameReview/controller.ts \
+    server/src/__tests__/helpers/testDb.ts \
+    server/src/__tests__/integration/nicknameReview.test.ts \
+    server/src/__tests__/integration/report.test.ts \
+    client/src/pages/NicknameReviewPage.tsx \
+    "client/src/__tests__/pages/NicknameReviewPage.test.tsx"
+  ```
+- [ ] `git commit -m "style: prettier format Phase 5C 變更"`
+
+---
+
+## Phase 5C 完成檢查清單
+
+### DB & Seed
+
+- [x] migration 20260318000010 執行後 players 含 `nickname_review_status`、`nickname_reviewed_by`、`nickname_reviewed_at`，且無 `nickname_approved`
+- [x] Seed 執行後 player016~020 的 `nickname_review_status = 'pending'`，`nickname_apply_at` 保留
+
+### 後端 API
+
+- [x] `GET /api/nickname_reviews` 預設回傳 `nickname_review_status=pending` 列表
+- [x] `GET /api/nickname_reviews?status=approved` 回傳 approved 列表
+- [x] approve 後：`nickname_review_status='approved'`、`nickname_reviewed_by` 有值、`nickname_apply_at` **不為 null**
+- [x] reject 後：`nickname_review_status='rejected'`、`nickname=username`、`nickname_apply_at` **不為 null**
+- [x] 重複操作非 pending 玩家 → 409 `PLAYER_NICKNAME_NOT_PENDING`
+
+### 前端
+
+- [x] NicknameReviewPage 有 status Select 篩選（預設「待審核」）
+- [x] 列表有 status Tag 欄與審核者欄
+- [x] 非 pending 的操作按鈕 disabled
+
+### 測試
+
+- [x] server 175/175、client 75/75 全部通過
+
+### 文件
+
+- [x] rfc_03 players schema 更新
+- [x] rfc_05 相關章節更新
+- [x] prd_00 seed 說明更新

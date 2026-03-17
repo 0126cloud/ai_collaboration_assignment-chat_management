@@ -191,6 +191,74 @@ Feature: 使用者認證與權限控制
     Then 系統回傳 403 狀態碼
     And 錯誤碼為 "FORBIDDEN_INSUFFICIENT_PERMISSIONS"
 
+  # ─── 帳號管理 ───
+
+  @happy_path
+  Scenario: 高級管理員取得管理員列表
+    Given 管理員 "admin01" 已登入
+    When 管理員請求 GET /api/admins
+    Then 系統回傳 200 狀態碼
+    And 回應包含分頁管理員列表
+    And 回應不包含 password_hash
+
+  @permissions
+  Scenario: 一般管理員無法查看管理員列表
+    Given 管理員 "admin02" 已登入
+    When 管理員請求 GET /api/admins
+    Then 系統回傳 403 狀態碼
+    And 錯誤碼為 "FORBIDDEN_INSUFFICIENT_PERMISSIONS"
+
+  @happy_path
+  Scenario: 高級管理員停用管理員帳號
+    Given 管理員 "admin01" 已登入
+    When 管理員停用帳號 id=2（admin02）
+    Then 系統回傳 200 狀態碼
+    And admin02 的 is_active 為 false
+    And operation_logs 有 TOGGLE_ADMIN 紀錄
+
+  @happy_path
+  Scenario: 高級管理員啟用管理員帳號
+    Given 管理員 "admin01" 已登入
+    When 管理員啟用帳號 id=3（admin03）
+    Then 系統回傳 200 狀態碼
+    And admin03 的 is_active 為 true
+
+  @permissions
+  Scenario: 無法停用自己的帳號
+    Given 管理員 "admin01" 已登入
+    When 管理員嘗試停用自己（id=1）
+    Then 系統回傳 403 狀態碼
+    And 錯誤碼為 "ADMIN_CANNOT_SELF_MODIFY"
+
+  @error_handling
+  Scenario: 停用不存在的帳號
+    Given 管理員 "admin01" 已登入
+    When 管理員嘗試停用 id=9999
+    Then 系統回傳 404 狀態碼
+    And 錯誤碼為 "ADMIN_NOT_FOUND"
+
+  @happy_path
+  Scenario: 高級管理員更新管理員角色
+    Given 管理員 "admin01" 已登入
+    When 管理員更新 id=2 的角色為 "senior_manager"
+    Then 系統回傳 200 狀態碼
+    And admin02 的 role 為 "senior_manager"
+    And operation_logs 有 UPDATE_ADMIN_ROLE 紀錄
+
+  @permissions
+  Scenario: 無法修改自己的角色
+    Given 管理員 "admin01" 已登入
+    When 管理員嘗試更新自己（id=1）的角色
+    Then 系統回傳 403 狀態碼
+    And 錯誤碼為 "ADMIN_CANNOT_SELF_MODIFY"
+
+  @validation
+  Scenario: 更新角色為無效值
+    Given 管理員 "admin01" 已登入
+    When 管理員嘗試更新 id=2 的角色為 "invalid_role"
+    Then 系統回傳 400 狀態碼
+    And 錯誤碼為 "VALIDATION_ERROR"
+
   # ─── 權限控制 ───
 
   @permissions
