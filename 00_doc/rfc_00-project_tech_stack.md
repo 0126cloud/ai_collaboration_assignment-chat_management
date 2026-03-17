@@ -26,7 +26,7 @@
 | ------------- | ----------------------- | ----------------- | ------------------------------------- |
 | Language      | TypeScript              | 5.x               | 前後端統一語言，型別安全              |
 | Frontend      | React + Vite            | React 18 / Vite 5 | 快速開發、HMR、生態豐富               |
-| UI Library    | Ant Design + antd-style | 5.x / 3.x         | 專為後台管理設計，內建表格/表單/Modal |
+| UI Library    | Ant Design + antd-style | 6.x / 4.x         | 專為後台管理設計，內建表格/表單/Modal |
 | HTTP Client   | Axios                   | 1.x               | 搭配 JWT interceptor                  |
 | Routing       | React Router            | v6                | 支援 protected routes、nested layout  |
 | Backend       | Express.js              | 4.x               | 輕量、快速原型開發                    |
@@ -69,19 +69,23 @@ chat-management/
 │       ├── layouts/                # AdminLayout（Sidebar + Header + Content）
 │       ├── pages/                  # 各功能頁面
 │       ├── components/             # 共用元件
-│       └── theme/                  # Antd Design Token
-│           ├── index.ts            # 主出口 — 組裝 ThemeConfig
+│       └── theme/                  # Antd Design Token + Theme 切換
+│           ├── index.ts            # 主出口 — getTheme(mode) 函式
 │           ├── tokens/
-│           │   ├── colors.ts       # 品牌色、語意色（Seed Tokens）
+│           │   ├── colors.ts       # iOS 風格 Seed Tokens（light + dark overrides）
 │           │   ├── typography.ts   # 字體、字級
 │           │   ├── spacing.ts      # 圓角、間距、控件高度
 │           │   └── index.ts
-│           └── components/
-│               ├── button.ts       # Button component tokens
-│               ├── table.ts        # Table component tokens
-│               ├── form.ts         # Form/Input component tokens
-│               ├── layout.ts       # Layout/Menu/Sider component tokens
-│               └── index.ts
+│           ├── components/
+│           │   ├── button.ts       # Button component tokens
+│           │   ├── table.ts        # Table component tokens
+│           │   ├── form.ts         # Form/Input component tokens
+│           │   ├── layout.ts       # Layout/Menu/Sider component tokens
+│           │   ├── card.ts         # Card component tokens（iOS shadow）
+│           │   ├── modal.ts        # Modal component tokens（iOS shadow）
+│           │   └── index.ts
+│           └── context/
+│               └── ThemeContext.tsx # Dark/Light/System 三態切換 + useTheme hook
 └── server/                         # Express 後端
     ├── package.json
     ├── .env                        # serverAddress, serverPort, encoding, maxChattingRecordNum
@@ -180,25 +184,33 @@ export default defineConfig({
 });
 ```
 
-**Antd 5.x Theme Token 架構**：
+**Antd Theme Token 架構**：
 
 採用三層 Token 架構：
 
 | 層級             | 說明                                      | 範例                        |
 | ---------------- | ----------------------------------------- | --------------------------- |
-| Seed Tokens      | ~20 個核心值，Antd 演算法自動推導整套色彩 | `colorPrimary: '#1B5EBF'`   |
+| Seed Tokens      | ~20 個核心值，Antd 演算法自動推導整套色彩 | `colorPrimary: '#1A6FD4'`   |
 | Map Tokens       | ~100 個自動衍生值，通常不需覆寫           | `colorPrimaryBg`（自動）    |
-| Component Tokens | 針對個別元件微調                          | `Table.headerBg: '#F5F7FA'` |
+| Component Tokens | 針對個別元件微調                          | `Card.boxShadow`            |
+
+**Dark / Light Mode 切換**：
+
+- 使用 Antd 內建的 `defaultAlgorithm`（Light）/ `darkAlgorithm`（Dark）切換主題
+- `ThemeContext` 管理三態模式：`light` / `dark` / `system`（預設跟隨系統）
+- Seed tokens 定義一套 iOS 風格色彩（Light），Dark mode 由 algorithm 自動推導，僅少量覆寫
+- 詳見 [rfc_07-design-system.md](rfc_07-design-system.md)
 
 **theme/ 目錄結構**：
 
-- `tokens/colors.ts` — 品牌色（Seed Tokens）
+- `tokens/colors.ts` — iOS 風格 Seed Tokens（lightSeedTokens + darkSeedOverrides）
 - `tokens/typography.ts` — 字體、字級
 - `tokens/spacing.ts` — 圓角、間距、控件高度
-- `components/button.ts`、`table.ts`、`form.ts`、`layout.ts` — 各元件 token
-- `index.ts` — 組裝 `ThemeConfig`，啟用 `cssVar: true`、`hashed: false`
+- `components/button.ts`、`table.ts`、`form.ts`、`layout.ts`、`card.ts`、`modal.ts` — 各元件 token
+- `context/ThemeContext.tsx` — Dark / Light / System 三態切換 + useTheme hook
+- `index.ts` — `getTheme(mode)` 函式，啟用 `cssVar: true`、`hashed: false`
 
-**套用方式**：在 `App.tsx` 以 `ConfigProvider` 包裹整個應用。
+**套用方式**：在 `App.tsx` 以 `ThemeProvider` + `ConfigProvider` 包裹整個應用。
 
 **自訂元件使用 Token 的方式**：
 
@@ -219,10 +231,13 @@ export default defineConfig({
 **App.tsx 骨架**：
 
 ```tsx
-<ConfigProvider theme={theme}>
+<ThemeProvider>
+  <AppContent />  {/* 內部呼叫 useTheme() 取得 resolvedMode */}
+</ThemeProvider>
+
+// AppContent 內部：
+<ConfigProvider theme={getTheme(resolvedMode)}>
   <AuthProvider>
-    {' '}
-    {/* Phase 2 加入 */}
     <RouterProvider router={router} />
   </AuthProvider>
 </ConfigProvider>
