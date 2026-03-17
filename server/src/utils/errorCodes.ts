@@ -19,6 +19,10 @@ export enum ErrorCode {
 
   // 聊天訊息
   CHAT_MESSAGE_NOT_FOUND = 'CHAT_MESSAGE_NOT_FOUND',
+
+  // 黑名單
+  BLACKLIST_ALREADY_BLOCKED = 'BLACKLIST_ALREADY_BLOCKED',
+  BLACKLIST_ENTRY_NOT_FOUND = 'BLACKLIST_ENTRY_NOT_FOUND',
 }
 
 export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: string }> = {
@@ -33,4 +37,6 @@ export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: st
   [ErrorCode.FORBIDDEN_INSUFFICIENT_PERMISSIONS]: { statusCode: 403, message: '權限不足' },
   [ErrorCode.ADMIN_USERNAME_DUPLICATE]: { statusCode: 409, message: '帳號已存在' },
   [ErrorCode.CHAT_MESSAGE_NOT_FOUND]: { statusCode: 404, message: '訊息不存在或已刪除' },
+  [ErrorCode.BLACKLIST_ALREADY_BLOCKED]: { statusCode: 409, message: '該目標已在封鎖名單中' },
+  [ErrorCode.BLACKLIST_ENTRY_NOT_FOUND]: { statusCode: 404, message: '封鎖紀錄不存在或已解封' },
 };

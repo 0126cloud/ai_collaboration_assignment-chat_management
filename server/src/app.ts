@@ -11,6 +11,7 @@ import { createAdminRoutes } from './module/admin/route';
 import { createOperationLogRoutes } from './module/operationLog/route';
 import { createChatroomRoutes } from './module/chatroom/route';
 import { createChatMessageRoutes } from './module/chatMessage/route';
+import { createBlacklistRoutes } from './module/blacklist/route';
 import { operationLogger } from './middleware/operationLogger';
 
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/admins', createAdminRoutes(db));
 app.use('/api/operation-logs', createOperationLogRoutes(db));
 app.use('/api/chatrooms', createChatroomRoutes(db));
 app.use('/api/chat_messages', createChatMessageRoutes(db));
+app.use('/api/blacklist', createBlacklistRoutes(db));
 
 // 404 handler
 app.use((_req: Request, _res: Response, next: NextFunction) => {
