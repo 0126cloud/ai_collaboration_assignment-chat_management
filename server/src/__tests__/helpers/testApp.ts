@@ -8,6 +8,8 @@ import { ResponseHelper } from '../../utils/responseHelper';
 import { createAuthRoutes } from '../../module/auth/route';
 import { createAdminRoutes } from '../../module/admin/route';
 import { createOperationLogRoutes } from '../../module/operationLog/route';
+import { createChatroomRoutes } from '../../module/chatroom/route';
+import { createChatMessageRoutes } from '../../module/chatMessage/route';
 import { operationLogger } from '../../middleware/operationLogger';
 
 export function createTestApp(db: Knex) {
@@ -32,6 +34,8 @@ export function createTestApp(db: Knex) {
   app.use('/api/auth', createAuthRoutes(db));
   app.use('/api/admins', createAdminRoutes(db));
   app.use('/api/operation-logs', createOperationLogRoutes(db));
+  app.use('/api/chatrooms', createChatroomRoutes(db));
+  app.use('/api/chat_messages', createChatMessageRoutes(db));
 
   return app;
 }

@@ -39,6 +39,52 @@ export async function setupTestSchema(database: Knex): Promise<void> {
     table.index('operator_id');
     table.index('created_at');
   });
+
+  await database.schema.createTable('chatrooms', (table) => {
+    table.string('id', 50).primary();
+    table.string('name', 100).notNullable();
+    table.integer('online_user_count').notNullable().defaultTo(0);
+    table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
+    table.timestamp('updated_at').notNullable().defaultTo(database.fn.now());
+    table.timestamp('deleted_at').nullable();
+
+    table.index('name');
+  });
+
+  await database.schema.createTable('players', (table) => {
+    table.string('username', 50).primary();
+    table.string('nickname', 50).notNullable();
+    table.boolean('nickname_approved').notNullable().defaultTo(true);
+    table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
+    table.timestamp('updated_at').notNullable().defaultTo(database.fn.now());
+    table.timestamp('deleted_at').nullable();
+  });
+
+  await database.schema.createTable('chatroom_players', (table) => {
+    table.increments('id').primary();
+    table.string('chatroom_id', 50).notNullable();
+    table.string('player_username', 50).notNullable();
+    table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
+    table.timestamp('deleted_at').nullable();
+
+    table.unique(['chatroom_id', 'player_username']);
+    table.index('chatroom_id');
+    table.index('player_username');
+  });
+
+  await database.schema.createTable('chat_messages', (table) => {
+    table.increments('id').primary();
+    table.string('chatroom_id', 50).notNullable();
+    table.string('player_username', 50).notNullable();
+    table.string('player_nickname', 50).notNullable();
+    table.text('message').notNullable();
+    table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
+    table.timestamp('deleted_at').nullable();
+
+    table.index('chatroom_id');
+    table.index('player_username');
+    table.index('created_at');
+  });
 }
 
 // 插入測試 seed 資料
