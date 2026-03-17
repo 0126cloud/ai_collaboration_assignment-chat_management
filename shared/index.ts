@@ -35,3 +35,7 @@ export {
   createPlayerBlockSchema,
   createIpBlockSchema,
 } from './schemas/blacklist';
+export type { TNicknameReviewItem, TNicknameReviewQuery } from './types/nicknameReview';
+export type { TReportStatus, TReportReason, TReportItem, TReportQuery } from './types/report';
+export { nicknameReviewQuerySchema } from './schemas/nicknameReview';
+export { reportStatusValues, reportQuerySchema } from './schemas/report';
