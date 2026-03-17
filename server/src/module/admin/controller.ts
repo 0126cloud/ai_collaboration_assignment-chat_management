@@ -11,6 +11,8 @@ export class AdminController {
         id: req.user!.id,
         username: req.user!.username,
       });
+
+      res.locals.operationLog = { operationType: 'CREATE_ADMIN' };
       ResponseHelper.success(res, result, 201);
     } catch (err) {
       next(err);

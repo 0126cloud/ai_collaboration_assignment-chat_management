@@ -2,7 +2,6 @@ import { Knex } from 'knex';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../../utils/appError';
 import { ErrorCode } from '../../utils/errorCodes';
-import { writeOperationLog } from '../../utils/operationLogModule';
 
 export class AdminService {
   constructor(private db: Knex) {}
@@ -33,14 +32,6 @@ export class AdminService {
       .select('id', 'username', 'role', 'is_active', 'created_at')
       .where({ id })
       .first();
-
-    // 寫入 operation_logs
-    await writeOperationLog(this.db, {
-      action: 'admin:create',
-      operatorId: createdBy.id,
-      operatorUsername: createdBy.username,
-      target: payload.username,
-    });
 
     return newAdmin;
   }

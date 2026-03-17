@@ -3,12 +3,16 @@ import type { Knex } from 'knex';
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('operation_logs', (table) => {
     table.increments('id').primary();
-    table.string('action', 50).notNullable();
+    table.string('operation_type', 50).notNullable();
     table.integer('operator_id').notNullable();
-    table.string('operator_username', 50).notNullable();
-    table.string('target', 255).nullable();
-    table.text('detail').nullable();
-    table.timestamp('created_at').notNullable().defaultTo(knex.fn.now());
+    table.string('operator', 50).notNullable();
+    table.text('request').notNullable(); // JSON string: { url, method, payload }
+    table.timestamp('created_at').defaultTo(knex.fn.now());
+
+    // 索引
+    table.index('operation_type');
+    table.index('operator_id');
+    table.index('created_at');
   });
 }
 

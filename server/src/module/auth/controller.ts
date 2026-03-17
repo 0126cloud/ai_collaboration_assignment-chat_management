@@ -19,6 +19,13 @@ export class AuthController {
       const { username, password } = req.body;
       const result = await this.authService.login(username, password);
       res.cookie('token', result.token, COOKIE_OPTIONS);
+
+      // login 不經 auth middleware，需手動帶入 operator 資訊
+      res.locals.operationLog = {
+        operationType: 'LOGIN',
+        operatorId: result.user.id,
+        operator: result.user.username,
+      };
       ResponseHelper.success(res, result);
     } catch (err) {
       next(err);
@@ -30,6 +37,8 @@ export class AuthController {
       const userId = req.user!.id;
       const { oldPassword, newPassword } = req.body;
       const result = await this.authService.changePassword(userId, oldPassword, newPassword);
+
+      res.locals.operationLog = { operationType: 'CHANGE_PASSWORD' };
       ResponseHelper.success(res, result);
     } catch (err) {
       next(err);
@@ -49,6 +58,7 @@ export class AuthController {
   };
 
   logout = (_req: Request, res: Response) => {
+    res.locals.operationLog = { operationType: 'LOGOUT' };
     res.clearCookie('token', {
       httpOnly: true,
       sameSite: 'strict' as const,

@@ -8,6 +8,8 @@ import { ResponseHelper } from './utils/responseHelper';
 import { initDatabase } from './config/database';
 import { createAuthRoutes } from './module/auth/route';
 import { createAdminRoutes } from './module/admin/route';
+import { createOperationLogRoutes } from './module/operationLog/route';
+import { operationLogger } from './middleware/operationLogger';
 
 dotenv.config();
 
@@ -27,6 +29,9 @@ app.use(
 const db = initDatabase();
 app.locals.db = db;
 
+// operationLogger afterware — 在路由之前掛載，監聽 res.on('finish') 寫入操作紀錄
+app.use(operationLogger);
+
 // Health check
 app.get('/api/health', (_req: Request, res: Response) => {
   ResponseHelper.success(res, { status: 'ok' });
@@ -35,6 +40,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 // Routes
 app.use('/api/auth', createAuthRoutes(db));
 app.use('/api/admins', createAdminRoutes(db));
+app.use('/api/operation-logs', createOperationLogRoutes(db));
 
 // 404 handler
 app.use((_req: Request, _res: Response, next: NextFunction) => {
