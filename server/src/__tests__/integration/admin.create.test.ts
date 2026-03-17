@@ -143,11 +143,30 @@ describe('POST /api/admins', () => {
     expect(res.body.data.user.username).toBe('admin04');
   });
 
-  // operation_logs 驗證
-  it('operation_logs 有寫入紀錄', async () => {
-    const logs = await db('operation_logs').where({ action: 'admin:create' });
+  // @integration — 新增管理員後自動產生操作紀錄
+  it('operation_logs 有寫入紀錄（afterware 模式）', async () => {
+    const logs = await db('operation_logs').where({ operation_type: 'CREATE_ADMIN' });
     expect(logs.length).toBeGreaterThan(0);
-    expect(logs[0].operator_username).toBe('admin01');
-    expect(logs[0].target).toBe('admin04');
+
+    const log = logs[0];
+    expect(log.operator).toBe('admin01');
+    expect(log.operator_id).toBe(1);
+
+    const request = JSON.parse(log.request);
+    expect(request.url).toBe('/api/admins');
+    expect(request.method).toBe('POST');
+    // password 應被 sanitize 為 '***'，不含明文
+    expect(request.payload.password).toBe('***');
+  });
+
+  // @integration — request.payload 不包含 password 明文
+  it('request.payload 中密碼欄位已過濾為 ***', async () => {
+    const logs = await db('operation_logs').where({ operation_type: 'CREATE_ADMIN' });
+    const log = logs[0];
+    const request = JSON.parse(log.request);
+
+    // password 應被 sanitize 為 '***'，不含明文
+    expect(request.payload.password).toBe('***');
+    expect(request.payload.password).not.toBe('123456');
   });
 });

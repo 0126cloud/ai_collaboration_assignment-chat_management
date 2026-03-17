@@ -29,12 +29,15 @@ export async function setupTestSchema(database: Knex): Promise<void> {
 
   await database.schema.createTable('operation_logs', (table) => {
     table.increments('id').primary();
-    table.string('action', 50).notNullable();
+    table.string('operation_type', 50).notNullable();
     table.integer('operator_id').notNullable();
-    table.string('operator_username', 50).notNullable();
-    table.string('target', 255).nullable();
-    table.text('detail').nullable();
-    table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
+    table.string('operator', 50).notNullable();
+    table.text('request').notNullable(); // JSON string: { url, method, payload }
+    table.timestamp('created_at').defaultTo(database.fn.now());
+
+    table.index('operation_type');
+    table.index('operator_id');
+    table.index('created_at');
   });
 }
 

@@ -7,6 +7,8 @@ import { ErrorCode } from '../../utils/errorCodes';
 import { ResponseHelper } from '../../utils/responseHelper';
 import { createAuthRoutes } from '../../module/auth/route';
 import { createAdminRoutes } from '../../module/admin/route';
+import { createOperationLogRoutes } from '../../module/operationLog/route';
+import { operationLogger } from '../../middleware/operationLogger';
 
 export function createTestApp(db: Knex) {
   const app = express();
@@ -18,6 +20,9 @@ export function createTestApp(db: Knex) {
   // 將 db 掛載到 app.locals，供 service 使用
   app.locals.db = db;
 
+  // operationLogger afterware
+  app.use(operationLogger);
+
   // Health check
   app.get('/api/health', (_req: Request, res: Response) => {
     ResponseHelper.success(res, { status: 'ok' });
@@ -26,6 +31,7 @@ export function createTestApp(db: Knex) {
   // Routes
   app.use('/api/auth', createAuthRoutes(db));
   app.use('/api/admins', createAdminRoutes(db));
+  app.use('/api/operation-logs', createOperationLogRoutes(db));
 
   return app;
 }
