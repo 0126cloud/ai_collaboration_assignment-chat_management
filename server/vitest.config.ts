@@ -1,0 +1,17 @@
+import { defineConfig } from 'vitest/config';
+import * as path from 'path';
+
+export default defineConfig({
+  root: __dirname,
+  test: {
+    name: 'server',
+    globals: true,
+    environment: 'node',
+    include: ['src/__tests__/**/*.test.ts'],
+  },
+  resolve: {
+    alias: {
+      '@shared': path.resolve(__dirname, '../shared'),
+    },
+  },
+});
