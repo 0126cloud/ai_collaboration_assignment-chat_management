@@ -10,6 +10,7 @@ import { createAdminRoutes } from '../../module/admin/route';
 import { createOperationLogRoutes } from '../../module/operationLog/route';
 import { createChatroomRoutes } from '../../module/chatroom/route';
 import { createChatMessageRoutes } from '../../module/chatMessage/route';
+import { createBlacklistRoutes } from '../../module/blacklist/route';
 import { operationLogger } from '../../middleware/operationLogger';
 
 export function createTestApp(db: Knex) {
@@ -36,6 +37,7 @@ export function createTestApp(db: Knex) {
   app.use('/api/operation-logs', createOperationLogRoutes(db));
   app.use('/api/chatrooms', createChatroomRoutes(db));
   app.use('/api/chat_messages', createChatMessageRoutes(db));
+  app.use('/api/blacklist', createBlacklistRoutes(db));
 
   return app;
 }

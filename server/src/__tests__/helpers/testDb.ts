@@ -85,6 +85,21 @@ export async function setupTestSchema(database: Knex): Promise<void> {
     table.index('player_username');
     table.index('created_at');
   });
+
+  await database.schema.createTable('blacklist', (table) => {
+    table.increments('id').primary();
+    table.string('block_type', 10).notNullable();
+    table.string('target', 100).notNullable();
+    table.string('reason', 20).notNullable();
+    table.string('operator', 50).notNullable();
+    table.string('chatroom_id', 50).notNullable().defaultTo('*');
+    table.timestamp('created_at').defaultTo(database.fn.now());
+    table.boolean('is_blocked').notNullable().defaultTo(true);
+
+    table.unique(['block_type', 'target', 'chatroom_id']);
+    table.index(['block_type', 'target']);
+    table.index('created_at');
+  });
 }
 
 // 插入測試 seed 資料
