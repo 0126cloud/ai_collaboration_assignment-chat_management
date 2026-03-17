@@ -23,6 +23,14 @@ export enum ErrorCode {
   // 黑名單
   BLACKLIST_ALREADY_BLOCKED = 'BLACKLIST_ALREADY_BLOCKED',
   BLACKLIST_ENTRY_NOT_FOUND = 'BLACKLIST_ENTRY_NOT_FOUND',
+
+  // 玩家
+  PLAYER_NOT_FOUND = 'PLAYER_NOT_FOUND',
+  PLAYER_NICKNAME_NOT_PENDING = 'PLAYER_NICKNAME_NOT_PENDING',
+
+  // 玩家檢舉
+  REPORT_NOT_FOUND = 'REPORT_NOT_FOUND',
+  REPORT_ALREADY_REVIEWED = 'REPORT_ALREADY_REVIEWED',
 }
 
 export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: string }> = {
@@ -39,4 +47,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: st
   [ErrorCode.CHAT_MESSAGE_NOT_FOUND]: { statusCode: 404, message: '訊息不存在或已刪除' },
   [ErrorCode.BLACKLIST_ALREADY_BLOCKED]: { statusCode: 409, message: '該目標已在封鎖名單中' },
   [ErrorCode.BLACKLIST_ENTRY_NOT_FOUND]: { statusCode: 404, message: '封鎖紀錄不存在或已解封' },
+  [ErrorCode.PLAYER_NOT_FOUND]: { statusCode: 404, message: '玩家不存在或已刪除' },
+  [ErrorCode.PLAYER_NICKNAME_NOT_PENDING]: {
+    statusCode: 409,
+    message: '該玩家沒有待審核的暱稱申請',
+  },
+  [ErrorCode.REPORT_NOT_FOUND]: { statusCode: 404, message: '檢舉紀錄不存在' },
+  [ErrorCode.REPORT_ALREADY_REVIEWED]: { statusCode: 409, message: '該檢舉已審核過' },
 };

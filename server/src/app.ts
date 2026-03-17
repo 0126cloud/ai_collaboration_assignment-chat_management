@@ -12,6 +12,8 @@ import { createOperationLogRoutes } from './module/operationLog/route';
 import { createChatroomRoutes } from './module/chatroom/route';
 import { createChatMessageRoutes } from './module/chatMessage/route';
 import { createBlacklistRoutes } from './module/blacklist/route';
+import { createNicknameReviewRoutes } from './module/nicknameReview/route';
+import { createReportRoutes } from './module/report/route';
 import { operationLogger } from './middleware/operationLogger';
 
 dotenv.config();
@@ -47,6 +49,8 @@ app.use('/api/operation-logs', createOperationLogRoutes(db));
 app.use('/api/chatrooms', createChatroomRoutes(db));
 app.use('/api/chat_messages', createChatMessageRoutes(db));
 app.use('/api/blacklist', createBlacklistRoutes(db));
+app.use('/api/nickname_reviews', createNicknameReviewRoutes(db));
+app.use('/api/reports', createReportRoutes(db));
 
 // 404 handler
 app.use((_req: Request, _res: Response, next: NextFunction) => {
