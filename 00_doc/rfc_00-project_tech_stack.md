@@ -258,7 +258,100 @@ const router = createBrowserRouter([
 
 ---
 
-## 6. 風險與緩解
+## 6. 測試基礎設施
+
+本節定義專案層級的測試策略與基礎設施，各模組 RFC 的測試計畫應引用本節。
+
+### 6.1 測試 Tech Stack
+
+| Layer             | Tool                                      | 理由                                                        |
+| ----------------- | ----------------------------------------- | ----------------------------------------------------------- |
+| Test Runner       | **Vitest**                                | 前端已用 Vite，共享 transform pipeline；支援 workspace 模式 |
+| Backend HTTP 測試 | **supertest**                             | Express integration test 標準工具，不需啟動 live server     |
+| Frontend 元件測試 | **@testing-library/react** + **jest-dom** | 測試使用者行為而非實作細節，Vitest 原生相容                 |
+| Mocking           | **vitest 內建** (`vi.mock`, `vi.fn`)      | 不需額外安裝 sinon                                          |
+| E2E               | **不做**                                  | Demo 項目維護成本過高                                       |
+
+### 6.2 測試分層策略
+
+| 層級        | 測試目標                     | 工具                                  | 隔離方式              |
+| ----------- | ---------------------------- | ------------------------------------- | --------------------- |
+| Unit        | middleware 邏輯、config 結構 | Vitest + mock req/res                 | mock 外部依賴         |
+| Integration | 完整 API pipeline            | Vitest + supertest + in-memory SQLite | in-memory DB per file |
+| Component   | React 元件行為               | Vitest + testing-library + jsdom      | mock API + context    |
+
+**關鍵設計決策：**
+
+- **In-memory SQLite 取代 mock** — better-sqlite3 同步且 in-process，每個 test file 獨立 `:memory:` DB，快速 + 零 cleanup + 不會與真實 SQL 行為偏離
+- **Unit test 用 mock req/res，Integration test 用 supertest** — 隔離 middleware 邏輯 vs. 驗證完整 pipeline
+
+### 6.3 Vitest Workspace 配置
+
+採用 Vitest workspace 同時管理 server（node 環境）與 client（jsdom 環境）：
+
+```
+chat-management/
+├── vitest.workspace.ts          # workspace 定義
+├── server/vitest.config.ts      # node 環境
+└── client/vitest.config.ts      # jsdom 環境
+```
+
+### 6.4 Gherkin-first 開發流程
+
+採用 **Gherkin-first**（先寫驗收規格再 coding）的混合策略：
+
+```
+1. PRD 定義 FR
+     ↓
+2. 撰寫 Gherkin .feature（設計階段，在 coding 之前）
+   — 這就是「驗收標準」，不需要等程式碼
+     ↓
+3. RFC 測試計畫引用 Gherkin + 補充 engineering-level 策略
+     ↓
+4. Tasks 中測試任務穿插在功能任務之間（不集中放最後）
+     ↓
+5. 開發：功能 + 測試同步寫
+   — Unit test：跟 module 一起寫
+   — Integration test：API route 掛好後立刻寫
+   — Component test：頁面開發完立刻寫
+```
+
+> 不採用嚴格 TDD — Demo 項目 overhead 過高。但 Gherkin-first 強制在寫 code 前想清楚行為，且讓測試有明確的規格可參照。
+
+### 6.5 測試檔案結構慣例
+
+```
+server/src/__tests__/
+├── helpers/                     # 測試工具（testDb, testApp, testAuth）
+├── unit/                        # unit tests
+└── integration/                 # integration tests（supertest）
+
+client/src/__tests__/
+├── helpers/                     # 測試工具（setup, testProviders）
+├── context/                     # context tests
+├── components/                  # component tests
+├── pages/                       # page tests
+└── layouts/                     # layout tests
+```
+
+### 6.6 Coverage 目標
+
+| 類別       | 目標               |
+| ---------- | ------------------ |
+| middleware | >= 90%             |
+| API routes | >= 85%（核心路徑） |
+| React 元件 | >= 80%（互動邏輯） |
+
+### 6.7 Dev Scripts
+
+| Script               | 指令         | 說明         |
+| -------------------- | ------------ | ------------ |
+| `npm test`           | `vitest run` | 執行全部測試 |
+| `npm run test:watch` | `vitest`     | watch 模式   |
+
+---
+
+## 7. 風險與緩解
 
 | 風險                            | 影響                         | 緩解方式                                                         |
 | ------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
@@ -268,7 +361,7 @@ const router = createBrowserRouter([
 
 ---
 
-## 7. 完成標準
+## 8. 完成標準
 
 - [ ] `npm run dev` 一鍵啟動前後端
 - [ ] `GET /api/health` 回傳 200 `{ status: 'ok' }`
