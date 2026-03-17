@@ -20,3 +20,7 @@ export type {
   TOperationLogRequest,
 } from './types/operationLog';
 export { OPERATION_TYPES, OPERATION_TYPE_LABELS } from './types/operationLog';
+export type { TChatroomItem, TChatroomQuery } from './types/chatroom';
+export type { TChatMessageItem, TChatMessageQuery } from './types/chatMessage';
+export { chatroomQuerySchema } from './schemas/chatroom';
+export { chatMessageQuerySchema } from './schemas/chatMessage';
