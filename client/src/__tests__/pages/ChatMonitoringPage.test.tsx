@@ -32,6 +32,14 @@ vi.mock('../../api/chatroom', () => ({
   },
 }));
 
+// Mock blacklist API (for CreateBlacklistModal)
+vi.mock('../../api/blacklist', () => ({
+  blacklistApi: {
+    blockPlayer: vi.fn(),
+    blockIp: vi.fn(),
+  },
+}));
+
 const mockMessageData = [
   {
     id: 1,
@@ -127,7 +135,8 @@ describe('ChatMonitoringPage', () => {
     });
   });
 
-  it('封鎖玩家按鈕為 disabled 狀態', async () => {
+  // @ui_only
+  it('封鎖玩家按鈕為 enabled 狀態', async () => {
     renderPage();
 
     await waitFor(() => {
@@ -137,8 +146,47 @@ describe('ChatMonitoringPage', () => {
     await waitFor(() => {
       const blockButtons = screen.getAllByText('封鎖');
       blockButtons.forEach((btn) => {
-        expect(btn.closest('button')).toBeDisabled();
+        expect(btn.closest('button')).not.toBeDisabled();
       });
+    });
+  });
+
+  // @ui_only
+  it('點擊「封鎖玩家」→ CreateBlacklistModal 開啟', async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    await waitFor(() => {
+      expect(mockMessageList).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
+      expect(screen.getAllByText('封鎖').length).toBeGreaterThanOrEqual(1);
+    });
+
+    const blockButtons = screen.getAllByText('封鎖');
+    await user.click(blockButtons[0]);
+
+    await waitFor(() => {
+      expect(screen.getByText('新增封鎖')).toBeInTheDocument();
+    });
+  });
+
+  // @ui_only
+  it('Modal 預填 player_username 和 chatroom_id', async () => {
+    renderPage();
+    const user = userEvent.setup();
+
+    await waitFor(() => {
+      expect(screen.getAllByText('封鎖').length).toBeGreaterThanOrEqual(1);
+    });
+
+    const blockButtons = screen.getAllByText('封鎖');
+    await user.click(blockButtons[0]);
+
+    await waitFor(() => {
+      // player001 是第一筆資料的 player_username
+      expect(screen.getByDisplayValue('player001')).toBeInTheDocument();
     });
   });
 

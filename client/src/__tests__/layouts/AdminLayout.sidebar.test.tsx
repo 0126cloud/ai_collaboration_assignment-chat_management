@@ -51,7 +51,7 @@ describe('AdminLayout Sidebar', () => {
     renderLayout(seniorPermissions);
 
     expect(screen.getByText('聊天監控')).toBeInTheDocument();
-    expect(screen.getByText('黑名單管理')).toBeInTheDocument();
+    expect(screen.getByText('黑名單管理 (IP, Player)')).toBeInTheDocument();
     expect(screen.getByText('聊天室')).toBeInTheDocument();
     expect(screen.getByText('系統廣播')).toBeInTheDocument();
     expect(screen.getByText('操作紀錄')).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe('AdminLayout Sidebar', () => {
     renderLayout(generalPermissions);
 
     expect(screen.getByText('聊天監控')).toBeInTheDocument();
-    expect(screen.getByText('黑名單管理')).toBeInTheDocument();
+    expect(screen.getByText('黑名單管理 (IP, Player)')).toBeInTheDocument();
     expect(screen.getByText('聊天室')).toBeInTheDocument();
     expect(screen.queryByText('系統廣播')).not.toBeInTheDocument();
     expect(screen.getByText('操作紀錄')).toBeInTheDocument();
