@@ -120,10 +120,12 @@ chat-management/
 ├── tsconfig.json                       # [新增] 根層 — @shared/* path alias
 ├── shared/                             # [新增] 前後端共用層
 │   ├── schemas/
-│   │   └── auth.ts                     # loginSchema, changePasswordSchema
+│   │   ├── auth.ts                     # loginSchema, changePasswordSchema, createAdminSchema
+│   │   └── admin.ts                    # adminListQuerySchema, updateAdminRoleSchema
 │   ├── types/
 │   │   ├── api.ts                      # TApiResponse, TApiError
-│   │   └── auth.ts                     # TLoginPayload, TLoginResponse
+│   │   ├── auth.ts                     # TLoginPayload, TLoginResponse, TCreateAdminPayload
+│   │   └── admin.ts                    # TAdminItem, TAdminListQuery, TUpdateAdminRolePayload
 │   └── index.ts
 ├── client/
 │   ├── tsconfig.app.json               # [修改] 新增 @shared/* paths
@@ -217,6 +219,8 @@ export enum ErrorCode {
 
   // 管理員管理
   ADMIN_USERNAME_DUPLICATE = 'ADMIN_USERNAME_DUPLICATE',
+  ADMIN_NOT_FOUND = 'ADMIN_NOT_FOUND',
+  ADMIN_CANNOT_SELF_MODIFY = 'ADMIN_CANNOT_SELF_MODIFY',
 }
 ```
 
@@ -234,6 +238,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, { statusCode: number; message: st
   [ErrorCode.AUTH_OLD_PASSWORD_INCORRECT]: { statusCode: 400, message: '舊密碼不正確' },
   [ErrorCode.FORBIDDEN_INSUFFICIENT_PERMISSIONS]: { statusCode: 403, message: '權限不足' },
   [ErrorCode.ADMIN_USERNAME_DUPLICATE]: { statusCode: 409, message: '帳號已存在' },
+  [ErrorCode.ADMIN_NOT_FOUND]: { statusCode: 404, message: '管理員帳號不存在' },
+  [ErrorCode.ADMIN_CANNOT_SELF_MODIFY]: { statusCode: 403, message: '無法對自己的帳號執行此操作' },
 };
 ```
 
@@ -582,37 +588,79 @@ router.put(
 
 > ⚠️ operation_logs 的 DB schema 與寫入機制已在 [rfc_02-operation-logs.md](rfc_02-operation-logs.md) 中重新設計（改用 `request` JSON 欄位 + `res.locals` afterware 模式），此處描述僅為 Phase 1 初始實作參考。
 
+#### GET `/api/admins`
+
+- **需認證**：`auth` middleware
+- **需權限**：`admin:read`
+- **Query Parameters**（使用 `adminListQuerySchema`）：
+  - `page?`: number（預設 1）
+  - `pageSize?`: number（預設 20，最大 100）
+  - `username?`: string（模糊搜尋）
+  - `role?`: `general_manager` | `senior_manager`
+  - `isActive?`: boolean
+- **Response 200**：`{ success: true, data: TAdminItem[], pagination: TPagination }`
+  - TAdminItem: `{ id, username, role, is_active, created_by, created_at, updated_at }`
+  - 不包含 `password_hash`
+- **Error 403**：`FORBIDDEN_INSUFFICIENT_PERMISSIONS`（非 senior_manager）
+- **操作紀錄**：不記錄（唯讀操作）
+
+#### PUT `/api/admins/:id/toggle`
+
+- **需認證**：`auth` middleware
+- **需權限**：`admin:toggle`
+- **Path Parameter**：`id` — 管理員 ID
+- **Response 200**：`{ success: true, data: { id, username, role, is_active, updated_at } }`
+- **Error 403**：`ADMIN_CANNOT_SELF_MODIFY`（嘗試操作自己）
+- **Error 404**：`ADMIN_NOT_FOUND`（ID 不存在）
+- **Error 403**：`FORBIDDEN_INSUFFICIENT_PERMISSIONS`（非 senior_manager）
+- **操作紀錄**：寫入 operation_logs（type: `TOGGLE_ADMIN`）
+
+#### PATCH `/api/admins/:id/role`
+
+- **需認證**：`auth` middleware
+- **需權限**：`admin:toggle`
+- **Path Parameter**：`id` — 管理員 ID
+- **Validation**：`updateAdminRoleSchema`（Zod）
+- **Request Body**：`{ role: 'general_manager' | 'senior_manager' }`
+- **Response 200**：`{ success: true, data: { id, username, role, is_active, updated_at } }`
+- **Error 400**：`VALIDATION_ERROR`（role 值無效）
+- **Error 403**：`ADMIN_CANNOT_SELF_MODIFY`（嘗試操作自己）
+- **Error 404**：`ADMIN_NOT_FOUND`（ID 不存在）
+- **Error 403**：`FORBIDDEN_INSUFFICIENT_PERMISSIONS`（非 senior_manager）
+- **操作紀錄**：寫入 operation_logs（type: `UPDATE_ADMIN_ROLE`）
+
 #### Route 權限對照表（完整，含未來模組）
 
-| Method | Path                                 | Permission                 | 備註      |
-| ------ | ------------------------------------ | -------------------------- | --------- |
-| POST   | `/api/auth/login`                    | —                          | 不需驗證  |
-| GET    | `/api/auth/me`                       | —                          | 僅需 auth |
-| POST   | `/api/auth/logout`                   | —                          | 僅需 auth |
-| PUT    | `/api/auth/password`                 | `auth:change_own_password` |           |
-| GET    | `/api/auth/permissions`              | —                          | 僅需 auth |
-| GET    | `/api/chat_messages`                 | `chat:read`                | Phase 3   |
-| DELETE | `/api/chat_messages/:id`             | `chat:delete`              | Phase 3   |
-| GET    | `/api/blacklist/player`              | `blacklist:read`           | Phase 4   |
-| POST   | `/api/blacklist/player`              | `blacklist:create`         | Phase 4   |
-| DELETE | `/api/blacklist/player/:id`          | `blacklist:delete`         | Phase 4   |
-| GET    | `/api/blacklist/ip`                  | `ip_block:read`            | Phase 4   |
-| POST   | `/api/blacklist/ip`                  | `ip_block:create`          | Phase 4   |
-| DELETE | `/api/blacklist/ip/:id`              | `ip_block:delete`          | Phase 4   |
-| GET    | `/api/chatrooms`                     | `chatroom:read`            | Phase 2+  |
-| GET    | `/api/broadcasts`                    | `broadcast:read`           | Phase 2+  |
-| POST   | `/api/broadcasts`                    | `broadcast:create`         | Phase 2+  |
-| GET    | `/api/operation-logs`                | `operation_log:read`       | Phase 2+  |
-| GET    | `/api/reports`                       | `report:read`              | Phase 2+  |
-| PUT    | `/api/reports/:id/approve`           | `report:review`            | Phase 2+  |
-| PUT    | `/api/reports/:id/reject`            | `report:review`            | Phase 2+  |
-| GET    | `/api/nickname-requests`             | `nickname:read`            | Phase 2+  |
-| PUT    | `/api/nickname-requests/:id/approve` | `nickname:review`          | Phase 2+  |
-| PUT    | `/api/nickname-requests/:id/reject`  | `nickname:review`          | Phase 2+  |
-| GET    | `/api/admins`                        | `admin:read`               | Phase 2+  |
-| POST   | `/api/admins`                        | `admin:create`             |           |
-| PUT    | `/api/admins/:id/toggle`             | `admin:toggle`             | Phase 2+  |
-| PUT    | `/api/admins/:id/password`           | `admin:reset_password`     | Phase 2+  |
+| Method | Path                                      | Permission                 | 備註      |
+| ------ | ----------------------------------------- | -------------------------- | --------- |
+| POST   | `/api/auth/login`                         | —                          | 不需驗證  |
+| GET    | `/api/auth/me`                            | —                          | 僅需 auth |
+| POST   | `/api/auth/logout`                        | —                          | 僅需 auth |
+| PUT    | `/api/auth/password`                      | `auth:change_own_password` |           |
+| GET    | `/api/auth/permissions`                   | —                          | 僅需 auth |
+| GET    | `/api/chat_messages`                      | `chat:read`                | Phase 3   |
+| DELETE | `/api/chat_messages/:id`                  | `chat:delete`              | Phase 3   |
+| GET    | `/api/blacklist/player`                   | `blacklist:read`           | Phase 4   |
+| POST   | `/api/blacklist/player`                   | `blacklist:create`         | Phase 4   |
+| DELETE | `/api/blacklist/player/:id`               | `blacklist:delete`         | Phase 4   |
+| GET    | `/api/blacklist/ip`                       | `ip_block:read`            | Phase 4   |
+| POST   | `/api/blacklist/ip`                       | `ip_block:create`          | Phase 4   |
+| DELETE | `/api/blacklist/ip/:id`                   | `ip_block:delete`          | Phase 4   |
+| GET    | `/api/chatrooms`                          | `chatroom:read`            | Phase 2+  |
+| GET    | `/api/broadcasts`                         | `broadcast:read`           | Phase 2+  |
+| POST   | `/api/broadcasts`                         | `broadcast:create`         | Phase 2+  |
+| GET    | `/api/operation-logs`                     | `operation_log:read`       | Phase 2+  |
+| GET    | `/api/reports`                            | `report:read`              | Phase 5   |
+| POST   | `/api/reports/:id/approve`                | `report:review`            | Phase 5   |
+| POST   | `/api/reports/:id/reject`                 | `report:review`            | Phase 5   |
+| GET    | `/api/nickname_reviews`                   | `nickname:read`            | Phase 5   |
+| POST   | `/api/nickname_reviews/:username/approve` | `nickname:review`          | Phase 5   |
+| POST   | `/api/nickname_reviews/:username/reject`  | `nickname:review`          | Phase 5   |
+| GET    | `/api/admins`                             | `admin:read`               | Phase 1D  |
+| POST   | `/api/admins`                             | `admin:create`             |           |
+| PUT    | `/api/admins/:id/toggle`                  | `admin:toggle`             | Phase 1D  |
+| PATCH  | `/api/admins/:id/role`                    | `admin:toggle`             | Phase 1D  |
+| PUT    | `/api/admins/:id/password`                | `admin:reset_password`     | Phase 2+  |
 
 ### 5.10 前端 Auth
 
