@@ -13,6 +13,7 @@ import { createChatMessageRoutes } from '../../module/chatMessage/route';
 import { createBlacklistRoutes } from '../../module/blacklist/route';
 import { createNicknameReviewRoutes } from '../../module/nicknameReview/route';
 import { createReportRoutes } from '../../module/report/route';
+import { createBroadcastRoutes } from '../../module/broadcast/route';
 import { operationLogger } from '../../middleware/operationLogger';
 
 export function createTestApp(db: Knex) {
@@ -42,6 +43,7 @@ export function createTestApp(db: Knex) {
   app.use('/api/blacklist', createBlacklistRoutes(db));
   app.use('/api/nickname_reviews', createNicknameReviewRoutes(db));
   app.use('/api/reports', createReportRoutes(db));
+  app.use('/api/broadcasts', createBroadcastRoutes(db));
 
   return app;
 }

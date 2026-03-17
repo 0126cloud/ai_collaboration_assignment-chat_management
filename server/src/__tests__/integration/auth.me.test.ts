@@ -60,10 +60,10 @@ describe('GET /api/auth/me', () => {
   });
 
   // @happy_path
-  it('senior_manager → 回傳 21 個 permissions', async () => {
+  it('senior_manager → 回傳 22 個 permissions', async () => {
     const res = await request(app).get('/api/auth/me').set('Cookie', `token=${seniorToken}`);
 
-    expect(res.body.data.permissions).toHaveLength(21);
+    expect(res.body.data.permissions).toHaveLength(22);
   });
 
   // @happy_path

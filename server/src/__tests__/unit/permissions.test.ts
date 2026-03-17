@@ -6,8 +6,8 @@ describe('權限設定檔', () => {
     expect(getPermissionsForRole('general_manager')).toHaveLength(15);
   });
 
-  it('senior_manager 有 21 個權限', () => {
-    expect(getPermissionsForRole('senior_manager')).toHaveLength(21);
+  it('senior_manager 有 22 個權限', () => {
+    expect(getPermissionsForRole('senior_manager')).toHaveLength(22);
   });
 
   it('senior_manager 包含 general_manager 所有權限', () => {
@@ -26,6 +26,7 @@ describe('權限設定檔', () => {
     expect(seniorPerms).toContain('admin:reset_password');
     expect(seniorPerms).toContain('broadcast:read');
     expect(seniorPerms).toContain('broadcast:create');
+    expect(seniorPerms).toContain('broadcast:delete');
   });
 
   it('general_manager 不擁有 admin:* 和 broadcast:* 權限', () => {

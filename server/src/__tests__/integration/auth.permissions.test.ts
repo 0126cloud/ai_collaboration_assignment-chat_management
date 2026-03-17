@@ -33,7 +33,7 @@ afterAll(async () => {
 
 describe('GET /api/auth/permissions', () => {
   // @happy_path
-  it('senior_manager → 21 個權限', async () => {
+  it('senior_manager → 22 個權限', async () => {
     const res = await request(app)
       .get('/api/auth/permissions')
       .set('Authorization', `Bearer ${seniorToken}`);
@@ -41,7 +41,7 @@ describe('GET /api/auth/permissions', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.role).toBe('senior_manager');
-    expect(res.body.data.permissions).toHaveLength(21);
+    expect(res.body.data.permissions).toHaveLength(22);
   });
 
   // @happy_path

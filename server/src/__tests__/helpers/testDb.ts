@@ -122,6 +122,21 @@ export async function setupTestSchema(database: Knex): Promise<void> {
     table.index('target_username');
     table.index('created_at');
   });
+
+  await database.schema.createTable('broadcasts', (table) => {
+    table.increments('id').primary();
+    table.text('message').notNullable();
+    table.string('chatroom_id', 50).notNullable();
+    table.integer('duration').notNullable();
+    table.datetime('start_at').notNullable();
+    table.string('operator', 50).notNullable();
+    table.datetime('created_at').defaultTo(database.fn.now());
+    table.datetime('deleted_at').nullable();
+
+    table.index('chatroom_id');
+    table.index('start_at');
+    table.index('created_at');
+  });
 }
 
 // 插入測試 seed 資料
