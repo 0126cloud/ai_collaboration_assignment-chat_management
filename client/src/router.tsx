@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import AdminLayout from './layouts/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import NotFoundPage from './pages/NotFoundPage';
+import OperationLogPage from './pages/OperationLogPage';
 
 const router = createBrowserRouter([
   {
@@ -17,7 +18,14 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      // Phase 2+ 逐步加入各頁面路由
+      {
+        path: 'operation-logs',
+        element: (
+          <ProtectedRoute permission="operation_log:read">
+            <OperationLogPage />
+          </ProtectedRoute>
+        ),
+      },
       {
         path: '*',
         element: <NotFoundPage />,
