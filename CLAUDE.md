@@ -5,7 +5,7 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_09-ux-improvements-and-features.md (Phase 9 ✅ 完成)
+- **Current progress**: 00_doc/tasks_10-system-config.md (Phase 10 進行中)
 
 ## Document Routing
 
@@ -23,6 +23,7 @@ Read the relevant document BEFORE starting any task:
 | Broadcast message design       | `00_doc/rfc_06-broadcast-message.md`         |
 | Design system                  | `00_doc/rfc_07-design-system.md`             |
 | Testing guidelines             | `00_doc/rfc_09-testing-guidelines.md`        |
+| 環境變數配置設計               | `00_doc/rfc_10-system-config.md`             |
 
 ## Skill 使用指引
 
