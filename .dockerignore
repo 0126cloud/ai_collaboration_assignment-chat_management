@@ -1,0 +1,15 @@
+node_modules
+dist
+*.sqlite
+.env
+.env.local
+.env.development
+.env.production
+.git
+.claude
+01_draft
+00_doc
+00_finished_tasks
+e2e
+coverage
+.DS_Store

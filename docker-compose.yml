@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - '3000:3000'
+    volumes:
+      - chat-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - SERVER_ADDRESS=0.0.0.0
+      - SERVER_PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-please-change-this-secret}
+      - DB_FILENAME=/app/data/chat-management.sqlite
+    restart: unless-stopped
+
+volumes:
+  chat-data:
