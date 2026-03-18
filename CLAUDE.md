@@ -5,7 +5,7 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_06-broadcast-message.md (Phase 6 ✅ 完成)
+- **Current progress**: 00_doc/tasks_07-design-system.md (Phase 7 ✅ 完成)
 
 ## Document Routing
 
@@ -21,6 +21,7 @@ Read the relevant document BEFORE starting any task:
 | Blacklist & IP blocking design | `00_doc/rfc_04-blacklist-and-ip-blocking.md` |
 | Nickname & report design       | `00_doc/rfc_05-nickname-and-report.md`       |
 | Broadcast message design       | `00_doc/rfc_06-broadcast-message.md`         |
+| Design system                  | `00_doc/tasks_07-design-system.md`           |
 
 ## Skill 使用指引
 

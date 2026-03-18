@@ -253,11 +253,11 @@ curl -X POST -b cookies.txt -H "Content-Type: application/json" \
    - 新增 `/blacklist` 路由，包裹 `ProtectedRoute` + `permission="blacklist:read"`
 
 5. `client/src/layouts/AdminLayout.tsx`
-   - 更新 sidebar 選單：`{ key: '/blacklist', label: '黑名單管理 (IP, Player)', permission: 'blacklist:read' }`
+   - 更新 sidebar 選單：`{ key: '/blacklist', label: '黑名單管理', permission: 'blacklist:read' }`
 
 ### 驗證方式
 
-1. 登入後點擊 Sidebar「黑名單管理 (IP, Player)」→ 顯示黑名單列表
+1. 登入後點擊 Sidebar「黑名單管理」→ 顯示黑名單列表
 2. 預設顯示 Player 類型，表格顯示 5 筆玩家封鎖紀錄
 3. 切換類型為 IP → 表格改顯示 3 筆 IP 封鎖紀錄
 4. 輸入 target 搜尋 → 表格篩選

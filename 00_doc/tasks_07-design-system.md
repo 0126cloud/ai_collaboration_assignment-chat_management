@@ -240,31 +240,31 @@ Task 7.6 (Prettier Format)
 
 ### Theme 架構
 
-- [ ] `ThemeContext` 支援 light / dark / system 三態切換
-- [ ] `localStorage` 持久化正常（重新整理頁面後主題保持）
-- [ ] System mode 正確跟隨 OS 設定
-- [ ] `getTheme()` 函式根據 mode 回傳正確的 ThemeConfig（含 algorithm）
+- [x] `ThemeContext` 支援 light / dark / system 三態切換
+- [x] `localStorage` 持久化正常（重新整理頁面後主題保持）
+- [x] System mode 正確跟隨 OS 設定
+- [x] `getTheme()` 函式根據 mode 回傳正確的 ThemeConfig（含 algorithm）
 
 ### 色彩系統
 
-- [ ] Light mode seed tokens 為 iOS 風格色彩
-- [ ] Dark mode 使用 `darkAlgorithm` 自動推導 + 少量覆寫
-- [ ] 全專案無殘留 hardcoded hex 色值（`#001529`、`#F5F7FA` 已清除）
+- [x] Light mode seed tokens 為 iOS 風格色彩
+- [x] Dark mode 使用 `darkAlgorithm` 自動推導 + 少量覆寫
+- [x] 全專案無殘留 hardcoded hex 色值（`#001529`、`#F5F7FA` 已清除）
 
 ### 視覺風格
 
-- [ ] 圓角為 iOS 風格（10 / 14 / 8）
-- [ ] Card / Modal 使用 iOS 風格細膩陰影
-- [ ] 字型 `fontWeightStrong: 600`
+- [x] 圓角為 iOS 風格（10 / 14 / 8）
+- [x] Card / Modal 使用 iOS 風格細膩陰影
+- [x] 字型 `fontWeightStrong: 600`
 
 ### AdminLayout
 
-- [ ] Sidebar 跟隨主題（Light 淺色、Dark 深色）
-- [ ] Header 有主題切換按鈕（三態圖標切換）
-- [ ] 無 `<Menu theme="dark">` hardcode
+- [x] Sidebar 跟隨主題（Light 淺色、Dark 深色）
+- [x] Header 有主題切換按鈕（三態圖標切換）
+- [x] 無 `<Menu theme="dark">` hardcode
 
 ### 全站驗證
 
-- [ ] 所有頁面在 Light / Dark mode 下顯示正常
-- [ ] `npm test` 全部通過
-- [ ] Prettier 格式化完成
+- [x] 所有頁面在 Light / Dark mode 下顯示正常
+- [x] `npm test` 全部通過
+- [x] Prettier 格式化完成

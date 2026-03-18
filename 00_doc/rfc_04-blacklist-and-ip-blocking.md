@@ -495,7 +495,7 @@ BlacklistPage
 }
 ```
 
-> Sidebar 選單更新：`{ key: '/blacklist', label: '黑名單管理 (IP, Player)', permission: 'blacklist:read' }`
+> Sidebar 選單更新：`{ key: '/blacklist', label: '黑名單管理', permission: 'blacklist:read' }`
 
 ### 5.11 前端 CreateBlacklistModal
 
