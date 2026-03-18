@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from 'path';
 import { AppError } from './utils/appError';
 import { ErrorCode } from './utils/errorCodes';
 import { ResponseHelper } from './utils/responseHelper';
@@ -17,7 +18,9 @@ import { createBroadcastRoutes } from './module/broadcast/route';
 import { createPlayerRoutes } from './module/player/route';
 import { operationLogger } from './middleware/operationLogger';
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(process.cwd(), `.env.${process.env.NODE_ENV || 'development'}`),
+});
 
 const app = express();
 
@@ -64,6 +67,17 @@ app.use('/api/blacklist', createBlacklistRoutes(db));
 app.use('/api/reports', createReportRoutes(db));
 app.use('/api/broadcasts', createBroadcastRoutes(db));
 app.use('/api/players', createPlayerRoutes(db));
+
+// Production: Express 直接 serve 前端靜態檔案（取代 Vite dev server）
+if (process.env.NODE_ENV === 'production') {
+  const clientDist = path.resolve(process.cwd(), '../client/dist');
+  app.use(express.static(clientDist));
+
+  // SPA fallback：非 API 路由一律回 index.html，交由 React Router 處理
+  app.get('*', (_req: Request, res: Response) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use((_req: Request, _res: Response, next: NextFunction) => {

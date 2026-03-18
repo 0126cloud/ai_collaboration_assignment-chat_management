@@ -9,14 +9,14 @@ export function initDatabase(): Knex {
   db = knex({
     client: 'better-sqlite3',
     connection: {
-      filename: path.resolve(__dirname, '../../db/dev.sqlite'),
+      filename: process.env.DB_FILENAME || path.resolve(process.cwd(), 'db/dev.sqlite'),
     },
     useNullAsDefault: true,
     migrations: {
-      directory: path.resolve(__dirname, '../../db/migrations'),
+      directory: path.resolve(process.cwd(), 'db/migrations'),
     },
     seeds: {
-      directory: path.resolve(__dirname, '../../db/seeds'),
+      directory: path.resolve(process.cwd(), 'db/seeds'),
     },
   });
 
