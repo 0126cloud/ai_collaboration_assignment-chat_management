@@ -5,7 +5,7 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_07-design-system.md (Phase 7 ✅ 完成)
+- **Current progress**: 00_doc/tasks_08-e2e-and-demo-video-v1.md (Phase 8 ✅ 完成)
 
 ## Document Routing
 
