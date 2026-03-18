@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ConfigProvider } from 'antd';
 import AdminLayout from '../../layouts/AdminLayout';
+import { ThemeProvider } from '../../theme/context/ThemeContext';
 
 // Mock useAuth
 const mockUseAuth = vi.fn();
@@ -38,11 +39,13 @@ function renderLayout(permissions: string[]) {
   });
 
   return render(
-    <ConfigProvider>
-      <MemoryRouter>
-        <AdminLayout />
-      </MemoryRouter>
-    </ConfigProvider>,
+    <ThemeProvider>
+      <ConfigProvider>
+        <MemoryRouter>
+          <AdminLayout />
+        </MemoryRouter>
+      </ConfigProvider>
+    </ThemeProvider>,
   );
 }
 
@@ -51,7 +54,7 @@ describe('AdminLayout Sidebar', () => {
     renderLayout(seniorPermissions);
 
     expect(screen.getByText('聊天監控')).toBeInTheDocument();
-    expect(screen.getByText('黑名單管理 (IP, Player)')).toBeInTheDocument();
+    expect(screen.getByText('黑名單管理')).toBeInTheDocument();
     expect(screen.getByText('聊天室')).toBeInTheDocument();
     expect(screen.getByText('系統廣播')).toBeInTheDocument();
     expect(screen.getByText('操作紀錄')).toBeInTheDocument();
@@ -64,7 +67,7 @@ describe('AdminLayout Sidebar', () => {
     renderLayout(generalPermissions);
 
     expect(screen.getByText('聊天監控')).toBeInTheDocument();
-    expect(screen.getByText('黑名單管理 (IP, Player)')).toBeInTheDocument();
+    expect(screen.getByText('黑名單管理')).toBeInTheDocument();
     expect(screen.getByText('聊天室')).toBeInTheDocument();
     expect(screen.queryByText('系統廣播')).not.toBeInTheDocument();
     expect(screen.getByText('操作紀錄')).toBeInTheDocument();
