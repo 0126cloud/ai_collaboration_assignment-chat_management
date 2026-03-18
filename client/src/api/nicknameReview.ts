@@ -15,9 +15,9 @@ interface IPaginatedResponse {
 
 export const nicknameReviewApi = {
   list: (params?: TNicknameReviewQuery) =>
-    client.get<IPaginatedResponse>('/api/nickname_reviews', { params }),
+    client.get<IPaginatedResponse>('/api/players/nickname/reviews', { params }),
   approve: (username: string) =>
-    client.post<TApiResponse<{ message: string }>>(`/api/nickname_reviews/${username}/approve`),
+    client.post<TApiResponse<{ message: string }>>(`/api/players/${username}/nickname/approve`),
   reject: (username: string) =>
-    client.post<TApiResponse<{ message: string }>>(`/api/nickname_reviews/${username}/reject`),
+    client.post<TApiResponse<{ message: string }>>(`/api/players/${username}/nickname/reject`),
 };

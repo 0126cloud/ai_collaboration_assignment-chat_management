@@ -11,8 +11,8 @@ import { createOperationLogRoutes } from '../../module/operationLog/route';
 import { createChatroomRoutes } from '../../module/chatroom/route';
 import { createChatMessageRoutes } from '../../module/chatMessage/route';
 import { createBlacklistRoutes } from '../../module/blacklist/route';
-import { createNicknameReviewRoutes } from '../../module/nicknameReview/route';
 import { createReportRoutes } from '../../module/report/route';
+import { createPlayerRoutes } from '../../module/player/route';
 import { createBroadcastRoutes } from '../../module/broadcast/route';
 import { operationLogger } from '../../middleware/operationLogger';
 
@@ -41,9 +41,9 @@ export function createTestApp(db: Knex) {
   app.use('/api/chatrooms', createChatroomRoutes(db));
   app.use('/api/chat_messages', createChatMessageRoutes(db));
   app.use('/api/blacklist', createBlacklistRoutes(db));
-  app.use('/api/nickname_reviews', createNicknameReviewRoutes(db));
   app.use('/api/reports', createReportRoutes(db));
   app.use('/api/broadcasts', createBroadcastRoutes(db));
+  app.use('/api/players', createPlayerRoutes(db));
 
   return app;
 }

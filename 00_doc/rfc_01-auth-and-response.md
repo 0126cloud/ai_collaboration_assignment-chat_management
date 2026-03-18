@@ -671,9 +671,9 @@ router.put(
 | GET    | `/api/reports`                            | `report:read`              | Phase 5   |
 | POST   | `/api/reports/:id/approve`                | `report:review`            | Phase 5   |
 | POST   | `/api/reports/:id/reject`                 | `report:review`            | Phase 5   |
-| GET    | `/api/nickname_reviews`                   | `nickname:read`            | Phase 5   |
-| POST   | `/api/nickname_reviews/:username/approve` | `nickname:review`          | Phase 5   |
-| POST   | `/api/nickname_reviews/:username/reject`  | `nickname:review`          | Phase 5   |
+| GET    | `/api/players/nickname/reviews`                   | `nickname:read`            | Phase 5   |
+| POST   | `/api/players/:username/nickname/approve` | `nickname:review`          | Phase 5   |
+| POST   | `/api/players/:username/nickname/reject`  | `nickname:review`          | Phase 5   |
 | GET    | `/api/admins`                             | `admin:read`               | Phase 1D  |
 | POST   | `/api/admins`                             | `admin:create`             |           |
 | PUT    | `/api/admins/:id/toggle`                  | `admin:toggle`             | Phase 1D  |

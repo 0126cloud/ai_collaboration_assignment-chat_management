@@ -68,11 +68,11 @@ afterAll(async () => {
   await closeTestDb();
 });
 
-describe('GET /api/nickname_reviews', () => {
+describe('GET /api/players/nickname/reviews', () => {
   // @happy_path
   it('列出待審核暱稱 → 200 + 僅回傳 nickname_review_status=pending', async () => {
     const res = await request(app)
-      .get('/api/nickname_reviews')
+      .get('/api/players/nickname/reviews')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(200);
@@ -86,7 +86,7 @@ describe('GET /api/nickname_reviews', () => {
   // @happy_path
   it('username 模糊搜尋 → 回傳匹配結果', async () => {
     const res = await request(app)
-      .get('/api/nickname_reviews?username=player01')
+      .get('/api/players/nickname/reviews?username=player01')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(200);
@@ -99,7 +99,7 @@ describe('GET /api/nickname_reviews', () => {
   // @happy_path
   it('nickname 模糊搜尋 → 回傳匹配結果', async () => {
     const res = await request(app)
-      .get('/api/nickname_reviews?nickname=Dragon')
+      .get('/api/players/nickname/reviews?nickname=Dragon')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(200);
@@ -111,7 +111,7 @@ describe('GET /api/nickname_reviews', () => {
   it('日期範圍篩選 → 只回傳範圍內資料', async () => {
     const res = await request(app)
       .get(
-        '/api/nickname_reviews?applyStartDate=2026-03-16 00:00:00&applyEndDate=2026-03-16 23:59:59',
+        '/api/players/nickname/reviews?applyStartDate=2026-03-16 00:00:00&applyEndDate=2026-03-16 23:59:59',
       )
       .set('Authorization', `Bearer ${seniorToken}`);
 
@@ -121,14 +121,14 @@ describe('GET /api/nickname_reviews', () => {
 
   // @permissions
   it('未帶 token → 401', async () => {
-    const res = await request(app).get('/api/nickname_reviews');
+    const res = await request(app).get('/api/players/nickname/reviews');
     expect(res.status).toBe(401);
   });
 
   // @permissions
   it('general_manager → 200', async () => {
     const res = await request(app)
-      .get('/api/nickname_reviews')
+      .get('/api/players/nickname/reviews')
       .set('Authorization', `Bearer ${generalToken}`);
     expect(res.status).toBe(200);
   });
@@ -136,7 +136,7 @@ describe('GET /api/nickname_reviews', () => {
   // @happy_path
   it('status=approved 篩選 → 回傳已核准列表', async () => {
     const res = await request(app)
-      .get('/api/nickname_reviews?status=approved')
+      .get('/api/players/nickname/reviews?status=approved')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(200);
@@ -150,11 +150,11 @@ describe('GET /api/nickname_reviews', () => {
   });
 });
 
-describe('POST /api/nickname_reviews/:username/approve', () => {
+describe('POST /api/players/:username/nickname/approve', () => {
   // @happy_path
   it('核准暱稱 → 200，nickname_review_status=approved，nickname_apply_at 保留', async () => {
     const res = await request(app)
-      .post('/api/nickname_reviews/player016/approve')
+      .post('/api/players/player016/nickname/approve')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(200);
@@ -172,7 +172,7 @@ describe('POST /api/nickname_reviews/:username/approve', () => {
   // @validation
   it('對已核准玩家再次 approve → 409 PLAYER_NICKNAME_NOT_PENDING', async () => {
     const res = await request(app)
-      .post('/api/nickname_reviews/player016/approve')
+      .post('/api/players/player016/nickname/approve')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(409);
@@ -182,7 +182,7 @@ describe('POST /api/nickname_reviews/:username/approve', () => {
   // @validation
   it('玩家不存在 → 404 PLAYER_NOT_FOUND', async () => {
     const res = await request(app)
-      .post('/api/nickname_reviews/nonexistent/approve')
+      .post('/api/players/nonexistent/nickname/approve')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(404);
@@ -191,16 +191,16 @@ describe('POST /api/nickname_reviews/:username/approve', () => {
 
   // @permissions
   it('未帶 token → 401', async () => {
-    const res = await request(app).post('/api/nickname_reviews/player017/approve');
+    const res = await request(app).post('/api/players/player017/nickname/approve');
     expect(res.status).toBe(401);
   });
 });
 
-describe('POST /api/nickname_reviews/:username/reject', () => {
+describe('POST /api/players/:username/nickname/reject', () => {
   // @happy_path
   it('駁回暱稱 → 200，nickname=username，nickname_review_status=rejected，nickname_apply_at 保留', async () => {
     const res = await request(app)
-      .post('/api/nickname_reviews/player017/reject')
+      .post('/api/players/player017/nickname/reject')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(200);
@@ -216,7 +216,7 @@ describe('POST /api/nickname_reviews/:username/reject', () => {
   // @validation
   it('對已審核玩家再次 reject → 409 PLAYER_NICKNAME_NOT_PENDING', async () => {
     const res = await request(app)
-      .post('/api/nickname_reviews/player017/reject')
+      .post('/api/players/player017/nickname/reject')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     expect(res.status).toBe(409);
@@ -225,7 +225,7 @@ describe('POST /api/nickname_reviews/:username/reject', () => {
 
   // @permissions
   it('未帶 token → 401', async () => {
-    const res = await request(app).post('/api/nickname_reviews/player018/reject');
+    const res = await request(app).post('/api/players/player018/nickname/reject');
     expect(res.status).toBe(401);
   });
 });
@@ -234,11 +234,11 @@ describe('Operation logs', () => {
   // @happy_path
   it('approve/reject 後 operation_logs 有對應紀錄', async () => {
     await request(app)
-      .post('/api/nickname_reviews/player018/approve')
+      .post('/api/players/player018/nickname/approve')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     await request(app)
-      .post('/api/nickname_reviews/player019/reject')
+      .post('/api/players/player019/nickname/reject')
       .set('Authorization', `Bearer ${seniorToken}`);
 
     const approveLogs = await db('operation_logs').where('operation_type', 'APPROVE_NICKNAME');

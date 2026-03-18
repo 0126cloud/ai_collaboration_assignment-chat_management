@@ -21,7 +21,7 @@ Phase 4（[rfc_04](rfc_04-blacklist-and-ip-blocking.md)）已完成黑名單與 
 
 - 新增 `players.nickname_apply_at` 欄位（暱稱申請時間）
 - 建立 `reports` 資料表
-- 建立 `GET/POST /api/nickname_reviews` API（列表 + 核准 / 駁回）
+- 建立 `GET/POST /api/players/nickname/reviews` API（列表 + 核准 / 駁回，掛載於 player module）
 - 建立 `GET/POST /api/reports` API（列表 + 核准 / 駁回）
 - 核准檢舉時自動呼叫 `BlacklistService.create()` 封鎖被檢舉玩家
 - 建立前端 `NicknameReviewPage`（暱稱審核列表）
@@ -56,9 +56,9 @@ Phase 4（[rfc_04](rfc_04-blacklist-and-ip-blocking.md)）已完成黑名單與 
 
 | API                                            | 權限              | 說明              |
 | ---------------------------------------------- | ----------------- | ----------------- |
-| `GET /api/nickname_reviews`                    | `nickname:read`   | 待審核暱稱列表    |
-| `POST /api/nickname_reviews/:username/approve` | `nickname:review` | 核准暱稱          |
-| `POST /api/nickname_reviews/:username/reject`  | `nickname:review` | 駁回暱稱（重設）  |
+| `GET /api/players/nickname/reviews`                    | `nickname:read`   | 待審核暱稱列表    |
+| `POST /api/players/:username/nickname/approve` | `nickname:review` | 核准暱稱          |
+| `POST /api/players/:username/nickname/reject`  | `nickname:review` | 駁回暱稱（重設）  |
 | `GET /api/reports`                             | `report:read`     | 檢舉列表          |
 | `POST /api/reports/:id/approve`                | `report:review`   | 核准檢舉（+封鎖） |
 | `POST /api/reports/:id/reject`                 | `report:review`   | 駁回檢舉          |
@@ -105,10 +105,10 @@ chat-management/
 │       ├── utils/
 │       │   └── errorCodes.ts                                        # [修改] 新增 4 個 error codes
 │       └── module/
-│           ├── nicknameReview/
-│           │   ├── controller.ts                                    # [新增]
-│           │   ├── service.ts                                       # [新增]
-│           │   └── route.ts                                         # [新增]
+│           ├── player/
+│           │   ├── controller.ts                                    # [修改] 新增 nickname review handlers
+│           │   ├── service.ts                                       # [修改] 新增 nickname review methods
+│           │   └── route.ts                                         # [修改] 新增 nickname review routes
 │           └── report/
 │               ├── controller.ts                                    # [新增]
 │               ├── service.ts                                       # [新增]
@@ -184,7 +184,7 @@ export async function down(knex: Knex): Promise<void> {
 
 > **無 deleted_at**：檢舉紀錄為稽核資料，不支援軟刪除。
 
-### 5.3 API — GET `/api/nickname_reviews`
+### 5.3 API — GET `/api/players/nickname/reviews`
 
 - **需認證**：`auth` middleware
 - **需權限**：`nickname:read`
@@ -231,7 +231,7 @@ export async function down(knex: Knex): Promise<void> {
 }
 ```
 
-### 5.4 API — POST `/api/nickname_reviews/:username/approve`
+### 5.4 API — POST `/api/players/:username/nickname/approve`
 
 - **需認證**：`auth` middleware
 - **需權限**：`nickname:review`
@@ -257,7 +257,7 @@ export async function down(knex: Knex): Promise<void> {
 - **Error 404**：`PLAYER_NOT_FOUND`
 - **Error 409**：`PLAYER_NICKNAME_NOT_PENDING`（無待審核申請）
 
-### 5.5 API — POST `/api/nickname_reviews/:username/reject`
+### 5.5 API — POST `/api/players/:username/nickname/reject`
 
 - **需認證**：`auth` middleware
 - **需權限**：`nickname:review`
@@ -408,24 +408,16 @@ REPORT_ALREADY_REVIEWED = 'REPORT_ALREADY_REVIEWED',
 [ErrorCode.REPORT_ALREADY_REVIEWED]: { statusCode: 409, message: '該檢舉已審核過' },
 ```
 
-### 5.10 後端 Module — nicknameReview
+### 5.10 後端 Module — player（nickname review 路由合併於此）
 
-遵循既有 module 三層架構（route → controller → service）。
+暱稱審核路由合併至既有 `player` module（`server/src/module/player/`），不單獨建立 nicknameReview module。
 
-**route.ts**（`server/src/module/nicknameReview/route.ts`）：
+**route.ts**（`server/src/module/player/route.ts`）新增路由：
 
 ```ts
-export function createNicknameReviewRoutes(db: Knex): Router {
-  const router = Router();
-  const service = new NicknameReviewService(db);
-  const controller = new NicknameReviewController(service);
-
-  router.get('/', auth, requirePermission('nickname:read'), controller.list);
-  router.post('/:username/approve', auth, requirePermission('nickname:review'), controller.approve);
-  router.post('/:username/reject', auth, requirePermission('nickname:review'), controller.reject);
-
-  return router;
-}
+router.get('/nickname/reviews', auth, requirePermission('nickname:read'), ctrl.listNicknameReviews);
+router.post('/:username/nickname/approve', auth, requirePermission('nickname:review'), ctrl.approveNickname);
+router.post('/:username/nickname/reject', auth, requirePermission('nickname:review'), ctrl.rejectNickname);
 ```
 
 **service.ts** 關鍵方法：
@@ -710,7 +702,7 @@ export const reportQuerySchema = z.object({
 
 | 層級        | 測試檔案                      | 測試目標                                                             |
 | ----------- | ----------------------------- | -------------------------------------------------------------------- |
-| Integration | `nicknameReview.test.ts`      | GET /api/nickname_reviews + approve / reject 完整 pipeline           |
+| Integration | `nicknameReview.test.ts`      | GET /api/players/nickname/reviews + approve / reject 完整 pipeline   |
 | Integration | `report.test.ts`              | GET /api/reports + approve（含自動封鎖） / reject 完整 pipeline      |
 | Component   | `NicknameReviewPage.test.tsx` | 頁面渲染、搜尋互動、核准 / 駁回按鈕行為、loading state               |
 | Component   | `ReportReviewPage.test.tsx`   | 頁面渲染、狀態篩選、核准 confirm Modal、disabled 狀態、loading state |
@@ -766,9 +758,9 @@ export const reportQuerySchema = z.object({
 - [ ] `20260317000009` migration 執行後 reports 表結構正確
 - [ ] Seed 執行後有 5 筆 `nickname_review_status=pending` 玩家（含 nickname_apply_at）
 - [ ] Seed 執行後有 5 筆 reports（含 pending / approved / rejected 三種狀態）
-- [ ] `GET /api/nickname_reviews` 正確回傳待審核列表（分頁 + 篩選）
-- [ ] `POST /api/nickname_reviews/:username/approve` 核准後 `nickname_review_status=approved`
-- [ ] `POST /api/nickname_reviews/:username/reject` 駁回後 nickname=username
+- [ ] `GET /api/players/nickname/reviews` 正確回傳待審核列表（分頁 + 篩選）
+- [ ] `POST /api/players/:username/nickname/approve` 核准後 `nickname_review_status=approved`
+- [ ] `POST /api/players/:username/nickname/reject` 駁回後 nickname=username
 - [ ] 重複 approve / reject 回傳 409 `PLAYER_NICKNAME_NOT_PENDING`
 - [ ] `GET /api/reports` 正確回傳列表（預設 status=pending，分頁 + 篩選）
 - [ ] `POST /api/reports/:id/approve` 核准後 status=approved 且目標玩家被封鎖

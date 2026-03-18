@@ -11,7 +11,7 @@ Feature: 暱稱審核（Nickname Review）
   @happy_path
   Scenario: 查看待審核暱稱列表
     Given 管理員已登入
-    When 管理員請求 GET /api/nickname_reviews
+    When 管理員請求 GET /api/players/nickname/reviews
     Then 回應應為 200，並回傳待審核玩家列表
     And 列表應只包含 nickname_review_status = 'pending' 的玩家
     And 列表應依 nickname_apply_at 遞增排序
@@ -19,21 +19,21 @@ Feature: 暱稱審核（Nickname Review）
   @happy_path
   Scenario: 依玩家帳號搜尋待審核列表
     Given 管理員已登入
-    When 管理員請求 GET /api/nickname_reviews?username=player016
+    When 管理員請求 GET /api/players/nickname/reviews?username=player016
     Then 回應應為 200
     And 列表應只包含 username 含「player016」的玩家
 
   @happy_path
   Scenario: 依申請暱稱搜尋待審核列表
     Given 管理員已登入
-    When 管理員請求 GET /api/nickname_reviews?nickname=Dragon
+    When 管理員請求 GET /api/players/nickname/reviews?nickname=Dragon
     Then 回應應為 200
     And 列表應只包含 nickname 含「Dragon」的玩家
 
   @happy_path
   Scenario: 依申請時間範圍篩選
     Given 管理員已登入
-    When 管理員請求 GET /api/nickname_reviews?applyStartDate=2026-03-15&applyEndDate=2026-03-15
+    When 管理員請求 GET /api/players/nickname/reviews?applyStartDate=2026-03-15&applyEndDate=2026-03-15
     Then 回應應為 200
     And 列表應只包含 2026-03-15 當天申請的玩家
 
@@ -42,7 +42,7 @@ Feature: 暱稱審核（Nickname Review）
   @happy_path
   Scenario: 管理員核准暱稱申請
     Given 管理員已登入
-    When 管理員請求 POST /api/nickname_reviews/player016/approve
+    When 管理員請求 POST /api/players/player016/nickname/approve
     Then 回應應為 200，訊息為「暱稱申請已核准」
     And 玩家「player016」的 nickname_review_status 應變為 'approved'
     And 玩家「player016」的 nickname_reviewed_by 應為「admin01」
@@ -53,7 +53,7 @@ Feature: 暱稱審核（Nickname Review）
   @happy_path
   Scenario: 管理員駁回暱稱申請，暱稱重設為帳號名稱
     Given 管理員已登入
-    When 管理員請求 POST /api/nickname_reviews/player016/reject
+    When 管理員請求 POST /api/players/player016/nickname/reject
     Then 回應應為 200，訊息為「暱稱申請已駁回，暱稱已重設為帳號名稱」
     And 玩家「player016」的 nickname 應變為「player016」（即 username）
     And 玩家「player016」的 nickname_review_status 應變為 'rejected'
@@ -66,25 +66,25 @@ Feature: 暱稱審核（Nickname Review）
   Scenario: 對無待審核申請的玩家執行核准
     Given 管理員已登入
     And 玩家「player019」的暱稱已核准（nickname_review_status = 'approved'）
-    When 管理員請求 POST /api/nickname_reviews/player019/approve
+    When 管理員請求 POST /api/players/player019/nickname/approve
     Then 回應應為 409，錯誤碼為「PLAYER_NICKNAME_NOT_PENDING」
 
   @validation
   Scenario: 對不存在的玩家執行核准
     Given 管理員已登入
-    When 管理員請求 POST /api/nickname_reviews/nonexistent_player/approve
+    When 管理員請求 POST /api/players/nonexistent_player/nickname/approve
     Then 回應應為 404，錯誤碼為「PLAYER_NOT_FOUND」
 
   @permissions
   Scenario: 未登入時無法存取暱稱審核 API
     Given 使用者未登入（未攜帶 JWT）
-    When 使用者請求 GET /api/nickname_reviews
+    When 使用者請求 GET /api/players/nickname/reviews
     Then 回應應為 401，錯誤碼為「AUTH_MISSING_TOKEN」
 
   @permissions
   Scenario: 缺少 nickname:review 權限無法核准
     Given 管理員已登入，但無 nickname:review 權限
-    When 管理員請求 POST /api/nickname_reviews/player016/approve
+    When 管理員請求 POST /api/players/player016/nickname/approve
     Then 回應應為 403，錯誤碼為「FORBIDDEN_INSUFFICIENT_PERMISSIONS」
 
 
