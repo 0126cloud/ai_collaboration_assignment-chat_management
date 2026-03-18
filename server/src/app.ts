@@ -32,6 +32,17 @@ app.use(
   }),
 );
 
+// Encoding middleware — 確保所有 JSON response 的 Content-Type 帶有 charset
+const encoding = process.env.ENCODING ?? 'utf-8';
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    res.setHeader('Content-Type', `application/json; charset=${encoding}`);
+    return originalJson(body);
+  };
+  next();
+});
+
 // 初始化 DB 並掛載到 app.locals
 const db = initDatabase();
 app.locals.db = db;
