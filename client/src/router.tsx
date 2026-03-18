@@ -10,6 +10,7 @@ import BlacklistPage from './pages/BlacklistPage';
 import NicknameReviewPage from './pages/NicknameReviewPage';
 import ReportReviewPage from './pages/ReportReviewPage';
 import BroadcastPage from './pages/BroadcastPage';
+import ManagerPage from './pages/ManagerPage';
 
 const router = createBrowserRouter([
   {
@@ -77,6 +78,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute permission="broadcast:read">
             <BroadcastPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admins',
+        element: (
+          <ProtectedRoute permission="admin:read">
+            <ManagerPage />
           </ProtectedRoute>
         ),
       },
