@@ -224,6 +224,11 @@ export enum ErrorCode {
 }
 ```
 
+> **為何使用字串 enum 而非數字？**
+> - **Log 可讀性**：錯誤出現時直接顯示 `AUTH_TOKEN_EXPIRED`，不需對照數字表
+> - **無碰撞風險**：多人開發時若各自新增 error code，數字容易衝突；字串不會
+> - **未來 i18n 擴展**：字串值可直接作為國際化訊息的 key，無需額外 mapping
+
 **ERROR_MESSAGES config**：
 
 ```ts
@@ -360,6 +365,8 @@ export function validate(schema: ZodSchema) {
   };
 }
 ```
+
+> `req.body = result.data`：以 Zod parsed 結果覆寫原始 body。Zod 預設 strip unknown fields，確保後續 handler 只接觸 schema 定義的欄位，防止惡意附加欄位流入 service 層。
 
 **使用方式：**
 
@@ -501,7 +508,7 @@ export function requirePermission(...requiredPermissions: string[]) {
 // 單一權限
 router.get('/api/chat_messages', auth, requirePermission('chat:read'), ctrl.list);
 
-// 多個權限（OR 邏輯）
+// 複合權限（AND 邏輯：需同時具備兩個權限才可通過）
 router.put(
   '/api/admins/:id/password',
   auth,
@@ -509,6 +516,8 @@ router.put(
   ctrl.resetPassword,
 );
 ```
+
+> **AND 邏輯**：傳入多個 permission 時，使用者必須**同時具有全部**權限才可通過（`every()` 實作）。目前多數 API 僅需單一權限，複合權限預留未來擴展。
 
 ### 5.8 DB Schema — admins 表
 

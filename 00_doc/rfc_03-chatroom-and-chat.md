@@ -211,12 +211,14 @@ chat-management/
 | id              | INTEGER PRIMARY KEY AUTOINCREMENT  |                                     |
 | chatroom_id     | VARCHAR(50) NOT NULL               | 所屬聊天室                          |
 | player_username | VARCHAR(50) NOT NULL               | 發訊玩家帳號                        |
-| player_nickname | VARCHAR(50) NOT NULL               | 發訊時的暱稱（冗餘欄位，避免 JOIN） |
+| player_nickname | VARCHAR(50) NOT NULL               | 發訊時的暱稱（冗餘快照欄位，見下方說明） |
 | message         | TEXT NOT NULL                      | 訊息內容                            |
 | created_at      | DATETIME DEFAULT CURRENT_TIMESTAMP | 發訊時間                            |
 | deleted_at      | DATETIME nullable                  | 軟刪除標記（管理員刪除時間）        |
 
 **索引**：`chatroom_id`、`player_username`、`created_at`
+
+> **`player_nickname` 設計說明**：此欄位為快照（snapshot），在訊息寫入時記錄玩家當下的暱稱，日後即使玩家更改暱稱，歷史訊息仍顯示發訊時的暱稱，確保稽核時的歷史準確性。這同時帶來效能優勢（查詢免 JOIN players 表）。
 
 ### 5.5 API — GET `/api/chatrooms`
 

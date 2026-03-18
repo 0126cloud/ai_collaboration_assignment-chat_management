@@ -146,6 +146,21 @@ CORS_ORIGIN=http://localhost:5173
 
 **啟動分離**：`app.ts` 負責 Express 設定、`server.ts` 負責監聽 port，方便測試時直接 import app。
 
+**Module 路由工廠模式（Dependency Injection）**
+
+每個 module 的路由採用 factory function 設計：`createXxxRoutes(db: Knex): Router`
+
+```ts
+// app.ts 掛載層
+app.use('/api/auth', createAuthRoutes(db));
+app.use('/api/admins', createAdminRoutes(db));
+```
+
+設計理由：
+- **明確 DI**：DB instance 從外部注入，而非依賴全域變數，依賴關係一眼可見
+- **共用連線**：所有 module 共用同一個 Knex instance，確保連線池不重複建立
+- **易測試**：測試時可注入 in-memory SQLite，production DB 不受影響
+
 ### 5.2 資料庫基礎設施
 
 **Knex 配置**（`server/knexfile.ts`）：
