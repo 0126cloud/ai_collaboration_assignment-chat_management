@@ -221,7 +221,7 @@ const ManagerPage = () => {
             >
               {label}
             </Button>
-            <Button type="link" disabled={isSelf} onClick={() => handleResetPassword(record)}>
+            <Button type="link" onClick={() => handleResetPassword(record)}>
               重設密碼
             </Button>
           </Space>
