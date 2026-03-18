@@ -14,7 +14,7 @@ import {
   DatePicker,
   Tooltip,
 } from 'antd';
-import { SearchOutlined, ReloadOutlined, SendOutlined } from '@ant-design/icons';
+import { SearchOutlined, ReloadOutlined, SendOutlined, PlusOutlined } from '@ant-design/icons';
 import { createStyles } from 'antd-style';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -32,9 +32,6 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const useStyles = createStyles(({ token }) => ({
-  sendCard: {
-    marginBottom: token.marginMD,
-  },
   filterCard: {
     marginBottom: token.marginMD,
   },
@@ -43,9 +40,10 @@ const useStyles = createStyles(({ token }) => ({
     flexWrap: 'wrap' as const,
     gap: token.marginSM,
     alignItems: 'center',
+    marginBottom: token.marginMD,
   },
   filterItem: {
-    minWidth: 160,
+    width: 250,
   },
   messageCell: {
     maxWidth: 200,
@@ -53,6 +51,9 @@ const useStyles = createStyles(({ token }) => ({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap' as const,
     display: 'block',
+  },
+  formControl: {
+    width: '100%',
   },
 }));
 
@@ -104,6 +105,7 @@ const BroadcastPage = () => {
   const [data, setData] = useState<TBroadcastItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
   const [filters, setFilters] = useState<TFilterValues>({});
   const [chatrooms, setChatrooms] = useState<TChatroomItem[]>([]);
@@ -125,9 +127,11 @@ const BroadcastPage = () => {
     [filters, pagination.pageSize],
   );
 
+  // 只在 mount 時自動查詢，篩選條件需點擊查詢按鈕
   useEffect(() => {
     fetchData(1);
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     chatroomApi
@@ -136,23 +140,32 @@ const BroadcastPage = () => {
       .catch(() => {});
   }, []);
 
-  const handleSend = async (values: TSendFormValues) => {
-    setSending(true);
-    try {
-      await broadcastApi.create({
-        message: values.message,
-        chatroom_id: values.chatroom_id,
-        duration: values.duration,
-        start_at: values.start_at.utc().toISOString(),
-      });
-      message.success('廣播發送成功');
-      form.resetFields();
-      fetchData(1);
-    } catch {
-      message.error('廣播發送失敗');
-    } finally {
-      setSending(false);
-    }
+  const handleSend = (values: TSendFormValues) => {
+    Modal.confirm({
+      title: '確認發送廣播',
+      content: `確定要發送此廣播訊息嗎？`,
+      okText: '確認發送',
+      cancelText: '取消',
+      onOk: async () => {
+        setSending(true);
+        try {
+          await broadcastApi.create({
+            message: values.message,
+            chatroom_id: values.chatroom_id,
+            duration: values.duration,
+            start_at: values.start_at.utc().toISOString(),
+          });
+          message.success('廣播發送成功');
+          form.resetFields();
+          setModalOpen(false);
+          fetchData(1);
+        } catch {
+          message.error('廣播發送失敗');
+        } finally {
+          setSending(false);
+        }
+      },
+    });
   };
 
   const handleRemove = (record: TBroadcastItem) => {
@@ -223,64 +236,21 @@ const BroadcastPage = () => {
 
   return (
     <>
-      <Card title="發送廣播" className={styles.sendCard}>
-        <Form form={form} layout="vertical" onFinish={handleSend}>
-          <Form.Item
-            label="廣播訊息內容"
-            name="message"
-            rules={[
-              { required: true, message: '請輸入廣播訊息' },
-              { max: 500, message: '廣播訊息最多 500 字' },
-            ]}
-          >
-            <TextArea rows={3} showCount maxLength={500} placeholder="請輸入廣播訊息內容" />
-          </Form.Item>
-          <Form.Item
-            label="目標聊天室"
-            name="chatroom_id"
-            rules={[{ required: true, message: '請選擇目標聊天室' }]}
-          >
-            <Select placeholder="請選擇目標聊天室">
-              <Option value="all">全部聊天室</Option>
-              {chatrooms.map((room) => (
-                <Option key={room.id} value={room.id}>
-                  {room.name}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label="顯示時長（秒）"
-            name="duration"
-            rules={[
-              { required: true, message: '請輸入顯示時長' },
-              { type: 'number', min: 1, message: '顯示時長至少 1 秒' },
-              { type: 'number', max: 86400, message: '顯示時長最多 86400 秒（24 小時）' },
-            ]}
-          >
-            <InputNumber min={1} max={86400} style={{ width: '100%' }} placeholder="例：60" />
-          </Form.Item>
-          <Form.Item
-            label="開始時間"
-            name="start_at"
-            rules={[{ required: true, message: '請選擇開始時間' }]}
-          >
-            <DatePicker showTime style={{ width: '100%' }} placeholder="請選擇廣播開始時間" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending}>
-              發送廣播
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-
-      <Card title="廣播列表" className={styles.filterCard}>
-        <div className={styles.filterRow} style={{ marginBottom: 16 }}>
+      <Card
+        title="廣播列表"
+        className={styles.filterCard}
+        extra={
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+            新增廣播
+          </Button>
+        }
+      >
+        <div className={styles.filterRow}>
           <Select
             placeholder="狀態篩選"
             allowClear
             className={styles.filterItem}
+            value={filters.status}
             onChange={(val) => setFilters((f) => ({ ...f, status: val }))}
           >
             <Option value="scheduled">未開始</Option>
@@ -291,6 +261,7 @@ const BroadcastPage = () => {
             placeholder="聊天室篩選"
             allowClear
             className={styles.filterItem}
+            value={filters.chatroom_id}
             onChange={(val) => setFilters((f) => ({ ...f, chatroom_id: val }))}
           >
             <Option value="all">全部聊天室</Option>
@@ -328,6 +299,84 @@ const BroadcastPage = () => {
           }}
         />
       </Card>
+
+      <Modal
+        title="新增廣播"
+        open={modalOpen}
+        onCancel={() => {
+          setModalOpen(false);
+          form.resetFields();
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleSend}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.preventDefault();
+          }}
+        >
+          <Form.Item
+            label="廣播訊息內容"
+            name="message"
+            rules={[
+              { required: true, message: '請輸入廣播訊息' },
+              { max: 500, message: '廣播訊息最多 500 字' },
+            ]}
+          >
+            <TextArea rows={3} showCount maxLength={500} placeholder="請輸入廣播訊息內容" />
+          </Form.Item>
+          <Form.Item
+            label="目標聊天室"
+            name="chatroom_id"
+            rules={[{ required: true, message: '請選擇目標聊天室' }]}
+          >
+            <Select placeholder="請選擇目標聊天室">
+              <Option value="all">全部聊天室</Option>
+              {chatrooms.map((room) => (
+                <Option key={room.id} value={room.id}>
+                  {room.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="顯示時長（秒）"
+            name="duration"
+            rules={[
+              { required: true, message: '請輸入顯示時長' },
+              { type: 'number', min: 1, message: '顯示時長至少 1 秒' },
+              { type: 'number', max: 86400, message: '顯示時長最多 86400 秒（24 小時）' },
+            ]}
+          >
+            <InputNumber min={1} max={86400} className={styles.formControl} placeholder="例：60" />
+          </Form.Item>
+          <Form.Item
+            label="開始時間"
+            name="start_at"
+            rules={[{ required: true, message: '請選擇開始時間' }]}
+          >
+            <DatePicker showTime className={styles.formControl} placeholder="請選擇廣播開始時間" />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending}>
+                發送廣播
+              </Button>
+              <Button
+                onClick={() => {
+                  setModalOpen(false);
+                  form.resetFields();
+                }}
+              >
+                取消
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 };

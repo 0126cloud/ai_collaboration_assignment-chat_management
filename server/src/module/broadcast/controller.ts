@@ -33,7 +33,7 @@ export class BroadcastController {
       const result = await this.service.create(parsed.data, operator);
 
       res.locals.operationLog = {
-        operationType: 'SEND_BROADCAST',
+        operationType: 'CREATE_BROADCAST',
         targetId: result.id,
       };
 
