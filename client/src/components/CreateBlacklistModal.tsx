@@ -58,7 +58,7 @@ const CreateBlacklistModal = ({
       form.setFieldsValue({
         blockType: initType,
         target: initialValues?.target ?? '',
-        chatroom_id: initialValues?.chatroomId ?? '*',
+        chatroom_id: initialValues?.chatroomId ?? 'all',
         reason: undefined,
       });
     }
@@ -84,7 +84,7 @@ const CreateBlacklistModal = ({
             const payload = {
               target: values.target,
               reason: values.reason,
-              chatroom_id: values.chatroom_id || '*',
+              chatroom_id: values.chatroom_id || 'all',
             };
 
             if (blockType === 'ip') {

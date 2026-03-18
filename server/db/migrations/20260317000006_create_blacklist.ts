@@ -7,7 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('target', 100).notNullable();
     table.string('reason', 20).notNullable();
     table.string('operator', 50).notNullable();
-    table.string('chatroom_id', 50).notNullable().defaultTo('*');
+    table.string('chatroom_id', 50).notNullable().defaultTo('all');
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('deleted_at').nullable();
 

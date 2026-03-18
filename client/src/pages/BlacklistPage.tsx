@@ -186,7 +186,7 @@ const BlacklistPage = () => {
       dataIndex: 'chatroom_id',
       key: 'chatroom_id',
       width: 130,
-      render: (value: string) => (value === '*' ? '全域' : value),
+      render: (value: string) => (value === 'all' ? '全域' : value),
     },
     {
       title: '封鎖時間',

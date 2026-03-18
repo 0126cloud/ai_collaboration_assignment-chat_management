@@ -39,21 +39,25 @@ Phase 3（[rfc_03](rfc_03-chatroom-and-chat.md)）已完成聊天室管理與聊
 
 統一設計可避免重複邏輯，`block_type` 欄位明確區分操作對象。
 
-### 3.2 軟刪除策略
+### 3.2 封鎖狀態策略（is_blocked）
 
-`blacklist` 表含 `deleted_at`（DATETIME nullable）欄位：
+`blacklist` 表含 `is_blocked`（BOOLEAN NOT NULL DEFAULT true）欄位：
 
-- `deleted_at IS NULL` → 有效的封鎖紀錄（目標被封鎖中）
-- `deleted_at IS NOT NULL` → 已解封
+- `is_blocked = true` → 有效的封鎖紀錄（目標被封鎖中）
+- `is_blocked = false` → 已解封
 
-所有 GET API 預設加上 `WHERE deleted_at IS NULL` 條件。
+> 設計說明：blacklist 表**不採用** `deleted_at` 軟刪除，而是使用 `is_blocked` boolean 欄位。原因：封鎖紀錄本身具有稽核意義（記錄誰被封、何時被封、原因），即使解封後仍應保留；`is_blocked` 明確表示當前封鎖狀態，語意比 `deleted_at IS NULL` 更清晰。解封操作的稽核軌跡由 `operation_logs`（`UNBLOCK_PLAYER` / `UNBLOCK_IP`）記錄。
+>
+> 對應 migration：`20260317000007_blacklist_is_blocked.ts`（原始 `20260317000006` 含 `deleted_at`，由 `000007` 移除並改為 `is_blocked`）
+
+所有 GET API 預設加上 `WHERE is_blocked = true` 條件。
 
 ### 3.3 封鎖邏輯（upsert-like）
 
 建立封鎖時依序檢查：
 
-1. 存在 `deleted_at IS NULL` 的 active 紀錄 → 409 `BLACKLIST_ALREADY_BLOCKED`
-2. 存在 `deleted_at IS NOT NULL` 的軟刪除紀錄 → 清除 `deleted_at`（重新封鎖）
+1. 存在 `is_blocked = true` 的 active 紀錄 → 409 `BLACKLIST_ALREADY_BLOCKED`
+2. 存在 `is_blocked = false` 的已解封紀錄 → `UPDATE SET is_blocked = true`（重新封鎖）
 3. 無紀錄 → INSERT 新紀錄
 
 ### 3.4 API URL 設計
@@ -127,13 +131,13 @@ chat-management/
 | target      | VARCHAR(100) NOT NULL              | 玩家帳號 或 IP 位址（含萬用字元格式）      |
 | reason      | VARCHAR(20) NOT NULL               | `'spam'` \| `'abuse'` \| `'advertisement'` |
 | operator    | VARCHAR(50) NOT NULL               | 操作者帳號（冗餘欄位，方便查詢顯示）       |
-| chatroom_id | VARCHAR(50) NOT NULL DEFAULT '\*'  | 特定聊天室 ID 或 `'*'`（全域封鎖）         |
+| chatroom_id | VARCHAR(50) NOT NULL DEFAULT 'all' | 特定聊天室 ID 或 `'all'`（全域封鎖）       |
 | created_at  | DATETIME DEFAULT CURRENT_TIMESTAMP |                                            |
-| deleted_at  | DATETIME nullable                  | 軟刪除標記（解封時間）                     |
+| is_blocked  | BOOLEAN NOT NULL DEFAULT true      | 封鎖狀態（true=封鎖中，false=已解封）      |
 
 **約束**：`UNIQUE(block_type, target, chatroom_id)`
 
-> 使用 `'*'` 作為全域封鎖的 `chatroom_id`（而非 NULL），以確保 UNIQUE 約束正確運作（SQLite 中 NULL ≠ NULL，無法防止重複插入）。
+> 使用 `'all'` 作為全域封鎖的 `chatroom_id`（而非 NULL），以確保 UNIQUE 約束正確運作（SQLite 中 NULL ≠ NULL，無法防止重複插入）。與 broadcasts 表的 `chatroom_id = 'all'` 統一。
 
 **索引**：`(block_type, target)`、`created_at`
 
@@ -158,7 +162,7 @@ chat-management/
   - `target` LIKE `%value%`
   - `reason` 精確比對
   - `chatroomId` LIKE `%value%`
-  - 固定加上 `WHERE deleted_at IS NULL`
+  - 固定加上 `WHERE is_blocked = true`
   - 排序：`ORDER BY created_at DESC`
 
 - **Response 200**：
@@ -204,12 +208,12 @@ chat-management/
 }
 ```
 
-> `chatroom_id` 選填，預設為 `'*'`（全域封鎖）
+> `chatroom_id` 選填，預設為 `'all'`（全域封鎖）
 
 - **封鎖邏輯**（upsert-like）：
   1. 查詢 `WHERE block_type='player' AND target=:target AND chatroom_id=:chatroom_id`
-  2. 存在且 `deleted_at IS NULL` → 409 `BLACKLIST_ALREADY_BLOCKED`
-  3. 存在且 `deleted_at IS NOT NULL` → `UPDATE SET deleted_at = NULL`
+  2. 存在且 `is_blocked = true` → 409 `BLACKLIST_ALREADY_BLOCKED`
+  3. 存在且 `is_blocked = false` → `UPDATE SET is_blocked = true`（重新封鎖）
   4. 不存在 → `INSERT`
 
 - **行為**：觸發操作紀錄 `res.locals.operationLog = { operationType: 'BLOCK_PLAYER' }`
@@ -249,9 +253,9 @@ chat-management/
 - **需權限**：`blacklist:delete`（player）、`ip_block:delete`（ip）
 - **路徑參數**：`id`（INTEGER）
 - **行為**：
-  - 查詢 `WHERE id = :id AND block_type = :blockType AND deleted_at IS NULL`
+  - 查詢 `WHERE id = :id AND block_type = :blockType AND is_blocked = true`
   - 不存在或已解封 → 404 `BLACKLIST_ENTRY_NOT_FOUND`
-  - 存在 → `UPDATE SET deleted_at = CURRENT_TIMESTAMP`
+  - 存在 → `UPDATE SET is_blocked = false`
   - 觸發操作紀錄：player → `UNBLOCK_PLAYER`，ip → `UNBLOCK_IP`
 
 - **Response 200**：
@@ -323,9 +327,9 @@ export function createBlacklistRoutes(db: Knex): Router {
 
 **service.ts**（`server/src/module/blacklist/service.ts`）：
 
-- `list(blockType, query)` — 組裝 Knex 查詢（block_type 固定 + 多條件 + 分頁 + WHERE deleted_at IS NULL）
+- `list(blockType, query)` — 組裝 Knex 查詢（block_type 固定 + 多條件 + 分頁 + WHERE is_blocked = true）
 - `create(blockType, payload, operator)` — upsert 邏輯（查重 → 重新啟用或插入新紀錄）
-- `remove(blockType, id)` — 軟刪除，驗證 block_type 匹配，回傳是否成功
+- `remove(blockType, id)` — 解封（設 is_blocked = false），驗證 block_type 匹配，回傳是否成功
 
 **controller.ts**（`server/src/module/blacklist/controller.ts`）：
 
@@ -356,21 +360,21 @@ app.use('/api/blacklist', createBlacklistRoutes(db));
 
 #### 玩家黑名單（5 筆）
 
-| block_type | target   | reason        | chatroom_id   | deleted_at |
+| block_type | target   | reason        | chatroom_id   | is_blocked |
 | ---------- | -------- | ------------- | ------------- | ---------- |
-| player     | player03 | spam          | baccarat_001  | null       |
-| player     | player07 | abuse         | \*            | null       |
-| player     | player10 | advertisement | blackjack_001 | null       |
-| player     | player12 | spam          | roulette_001  | null       |
-| player     | player15 | abuse         | \*            | null       |
+| player     | player03 | spam          | baccarat_001  | true       |
+| player     | player07 | abuse         | all           | true       |
+| player     | player10 | advertisement | blackjack_001 | true       |
+| player     | player12 | spam          | roulette_001  | true       |
+| player     | player15 | abuse         | all           | true       |
 
 #### IP 封鎖（3 筆）
 
-| block_type | target         | reason | chatroom_id  | deleted_at |
+| block_type | target         | reason | chatroom_id  | is_blocked |
 | ---------- | -------------- | ------ | ------------ | ---------- |
-| ip         | 116.62.238.199 | spam   | \*           | null       |
-| ip         | 116.62.238.\*  | abuse  | \*           | null       |
-| ip         | 192.168.1.100  | spam   | baccarat_001 | null       |
+| ip         | 116.62.238.199 | spam   | all          | true       |
+| ip         | 116.62.238.\*  | abuse  | all          | true       |
+| ip         | 192.168.1.100  | spam   | baccarat_001 | true       |
 
 ### 5.9 Shared types / schemas
 
@@ -431,7 +435,7 @@ export const blacklistQuerySchema = z.object({
 export const createPlayerBlockSchema = z.object({
   target: z.string().min(1, '請輸入玩家帳號'),
   reason: REASON_ENUM,
-  chatroom_id: z.string().optional().default('*'),
+  chatroom_id: z.string().optional().default('all'),
 });
 
 export const createIpBlockSchema = z.object({
@@ -440,7 +444,7 @@ export const createIpBlockSchema = z.object({
     .min(1, '請輸入 IP 位址')
     .regex(IP_PATTERN, 'IP 格式不正確，支援精確 IP 或萬用字元（如 116.62.238.* ）'),
   reason: REASON_ENUM,
-  chatroom_id: z.string().optional().default('*'),
+  chatroom_id: z.string().optional().default('all'),
 });
 ```
 
@@ -467,7 +471,7 @@ BlacklistPage
     ├── Column: 目標（target）
     ├── Column: 封鎖原因（reason）
     ├── Column: 操作者（operator）
-    ├── Column: 聊天室（chatroom_id，'*' 顯示為「全域」）
+    ├── Column: 聊天室（chatroom_id，'all' 顯示為「全域」）
     ├── Column: 封鎖時間（created_at — UTC+8 格式化）
     └── Column: 操作
         └── Button — 解封（Modal.confirm 確認後呼叫 DELETE API）
@@ -614,7 +618,7 @@ export const blacklistApi = {
 
 | 風險                                      | 影響                             | 緩解方式                                                         |
 | ----------------------------------------- | -------------------------------- | ---------------------------------------------------------------- |
-| UNIQUE 約束與 `'*'` chatroom_id           | 全域封鎖與聊天室封鎖視為不同紀錄 | 設計合理：同一玩家可同時被全域封鎖與特定聊天室封鎖，業務上有意義 |
+| UNIQUE 約束與 `'all'` chatroom_id         | 全域封鎖與聊天室封鎖視為不同紀錄 | 設計合理：同一玩家可同時被全域封鎖與特定聊天室封鎖，業務上有意義 |
 | IP 萬用字元格式驗證                       | 前後端 regex 不一致              | regex 定義在 `shared/schemas/blacklist.ts`，前後端共用同一規則   |
 | ChatMonitoringPage 啟用封鎖按鈕後測試更新 | 原有 disabled 測試需更新         | Task 4.6t 明確包含更新 ChatMonitoringPage 測試                   |
 | upsert 邏輯中的 race condition            | 極低概率重複插入                 | Demo 環境單用戶，不構成問題；SQLite 行鎖保護                     |
@@ -631,7 +635,7 @@ export const blacklistApi = {
 - [ ] `GET /api/blacklist/ip` 回傳分頁 IP 封鎖列表
 - [ ] `POST /api/blacklist/player` 封鎖成功（201）
 - [ ] `POST /api/blacklist/player` 重複封鎖回 409 `BLACKLIST_ALREADY_BLOCKED`
-- [ ] `POST /api/blacklist/player` 重新封鎖已解封玩家（清除 deleted_at）
+- [ ] `POST /api/blacklist/player` 重新封鎖已解封玩家（is_blocked: false → true）
 - [ ] `DELETE /api/blacklist/player/:id` 解封成功（軟刪除）
 - [ ] `POST /api/blacklist/ip` IP 格式驗證（精確 IP 和萬用字元格式通過，非法格式 400）
 - [ ] 所有封鎖/解封操作自動寫入 operation_logs

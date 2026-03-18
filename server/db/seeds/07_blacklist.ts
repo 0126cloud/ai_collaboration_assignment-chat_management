@@ -18,7 +18,7 @@ export async function seed(knex: Knex): Promise<void> {
       target: 'player07',
       reason: 'abuse',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     {
@@ -42,7 +42,7 @@ export async function seed(knex: Knex): Promise<void> {
       target: 'player15',
       reason: 'abuse',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     // IP 封鎖（3 筆）
@@ -51,7 +51,7 @@ export async function seed(knex: Knex): Promise<void> {
       target: '116.62.238.199',
       reason: 'spam',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     {
@@ -59,7 +59,7 @@ export async function seed(knex: Knex): Promise<void> {
       target: '116.62.238.*',
       reason: 'abuse',
       operator: 'admin02',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     {

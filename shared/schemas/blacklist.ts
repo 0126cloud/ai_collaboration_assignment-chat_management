@@ -17,7 +17,7 @@ export const blacklistQuerySchema = z.object({
 export const createPlayerBlockSchema = z.object({
   target: z.string().min(1, '請輸入玩家帳號'),
   reason: REASON_ENUM,
-  chatroom_id: z.string().optional().default('*'),
+  chatroom_id: z.string().optional().default('all'),
 });
 
 export const createIpBlockSchema = z.object({
@@ -26,5 +26,5 @@ export const createIpBlockSchema = z.object({
     .min(1, '請輸入 IP 位址')
     .regex(IP_PATTERN, 'IP 格式不正確，支援精確 IP 或萬用字元（如 116.62.238.* ）'),
   reason: REASON_ENUM,
-  chatroom_id: z.string().optional().default('*'),
+  chatroom_id: z.string().optional().default('all'),
 });

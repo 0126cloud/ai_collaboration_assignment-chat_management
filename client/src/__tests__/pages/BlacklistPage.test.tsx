@@ -60,7 +60,7 @@ const mockPlayerData = [
     target: 'player07',
     reason: 'abuse',
     operator: 'admin01',
-    chatroom_id: '*',
+    chatroom_id: 'all',
     is_blocked: true,
     created_at: '2026-03-15 08:00:00',
   },
@@ -73,7 +73,7 @@ const mockUnblockedPlayerData = [
     target: 'player_unblocked',
     reason: 'spam',
     operator: 'admin01',
-    chatroom_id: '*',
+    chatroom_id: 'all',
     is_blocked: false,
     created_at: '2026-03-10 06:00:00',
   },
@@ -86,7 +86,7 @@ const mockIpData = [
     target: '116.62.238.199',
     reason: 'spam',
     operator: 'admin01',
-    chatroom_id: '*',
+    chatroom_id: 'all',
     is_blocked: true,
     created_at: '2026-03-14 06:00:00',
   },
@@ -172,7 +172,7 @@ describe('BlacklistPage', () => {
   });
 
   // @happy_path
-  it("chatroom_id='*' 顯示為「全域」", async () => {
+  it("chatroom_id='all' 顯示為「全域」", async () => {
     renderPage();
 
     await waitFor(() => {

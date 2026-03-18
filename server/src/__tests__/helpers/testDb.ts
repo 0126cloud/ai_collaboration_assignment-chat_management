@@ -95,7 +95,7 @@ export async function setupTestSchema(database: Knex): Promise<void> {
     table.string('target', 100).notNullable();
     table.string('reason', 20).notNullable();
     table.string('operator', 50).notNullable();
-    table.string('chatroom_id', 50).notNullable().defaultTo('*');
+    table.string('chatroom_id', 50).notNullable().defaultTo('all');
     table.timestamp('created_at').defaultTo(database.fn.now());
     table.boolean('is_blocked').notNullable().defaultTo(true);
 

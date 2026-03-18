@@ -23,7 +23,7 @@ beforeAll(async () => {
       target: '116.62.238.199',
       reason: 'spam',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     {
@@ -31,7 +31,7 @@ beforeAll(async () => {
       target: '116.62.238.*',
       reason: 'abuse',
       operator: 'admin02',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     {
@@ -48,7 +48,7 @@ beforeAll(async () => {
       target: 'playerTest',
       reason: 'spam',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
   ]);

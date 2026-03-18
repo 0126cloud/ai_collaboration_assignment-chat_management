@@ -31,7 +31,7 @@ beforeAll(async () => {
       target: 'player07',
       reason: 'abuse',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     {
@@ -55,7 +55,7 @@ beforeAll(async () => {
       target: 'player15',
       reason: 'abuse',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
     // IP 紀錄（不應出現在 player 查詢結果中）
@@ -64,7 +64,7 @@ beforeAll(async () => {
       target: '192.168.1.1',
       reason: 'spam',
       operator: 'admin01',
-      chatroom_id: '*',
+      chatroom_id: 'all',
       is_blocked: true,
     },
   ]);
@@ -194,14 +194,14 @@ describe('POST /api/blacklist/player', () => {
   });
 
   // @happy_path
-  it('封鎖玩家（全域，預設 chatroom_id=*）→ 201', async () => {
+  it('封鎖玩家（全域，預設 chatroom_id=all）→ 201', async () => {
     const res = await request(app)
       .post('/api/blacklist/player')
       .set('Authorization', `Bearer ${seniorToken}`)
       .send({ target: 'playerYY', reason: 'abuse' });
 
     expect(res.status).toBe(201);
-    expect(res.body.data.chatroom_id).toBe('*');
+    expect(res.body.data.chatroom_id).toBe('all');
   });
 
   // @validation
