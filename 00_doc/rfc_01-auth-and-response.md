@@ -401,6 +401,7 @@ export function zodToAntdRules<T extends ZodRawShape>(
 | report        | `report:review`            | 審核檢舉        |      v      |     v      |
 | nickname      | `nickname:read`            | 查看暱稱申請    |      v      |     v      |
 | nickname      | `nickname:review`          | 審核暱稱        |      v      |     v      |
+| player        | `player:reset_nickname`    | 重設玩家暱稱    |      v      |     v      |
 | admin         | `admin:read`               | 查看管理員列表  |             |     v      |
 | admin         | `admin:create`             | 建立管理員帳號  |             |     v      |
 | admin         | `admin:toggle`             | 啟用/禁用管理員 |             |     v      |
@@ -429,6 +430,7 @@ export const ROLE_PERMISSIONS = {
     'report:review',
     'nickname:read',
     'nickname:review',
+    'player:reset_nickname',
   ],
   senior_manager: [] as string[], // 下方以 superset 定義
 };
@@ -631,6 +633,19 @@ router.put(
 - **Error 403**：`FORBIDDEN_INSUFFICIENT_PERMISSIONS`（非 senior_manager）
 - **操作紀錄**：寫入 operation_logs（type: `UPDATE_ADMIN_ROLE`）
 
+#### PUT `/api/admins/:id/password`
+
+- **需認證**：`auth` middleware
+- **需權限**：`admin:reset_password`（senior_manager 限定）
+- **Path Parameter**：`id` — 管理員 ID
+- **Validation**：`resetAdminPasswordSchema`（Zod）：`{ newPassword: string }` min 6 字元
+- **Response 200**：`{ success: true, data: { message: '密碼已重設' } }`
+- **Error 400**：`VALIDATION_ERROR`（newPassword 不符格式）
+- **Error 403**：`ADMIN_CANNOT_SELF_MODIFY`（嘗試重設自己密碼）
+- **Error 404**：`ADMIN_NOT_FOUND`（ID 不存在）
+- **Error 403**：`FORBIDDEN_INSUFFICIENT_PERMISSIONS`（非 senior_manager）
+- **操作紀錄**：寫入 operation_logs（type: `RESET_PASSWORD`）
+
 #### Route 權限對照表（完整，含未來模組）
 
 | Method | Path                                      | Permission                 | 備註      |
@@ -663,7 +678,8 @@ router.put(
 | POST   | `/api/admins`                             | `admin:create`             |           |
 | PUT    | `/api/admins/:id/toggle`                  | `admin:toggle`             | Phase 1D  |
 | PATCH  | `/api/admins/:id/role`                    | `admin:toggle`             | Phase 1D  |
-| PUT    | `/api/admins/:id/password`                | `admin:reset_password`     | Phase 2+  |
+| PUT    | `/api/admins/:id/password`                | `admin:reset_password`     | Phase 9   |
+| PUT    | `/api/players/:username/nickname/reset`   | `player:reset_nickname`    | Phase 9   |
 
 ### 5.10 前端 Auth
 

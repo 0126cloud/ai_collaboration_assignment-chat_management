@@ -5,7 +5,7 @@
 - **Description**: 聊天管理後台系統 — admin panel for chat monitoring, player management, and broadcast
 - **Communication language**: 繁體中文 (comments, commit messages)
 - **Code language**: English
-- **Current progress**: 00_doc/tasks_08-e2e-and-demo-video-v1.md (Phase 8 ✅ 完成)
+- **Current progress**: 00_doc/tasks_09-ux-improvements-and-features.md (Phase 9 ✅ 完成)
 
 ## Document Routing
 
@@ -21,7 +21,8 @@ Read the relevant document BEFORE starting any task:
 | Blacklist & IP blocking design | `00_doc/rfc_04-blacklist-and-ip-blocking.md` |
 | Nickname & report design       | `00_doc/rfc_05-nickname-and-report.md`       |
 | Broadcast message design       | `00_doc/rfc_06-broadcast-message.md`         |
-| Design system                  | `00_doc/tasks_07-design-system.md`           |
+| Design system                  | `00_doc/rfc_07-design-system.md`             |
+| Testing guidelines             | `00_doc/rfc_09-testing-guidelines.md`        |
 
 ## Skill 使用指引
 
@@ -57,3 +58,12 @@ Read the relevant document BEFORE starting any task:
   - typescript interfase: start with uppercase I ex. IPermissonType
   - env key name: all uppercase with \_
 - 每次執行完 task 需要針對當次改動的檔案執行 prettier format
+
+## Testing Conventions
+
+詳細規則見 `00_doc/rfc_09-testing-guidelines.md`，關鍵原則如下：
+
+- **Scenario 先行**：新增功能或測試前，先確認 `00_doc/{module}.feature` 有對應 scenario，若無先補寫
+- **Scenario tag** 決定測試層：`@e2e` → Playwright、`@component` → Vitest + Testing Library、`@unit` / `@integration` → Vitest
+- **data-testid 命名**：`{feature}__{element}[--{modifier}]`，全 kebab-case，禁用 camelCase
+- **Selector 優先順序**：`getByRole` > `getByPlaceholder` > `getByTestId`，禁止在 spec 檔直接使用 `.ant-xxx` class

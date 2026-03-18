@@ -72,6 +72,29 @@ Phase 2（[rfc_02](rfc_02-operation-logs.md)）已完成操作紀錄模組，建
 
 **Phase 3 範圍**：僅前端 UI 按鈕（disabled 或 placeholder），後端邏輯留待後續 Phase（blacklist / nickname 模組）。
 
+**Phase 4 更新**：封鎖玩家按鈕已啟用（`blacklist:create` 權限，詳見 [rfc_04](rfc_04-blacklist-and-ip-blocking.md)）。
+
+**Phase 9 更新**：暱稱重設按鈕已啟用，詳見下方 § 3.5。
+
+### 3.5 玩家暱稱重設 API（Phase 9）
+
+提供管理員直接從 Chat Monitoring 頁面重設玩家暱稱（還原為帳號名稱），無需進入暱稱審核頁面。
+
+#### PUT `/api/players/:username/nickname/reset`
+
+- **需認證**：`auth` middleware
+- **需權限**：`player:reset_nickname`（general_manager 和 senior_manager 皆有）
+- **Path Parameter**：`username` — 玩家帳號名稱
+- **Response 200**：`{ success: true, data: { message: '暱稱已重設', username: string } }`
+- **Error 404**：`PLAYER_NOT_FOUND`（玩家不存在或已刪除）
+- **行為**：將 `players.nickname` 設回 `username`，`nickname_review_status` 設為 `null`
+- **操作紀錄**：寫入 operation_logs（type: `RESET_NICKNAME`）
+
+**新增檔案**：
+- `server/src/module/player/service.ts` — `PlayerService.resetNickname(username)`
+- `server/src/module/player/controller.ts` — `PlayerController.resetNickname`
+- `server/src/module/player/route.ts` — `createPlayerRoutes(db)` → 掛載於 `/api/players`
+
 ---
 
 ## 4. 高層設計
@@ -602,7 +625,7 @@ export const chatMessageQuerySchema = z.object({
 | --------------------------------- | ------------------------------ | ------------------------------------------------------------ |
 | chatroom.id 為 string PK          | 無法自增，依賴外部系統產生 ID  | 本系統為 Mock Data，seed 預設固定 ID；正式環境由遊戲系統提供 |
 | 軟刪除可能累積大量已刪除資料      | 查詢效能下降                   | `deleted_at` 加入複合索引；Demo 環境資料量小，不構成問題     |
-| 封鎖玩家 / 暱稱重設按鈕 disabled  | 使用者可能困惑                 | Button tooltip 明確顯示「功能開發中」                        |
+| ~~封鎖玩家 / 暱稱重設按鈕 disabled~~ | 已於 Phase 4/9 啟用         | 封鎖（Phase 4）、暱稱重設（Phase 9）                        |
 | players 表為共用基礎表            | 後續模組修改可能影響現有功能   | Schema 設計預留擴充空間；migration 獨立，不互相干擾          |
 | chat_messages seed 需模擬真實對話 | 不真實的對話影響 Demo 展示效果 | Seed 設計時參考真實遊戲聊天室場景（下注、祝賀、閒聊等）      |
 
@@ -622,7 +645,8 @@ export const chatMessageQuerySchema = z.object({
 - [ ] 前端 ChatroomPage 正確顯示聊天室列表
 - [ ] 前端 ChatMonitoringPage 正確顯示訊息列表
 - [ ] 前端刪除功能正常（確認 Modal + 刪除 + 重新查詢）
-- [ ] 前端封鎖玩家 / 暱稱重設按鈕為 disabled 狀態
+- [x] 前端封鎖玩家按鈕已啟用（Phase 4）
+- [x] 前端暱稱重設按鈕已啟用（Phase 9）
 - [ ] 前端時間顯示為 UTC+8 格式
 - [ ] rfc_01 Route 權限對照表已同步更新
 - [ ] Vitest 測試全部通過
