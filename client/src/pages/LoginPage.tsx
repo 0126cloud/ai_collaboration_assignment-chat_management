@@ -67,13 +67,30 @@ const LoginPage = () => {
           }}
         >
           <Form.Item name="username" rules={rules.username}>
-            <Input prefix={<UserOutlined />} placeholder="帳號" size="large" />
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="帳號"
+              size="large"
+              data-testid="login__username-input"
+            />
           </Form.Item>
           <Form.Item name="password" rules={rules.password}>
-            <Input.Password prefix={<LockOutlined />} placeholder="密碼" size="large" />
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="密碼"
+              size="large"
+              data-testid="login__password-input"
+            />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} block size="large">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              block
+              size="large"
+              data-testid="login__submit-btn"
+            >
               登入
             </Button>
           </Form.Item>

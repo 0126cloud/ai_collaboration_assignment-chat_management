@@ -227,7 +227,12 @@ const BroadcastPage = () => {
       title: '操作',
       render: (_: unknown, record: TBroadcastItem) =>
         record.status === 'scheduled' || record.status === 'active' ? (
-          <Button type="link" danger onClick={() => handleRemove(record)}>
+          <Button
+            type="link"
+            danger
+            onClick={() => handleRemove(record)}
+            data-testid={`broadcast__delete-btn--${record.id}`}
+          >
             下架
           </Button>
         ) : null,
@@ -240,7 +245,12 @@ const BroadcastPage = () => {
         title="廣播列表"
         className={styles.filterCard}
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setModalOpen(true)}
+            data-testid="broadcast__create-btn"
+          >
             新增廣播
           </Button>
         }
@@ -250,6 +260,7 @@ const BroadcastPage = () => {
             placeholder="狀態篩選"
             allowClear
             className={styles.filterItem}
+            data-testid="broadcast__status-select"
             value={filters.status}
             onChange={(val) => setFilters((f) => ({ ...f, status: val }))}
           >
@@ -261,6 +272,7 @@ const BroadcastPage = () => {
             placeholder="聊天室篩選"
             allowClear
             className={styles.filterItem}
+            data-testid="broadcast__chatroom-select"
             value={filters.chatroom_id}
             onChange={(val) => setFilters((f) => ({ ...f, chatroom_id: val }))}
           >
@@ -272,7 +284,12 @@ const BroadcastPage = () => {
             ))}
           </Select>
           <Space>
-            <Button icon={<SearchOutlined />} type="primary" onClick={() => fetchData(1)}>
+            <Button
+              icon={<SearchOutlined />}
+              type="primary"
+              onClick={() => fetchData(1)}
+              data-testid="broadcast__search-btn"
+            >
               查詢
             </Button>
             <Button
@@ -280,6 +297,7 @@ const BroadcastPage = () => {
               onClick={() => {
                 setFilters({});
               }}
+              data-testid="broadcast__reset-btn"
             >
               重置
             </Button>
@@ -291,6 +309,7 @@ const BroadcastPage = () => {
           columns={columns}
           dataSource={data}
           loading={loading}
+          data-testid="broadcast__table"
           pagination={{
             current: pagination.page,
             pageSize: pagination.pageSize,
@@ -326,14 +345,20 @@ const BroadcastPage = () => {
               { max: 500, message: '廣播訊息最多 500 字' },
             ]}
           >
-            <TextArea rows={3} showCount maxLength={500} placeholder="請輸入廣播訊息內容" />
+            <TextArea
+              rows={3}
+              showCount
+              maxLength={500}
+              placeholder="請輸入廣播訊息內容"
+              data-testid="broadcast__modal__message-input"
+            />
           </Form.Item>
           <Form.Item
             label="目標聊天室"
             name="chatroom_id"
             rules={[{ required: true, message: '請選擇目標聊天室' }]}
           >
-            <Select placeholder="請選擇目標聊天室">
+            <Select placeholder="請選擇目標聊天室" data-testid="broadcast__modal__chatroom-select">
               <Option value="all">全部聊天室</Option>
               {chatrooms.map((room) => (
                 <Option key={room.id} value={room.id}>
@@ -351,18 +376,35 @@ const BroadcastPage = () => {
               { type: 'number', max: 86400, message: '顯示時長最多 86400 秒（24 小時）' },
             ]}
           >
-            <InputNumber min={1} max={86400} className={styles.formControl} placeholder="例：60" />
+            <InputNumber
+              min={1}
+              max={86400}
+              className={styles.formControl}
+              placeholder="例：60"
+              data-testid="broadcast__modal__duration-input"
+            />
           </Form.Item>
           <Form.Item
             label="開始時間"
             name="start_at"
             rules={[{ required: true, message: '請選擇開始時間' }]}
           >
-            <DatePicker showTime className={styles.formControl} placeholder="請選擇廣播開始時間" />
+            <DatePicker
+              showTime
+              className={styles.formControl}
+              placeholder="請選擇廣播開始時間"
+              data-testid="broadcast__modal__start-time"
+            />
           </Form.Item>
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit" icon={<SendOutlined />} loading={sending}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                icon={<SendOutlined />}
+                loading={sending}
+                data-testid="broadcast__modal__send-btn"
+              >
                 發送廣播
               </Button>
               <Button
@@ -370,6 +412,7 @@ const BroadcastPage = () => {
                   setModalOpen(false);
                   form.resetFields();
                 }}
+                data-testid="broadcast__modal__cancel-btn"
               >
                 取消
               </Button>

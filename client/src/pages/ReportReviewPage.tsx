@@ -241,6 +241,7 @@ const ReportReviewPage = () => {
               loading={loadingId === record.id}
               disabled={!isPending || (loadingId !== null && loadingId !== record.id)}
               onClick={() => handleApprove(record)}
+              data-testid={`report-review__approve-btn--${record.id}`}
             >
               核准
             </Button>
@@ -250,6 +251,7 @@ const ReportReviewPage = () => {
               loading={loadingId === record.id}
               disabled={!isPending || (loadingId !== null && loadingId !== record.id)}
               onClick={() => handleReject(record)}
+              data-testid={`report-review__reject-btn--${record.id}`}
             >
               駁回
             </Button>
@@ -267,6 +269,7 @@ const ReportReviewPage = () => {
             className={styles.filterItem}
             value={statusFilter}
             onChange={(v) => setStatusFilter(v)}
+            data-testid="report-review__status-select"
           >
             <Option value="pending">待審核</Option>
             <Option value="approved">已核准</Option>
@@ -278,6 +281,7 @@ const ReportReviewPage = () => {
             value={reporterUsername}
             onChange={(e) => setReporterUsername(e.target.value || undefined)}
             allowClear
+            data-testid="report-review__reporter-input"
           />
           <Input
             className={styles.filterInput}
@@ -285,16 +289,27 @@ const ReportReviewPage = () => {
             value={targetUsername}
             onChange={(e) => setTargetUsername(e.target.value || undefined)}
             allowClear
+            data-testid="report-review__target-input"
           />
           <RangePicker
             value={dateRange}
             onChange={(v) => setDateRange(v as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
             showTime
+            data-testid="report-review__date-range"
           />
-          <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+          <Button
+            type="primary"
+            icon={<SearchOutlined />}
+            onClick={handleSearch}
+            data-testid="report-review__search-btn"
+          >
             查詢
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={handleReset}>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={handleReset}
+            data-testid="report-review__reset-btn"
+          >
             重置
           </Button>
         </div>
@@ -305,6 +320,7 @@ const ReportReviewPage = () => {
         columns={columns}
         dataSource={data}
         loading={loading}
+        data-testid="report-review__table"
         pagination={{
           current: pagination.page,
           pageSize: pagination.pageSize,

@@ -209,7 +209,13 @@ const BlacklistPage = () => {
       width: 80,
       render: (_: unknown, record: TBlacklistItem) =>
         record.is_blocked ? (
-          <Button type="link" danger size="small" onClick={() => handleUnblock(record)}>
+          <Button
+            type="link"
+            danger
+            size="small"
+            data-testid={`blacklist__unblock-btn--${record.id}`}
+            onClick={() => handleUnblock(record)}
+          >
             解封
           </Button>
         ) : null,
@@ -222,19 +228,26 @@ const BlacklistPage = () => {
         <div className={styles.filterRow}>
           <Select
             className={styles.filterItem}
+            data-testid="blacklist__type-select"
             value={blockTypeFilter}
             onChange={handleBlockTypeChange}
           >
             <Option value="player">Player</Option>
             <Option value="ip">IP</Option>
           </Select>
-          <Select className={styles.filterItem} value={statusFilter} onChange={setStatusFilter}>
+          <Select
+            className={styles.filterItem}
+            data-testid="blacklist__status-select"
+            value={statusFilter}
+            onChange={setStatusFilter}
+          >
             <Option value="blocked">封鎖中</Option>
             <Option value="unblocked">已解封</Option>
             <Option value="all">全部</Option>
           </Select>
           <Input
             className={styles.filterInput}
+            data-testid="blacklist__target-input"
             placeholder="目標（模糊搜尋）"
             allowClear
             value={target}
@@ -242,6 +255,7 @@ const BlacklistPage = () => {
           />
           <Select
             className={styles.filterItem}
+            data-testid="blacklist__reason-select"
             placeholder="封鎖原因"
             allowClear
             value={reason}
@@ -253,20 +267,31 @@ const BlacklistPage = () => {
           </Select>
           <Input
             className={styles.filterInput}
+            data-testid="blacklist__chatroom-input"
             placeholder="聊天室（含 * 全域）"
             allowClear
             value={chatroomId}
             onChange={(e) => setChatroomId(e.target.value || undefined)}
           />
           <RangePicker
+            data-testid="blacklist__date-range"
             value={dateRange as [dayjs.Dayjs, dayjs.Dayjs] | null}
             onChange={(dates) => setDateRange(dates)}
           />
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+            <Button
+              type="primary"
+              data-testid="blacklist__search-btn"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+            >
               查詢
             </Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+            <Button
+              data-testid="blacklist__reset-btn"
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+            >
               重置
             </Button>
           </Space>
@@ -274,13 +299,19 @@ const BlacklistPage = () => {
       </Card>
 
       <div className={styles.toolbar}>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenModal}>
+        <Button
+          type="primary"
+          data-testid="blacklist__create-btn"
+          icon={<PlusOutlined />}
+          onClick={handleOpenModal}
+        >
           新增封鎖
         </Button>
       </div>
 
       <Table<TBlacklistItem>
         rowKey="id"
+        data-testid="blacklist__table"
         columns={columns}
         dataSource={data}
         loading={loading}

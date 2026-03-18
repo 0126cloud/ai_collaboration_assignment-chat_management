@@ -170,6 +170,7 @@ const OperationLogPage = () => {
         <div className={styles.filterRow}>
           <Select
             className={styles.filterItem}
+            data-testid="operation-log__type-select"
             placeholder="操作類型"
             allowClear
             options={operationTypeOptions}
@@ -178,26 +179,38 @@ const OperationLogPage = () => {
           />
           <Input
             className={styles.filterInput}
+            data-testid="operation-log__operator-input"
             placeholder="操作者"
             allowClear
             value={operator}
             onChange={(e) => setOperator(e.target.value || undefined)}
           />
           <RangePicker
+            data-testid="operation-log__date-range"
             value={dateRange as [dayjs.Dayjs, dayjs.Dayjs] | null}
             onChange={(dates) => setDateRange(dates)}
           />
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+            <Button
+              type="primary"
+              data-testid="operation-log__search-btn"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+            >
               查詢
             </Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+            <Button
+              data-testid="operation-log__reset-btn"
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+            >
               重置
             </Button>
           </Space>
         </div>
       </Card>
       <Table<TOperationLogItem>
+        data-testid="operation-log__table"
         rowKey="id"
         columns={columns}
         dataSource={data}

@@ -185,6 +185,7 @@ const ManagerPage = () => {
             value={role}
             size="small"
             className={styles.roleSelect}
+            data-testid={`manager__role-select--${record.id}`}
             onChange={(val) => handleRoleChange(record, val)}
           >
             <Option value="senior_manager">進階管理員</Option>
@@ -216,12 +217,16 @@ const ManagerPage = () => {
               type="link"
               danger={record.is_active}
               disabled={isSelf}
-              data-testid={`toggle-btn-${record.id}`}
+              data-testid={`manager__toggle-btn--${record.id}`}
               onClick={() => handleToggle(record)}
             >
               {label}
             </Button>
-            <Button type="link" onClick={() => handleResetPassword(record)}>
+            <Button
+              type="link"
+              data-testid={`manager__reset-pwd-btn--${record.id}`}
+              onClick={() => handleResetPassword(record)}
+            >
               重設密碼
             </Button>
           </Space>
@@ -235,7 +240,12 @@ const ManagerPage = () => {
       <Card
         title="帳號管理"
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            data-testid="manager__create-btn"
+            onClick={() => setModalOpen(true)}
+          >
             新增管理員
           </Button>
         }
@@ -246,6 +256,7 @@ const ManagerPage = () => {
           columns={columns}
           dataSource={data}
           loading={loading}
+          data-testid="manager__table"
           pagination={{
             current: pagination.page,
             pageSize: pagination.pageSize,
@@ -282,7 +293,10 @@ const ManagerPage = () => {
               { max: 50, message: '帳號最多 50 個字元' },
             ]}
           >
-            <Input placeholder="請輸入帳號（至少 3 個字元）" />
+            <Input
+              placeholder="請輸入帳號（至少 3 個字元）"
+              data-testid="manager__modal__username-input"
+            />
           </Form.Item>
           <Form.Item
             label="密碼"
@@ -292,17 +306,25 @@ const ManagerPage = () => {
               { min: 6, message: '密碼至少 6 個字元' },
             ]}
           >
-            <Input.Password placeholder="請輸入密碼（至少 6 個字元）" />
+            <Input.Password
+              placeholder="請輸入密碼（至少 6 個字元）"
+              data-testid="manager__modal__password-input"
+            />
           </Form.Item>
           <Form.Item label="角色" name="role" rules={[{ required: true, message: '請選擇角色' }]}>
-            <Select placeholder="請選擇角色">
+            <Select placeholder="請選擇角色" data-testid="manager__modal__role-select">
               <Option value="senior_manager">進階管理員</Option>
               <Option value="general_manager">一般管理員</Option>
             </Select>
           </Form.Item>
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit" loading={submitting}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={submitting}
+                data-testid="manager__modal__submit-btn"
+              >
                 新增
               </Button>
               <Button

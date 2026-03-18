@@ -126,6 +126,7 @@ const CreateBlacklistModal = ({
       okText="確認"
       cancelText="取消"
       confirmLoading={loading}
+      okButtonProps={{ 'data-testid': 'blacklist__modal__submit-btn' } as Record<string, string>}
     >
       <Form
         form={form}
@@ -136,7 +137,7 @@ const CreateBlacklistModal = ({
         }}
       >
         <Form.Item name="blockType" label="類型" initialValue="player">
-          <Select onChange={handleBlockTypeChange}>
+          <Select data-testid="blacklist__modal__type-select" onChange={handleBlockTypeChange}>
             <Option value="player">Player</Option>
             <Option value="ip">IP</Option>
           </Select>
@@ -157,7 +158,10 @@ const CreateBlacklistModal = ({
               : []),
           ]}
         >
-          <Input placeholder={blockType === 'ip' ? '如 192.168.1.1 或 116.62.238.*' : '玩家帳號'} />
+          <Input
+            data-testid="blacklist__modal__target-input"
+            placeholder={blockType === 'ip' ? '如 192.168.1.1 或 116.62.238.*' : '玩家帳號'}
+          />
         </Form.Item>
 
         <Form.Item
@@ -165,7 +169,7 @@ const CreateBlacklistModal = ({
           label="封鎖原因"
           rules={[{ required: true, message: '請選擇封鎖原因' }]}
         >
-          <Select placeholder="選擇原因">
+          <Select data-testid="blacklist__modal__reason-select" placeholder="選擇原因">
             <Option value="spam">spam</Option>
             <Option value="abuse">abuse</Option>
             <Option value="advertisement">advertisement</Option>
@@ -173,7 +177,12 @@ const CreateBlacklistModal = ({
         </Form.Item>
 
         <Form.Item name="chatroom_id" label="聊天室（選填）">
-          <Select placeholder="全域（*）" allowClear defaultValue="*">
+          <Select
+            data-testid="blacklist__modal__chatroom-select"
+            placeholder="全域（*）"
+            allowClear
+            defaultValue="*"
+          >
             <Option value="*">全域（*）</Option>
             {chatroomOptions.map((opt) => (
               <Option key={opt.value} value={opt.value}>

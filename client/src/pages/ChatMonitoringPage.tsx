@@ -224,6 +224,7 @@ const ChatMonitoringPage = () => {
             size="small"
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record)}
+            data-testid={`chat-monitor__delete-btn--${record.id}`}
           >
             刪除
           </Button>
@@ -232,6 +233,7 @@ const ChatMonitoringPage = () => {
             size="small"
             icon={<StopOutlined />}
             onClick={() => handleBlock(record)}
+            data-testid={`chat-monitor__block-btn--${record.id}`}
           >
             封鎖
           </Button>
@@ -240,6 +242,7 @@ const ChatMonitoringPage = () => {
             size="small"
             icon={<EditOutlined />}
             onClick={() => handleResetNickname(record)}
+            data-testid={`chat-monitor__reset-nickname-btn--${record.id}`}
           >
             重設暱稱
           </Button>
@@ -261,6 +264,7 @@ const ChatMonitoringPage = () => {
             options={chatroomOptions}
             value={chatroomId}
             onChange={setChatroomId}
+            data-testid="chat-monitor__chatroom-select"
           />
           <Input
             className={styles.filterInput}
@@ -268,6 +272,7 @@ const ChatMonitoringPage = () => {
             allowClear
             value={playerUsername}
             onChange={(e) => setPlayerUsername(e.target.value || undefined)}
+            data-testid="chat-monitor__username-input"
           />
           <Input
             className={styles.filterInput}
@@ -275,6 +280,7 @@ const ChatMonitoringPage = () => {
             allowClear
             value={playerNickname}
             onChange={(e) => setPlayerNickname(e.target.value || undefined)}
+            data-testid="chat-monitor__nickname-input"
           />
           <Input
             className={styles.filterInput}
@@ -282,16 +288,27 @@ const ChatMonitoringPage = () => {
             allowClear
             value={messageKeyword}
             onChange={(e) => setMessageKeyword(e.target.value || undefined)}
+            data-testid="chat-monitor__keyword-input"
           />
           <RangePicker
             value={dateRange as [dayjs.Dayjs, dayjs.Dayjs] | null}
             onChange={(dates) => setDateRange(dates)}
+            data-testid="chat-monitor__date-range"
           />
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+              data-testid="chat-monitor__search-btn"
+            >
               查詢
             </Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+              data-testid="chat-monitor__reset-btn"
+            >
               重置
             </Button>
           </Space>
@@ -310,6 +327,7 @@ const ChatMonitoringPage = () => {
         columns={columns}
         dataSource={data}
         loading={loading}
+        data-testid="chat-monitor__table"
         pagination={{
           current: pagination.page,
           pageSize: pagination.pageSize,

@@ -185,6 +185,7 @@ const NicknameReviewPage = () => {
             <Button
               type="primary"
               size="small"
+              data-testid={`nickname-review__approve-btn--${record.username}`}
               loading={loadingUsername === record.username}
               disabled={
                 !isPending || (loadingUsername !== null && loadingUsername !== record.username)
@@ -196,6 +197,7 @@ const NicknameReviewPage = () => {
             <Button
               danger
               size="small"
+              data-testid={`nickname-review__reject-btn--${record.username}`}
               loading={loadingUsername === record.username}
               disabled={
                 !isPending || (loadingUsername !== null && loadingUsername !== record.username)
@@ -216,6 +218,7 @@ const NicknameReviewPage = () => {
         <div className={styles.filterRow}>
           <Select
             className={styles.filterItem}
+            data-testid="nickname-review__status-select"
             value={statusFilter}
             onChange={(v) => setStatusFilter(v)}
           >
@@ -225,6 +228,7 @@ const NicknameReviewPage = () => {
           </Select>
           <Input
             className={styles.filterInput}
+            data-testid="nickname-review__username-input"
             placeholder="玩家帳號"
             value={username}
             onChange={(e) => setUsername(e.target.value || undefined)}
@@ -232,26 +236,38 @@ const NicknameReviewPage = () => {
           />
           <Input
             className={styles.filterInput}
+            data-testid="nickname-review__nickname-input"
             placeholder="申請暱稱"
             value={nickname}
             onChange={(e) => setNickname(e.target.value || undefined)}
             allowClear
           />
           <RangePicker
+            data-testid="nickname-review__date-range"
             value={dateRange}
             onChange={(v) => setDateRange(v as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
             showTime
           />
-          <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+          <Button
+            type="primary"
+            data-testid="nickname-review__search-btn"
+            icon={<SearchOutlined />}
+            onClick={handleSearch}
+          >
             查詢
           </Button>
-          <Button icon={<ReloadOutlined />} onClick={handleReset}>
+          <Button
+            data-testid="nickname-review__reset-btn"
+            icon={<ReloadOutlined />}
+            onClick={handleReset}
+          >
             重置
           </Button>
         </div>
       </Card>
 
       <Table
+        data-testid="nickname-review__table"
         rowKey="username"
         columns={columns}
         dataSource={data}

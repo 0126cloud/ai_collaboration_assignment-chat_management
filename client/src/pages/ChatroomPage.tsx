@@ -120,12 +120,22 @@ const ChatroomPage = () => {
             allowClear
             value={name}
             onChange={(e) => setName(e.target.value || undefined)}
+            data-testid="chatroom__search-input"
           />
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch}>
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+              data-testid="chatroom__search-btn"
+            >
               查詢
             </Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleReset}
+              data-testid="chatroom__reset-btn"
+            >
               重置
             </Button>
           </Space>
@@ -136,6 +146,7 @@ const ChatroomPage = () => {
         columns={columns}
         dataSource={data}
         loading={loading}
+        data-testid="chatroom__table"
         pagination={{
           current: pagination.page,
           pageSize: pagination.pageSize,
