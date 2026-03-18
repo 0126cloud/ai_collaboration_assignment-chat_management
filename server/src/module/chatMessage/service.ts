@@ -43,18 +43,20 @@ export class ChatMessageService {
     const [{ count }] = await qb.clone().count('* as count');
 
     // 查詢分頁資料（最新的在前）
+    const maxRecords = Number(process.env.MAX_CHATTING_RECORD_NUM ?? 200);
+    const effectivePageSize = Math.min(query.pageSize, maxRecords);
     const data = await qb
       .select('id', 'chatroom_id', 'player_username', 'player_nickname', 'message', 'created_at')
       .orderBy('created_at', 'desc')
-      .limit(query.pageSize)
-      .offset((query.page - 1) * query.pageSize);
+      .limit(effectivePageSize)
+      .offset((query.page - 1) * effectivePageSize);
 
     const total = Number(count);
     const pagination: TPagination = {
       page: query.page,
-      pageSize: query.pageSize,
+      pageSize: effectivePageSize,
       total,
-      totalPages: Math.ceil(total / query.pageSize),
+      totalPages: Math.ceil(total / effectivePageSize),
     };
 
     return { data, pagination };

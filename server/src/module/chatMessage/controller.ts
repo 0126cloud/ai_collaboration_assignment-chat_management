@@ -16,6 +16,12 @@ export class ChatMessageController {
       }
 
       const query = parsed.data;
+
+      const maxPageSize = Number(process.env.MAX_CHATTING_RECORD_NUM ?? 200);
+      if (query.pageSize > maxPageSize) {
+        return res.status(400).json({ error: `pageSize cannot exceed ${maxPageSize}` });
+      }
+
       const result = await this.chatMessageService.list({
         page: query.page,
         pageSize: query.pageSize,
