@@ -820,12 +820,12 @@ Task 1.17（prd_00 / rfc_01 / authentication.feature 文件更新）
 | Task 1.12t | ✅   | 2026-03-17 | 11 tests passed（login cookie 2 + me 6 + logout 3）                  |
 | Task 1.13  | ✅   | 2026-03-17 | 移除 localStorage, withCredentials, NotFoundPage, Login 跳轉         |
 | Task 1.13t | ✅   | 2026-03-17 | 19 tests passed（context 6 + route 4 + login 5 + 404 2 + sidebar 2） |
-| Task 1.14  |      |            | shared schemas/types + operationLog 擴充                             |
-| Task 1.14t |      |            | TypeScript 編譯驗證                                                  |
-| Task 1.15t |      |            | server integration tests（20 cases：list 6 + toggle 7 + role 7）     |
-| Task 1.15  |      |            | errorCodes + admin service/controller/route                          |
-| Task 1.16t |      |            | ManagerPage component tests（9 cases）                               |
-| Task 1.16  |      |            | client adminApi + ManagerPage + router                               |
+| Task 1.14  | ✅   | 2026-03-18 | shared schemas/types + operationLog 擴充（UPDATE_ADMIN_ROLE 補充）    |
+| Task 1.14t | ✅   | 2026-03-18 | TypeScript 編譯驗證                                                  |
+| Task 1.15t | ✅   | 2026-03-18 | server integration tests（20 cases：list 6 + toggle 7 + role 7）     |
+| Task 1.15  | ✅   | 2026-03-18 | errorCodes + admin service/controller/route                          |
+| Task 1.16t | ✅   | 2026-03-18 | ManagerPage component tests（9 cases）                               |
+| Task 1.16  | ✅   | 2026-03-18 | client adminApi + ManagerPage + router                               |
 | Task 1.17  | ✅   | 2026-03-18 | prd_00 / rfc_01 / authentication.feature 文件更新                    |
 
 ## 完成檢查清單
@@ -856,14 +856,14 @@ Task 1.17（prd_00 / rfc_01 / authentication.feature 文件更新）
 
 ### Phase 1D — 帳號管理功能
 
-- [ ] `GET /api/admins` — 回傳分頁管理員列表（僅 senior_manager）
-- [ ] `PUT /api/admins/:id/toggle` — 啟用/停用帳號，含自我保護
-- [ ] `PATCH /api/admins/:id/role` — 更新管理員角色，含自我保護
-- [ ] operation_logs 有 `TOGGLE_ADMIN`、`UPDATE_ADMIN_ROLE` 紀錄
-- [ ] 前端 ManagerPage 列表、新增 Modal、角色切換、停用/啟用功能完整
-- [ ] 前端當前帳號操作按鈕 disabled（前後端雙重自我保護）
-- [ ] `/admins` 路由掛載 `ProtectedRoute(admin:read)`
-- [ ] `npm test` 全部測試通過（server + client 無 regression）
+- [x] `GET /api/admins` — 回傳分頁管理員列表（僅 senior_manager）
+- [x] `PUT /api/admins/:id/toggle` — 啟用/停用帳號，含自我保護
+- [x] `PATCH /api/admins/:id/role` — 更新管理員角色，含自我保護
+- [x] operation_logs 有 `TOGGLE_ADMIN`、`UPDATE_ADMIN_ROLE` 紀錄
+- [x] 前端 ManagerPage 列表、新增 Modal、角色切換、停用/啟用功能完整
+- [x] 前端當前帳號操作按鈕 disabled（前後端雙重自我保護）
+- [x] `/admins` 路由掛載 `ProtectedRoute(admin:read)`
+- [x] `npm test` 全部測試通過（server 214 + client 94 無 regression）
 
 ---
 
