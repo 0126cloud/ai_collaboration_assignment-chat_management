@@ -5,3 +5,14 @@ export const createAdminSchema = z.object({
   password: z.string().min(6, '密碼至少 6 個字元'),
   role: z.enum(['general_manager', 'senior_manager']),
 });
+
+export const adminListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  username: z.string().optional(),
+  role: z.enum(['general_manager', 'senior_manager']).optional(),
+});
+
+export const updateAdminRoleSchema = z.object({
+  role: z.enum(['general_manager', 'senior_manager'], { message: '角色值無效' }),
+});

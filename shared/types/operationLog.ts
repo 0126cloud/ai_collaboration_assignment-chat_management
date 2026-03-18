@@ -1,6 +1,7 @@
 export const OPERATION_TYPES = [
   'CREATE_ADMIN',
   'TOGGLE_ADMIN',
+  'UPDATE_ADMIN_ROLE',
   'RESET_PASSWORD',
   'DELETE_MESSAGE',
   'BLOCK_PLAYER',
@@ -23,6 +24,7 @@ export type TOperationType = (typeof OPERATION_TYPES)[number];
 export const OPERATION_TYPE_LABELS: Record<TOperationType, string> = {
   CREATE_ADMIN: '新增管理員帳號',
   TOGGLE_ADMIN: '啟用/禁用管理員',
+  UPDATE_ADMIN_ROLE: '更新管理員角色',
   RESET_PASSWORD: '重設管理員密碼',
   DELETE_MESSAGE: '刪除聊天訊息',
   BLOCK_PLAYER: '封鎖玩家',

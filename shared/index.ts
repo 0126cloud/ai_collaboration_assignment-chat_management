@@ -1,6 +1,6 @@
 // Schemas
 export { loginSchema, changePasswordSchema } from './schemas/auth';
-export { createAdminSchema } from './schemas/admin';
+export { createAdminSchema, adminListQuerySchema, updateAdminRoleSchema } from './schemas/admin';
 export { operationLogQuerySchema } from './schemas/operationLog';
 
 // Types
@@ -12,7 +12,13 @@ export type {
   TPermissionsResponse,
   TMeResponse,
 } from './types/auth';
-export type { TCreateAdminPayload, TCreateAdminResponse } from './types/admin';
+export type {
+  TCreateAdminPayload,
+  TCreateAdminResponse,
+  TAdminItem,
+  TAdminListQuery,
+  TUpdateAdminRolePayload,
+} from './types/admin';
 export type {
   TOperationType,
   TOperationLogItem,
