@@ -29,6 +29,8 @@
 | UI Library    | Ant Design + antd-style | 6.x / 4.x         | 專為後台管理設計，內建表格/表單/Modal |
 | HTTP Client   | Axios                   | 1.x               | 搭配 JWT interceptor                  |
 | Routing       | React Router            | v6                | 支援 protected routes、nested layout  |
+| Date Utility  | dayjs                   | 1.x               | UTC+8 日期顯示，全系統統一            |
+| Validation    | Zod                     | 3.x               | shared/schemas 型別定義與 API 驗證    |
 | Backend       | Express.js              | 4.x               | 輕量、快速原型開發                    |
 | Database      | SQLite + better-sqlite3 | —                 | 零配置，Demo 系統理想選擇             |
 | Query Builder | Knex.js                 | 3.x               | 管理 migrations/seeds，未來可切換 DB  |
@@ -139,6 +141,7 @@ SERVER_PORT=3000
 ENCODING=utf-8
 MAX_CHATTING_RECORD_NUM=200
 JWT_SECRET=dev-secret-key
+CORS_ORIGIN=http://localhost:5173
 ```
 
 **啟動分離**：`app.ts` 負責 Express 設定、`server.ts` 負責監聽 port，方便測試時直接 import app。
@@ -375,7 +378,40 @@ e2e/                             # E2E 測試（跨 client + server）
 
 ---
 
-## 7. 風險與緩解
+## 7. API 模組索引
+
+> 完整 endpoint 規格（請求/回應格式）見各模組 RFC。
+
+| 模組                        | Route Prefix                                 | 定義位置 |
+| --------------------------- | -------------------------------------------- | -------- |
+| Auth & Admin                | `/api/auth`, `/api/admins`                   | rfc_01   |
+| Operation Logs              | `/api/operation-logs`                        | rfc_02   |
+| Chatroom & Chat             | `/api/chatrooms`, `/api/chat_messages`       | rfc_03   |
+| Blacklist                   | `/api/blacklist/player`, `/api/blacklist/ip` | rfc_04   |
+| Players / Nickname / Report | `/api/players`, `/api/reports`               | rfc_05   |
+| Broadcast                   | `/api/broadcasts`                            | rfc_06   |
+
+---
+
+## 8. DB Schema 索引
+
+> 完整欄位定義見 [`00_doc/schema_reference.md`](schema_reference.md)。
+
+| Table              | 用途                        | 定義位置 |
+| ------------------ | --------------------------- | -------- |
+| `admins`           | 管理員帳號（角色、狀態）    | rfc_01   |
+| `operation_logs`   | 操作稽核紀錄                | rfc_02   |
+| `chatrooms`        | 聊天室列表                  | rfc_03   |
+| `players`          | 玩家帳號（含暱稱審核欄位）  | rfc_03   |
+| `chatroom_players` | 聊天室 ↔ 玩家多對多關聯     | rfc_03   |
+| `chat_messages`    | 聊天訊息（軟刪除）          | rfc_03   |
+| `blacklist`        | 玩家 / IP 封鎖（統一表）    | rfc_04   |
+| `reports`          | 玩家檢舉審核                | rfc_05   |
+| `broadcasts`       | 系統廣播（動態計算 status） | rfc_06   |
+
+---
+
+## 9. 風險與緩解
 
 | 風險                            | 影響                         | 緩解方式                                                         |
 | ------------------------------- | ---------------------------- | ---------------------------------------------------------------- |
@@ -385,7 +421,7 @@ e2e/                             # E2E 測試（跨 client + server）
 
 ---
 
-## 8. 完成標準
+## 10. 完成標準
 
 - [ ] `npm run dev` 一鍵啟動前後端
 - [ ] `GET /api/health` 回傳 200 `{ status: 'ok' }`
