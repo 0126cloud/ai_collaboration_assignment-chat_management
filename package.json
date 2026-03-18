@@ -16,7 +16,11 @@
     "test": "npm run test:server && npm run test:client",
     "test:server": "cd server && npx vitest run --coverage",
     "test:client": "cd client && npx vitest run --coverage",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "cd e2e && npx playwright test",
+    "test:e2e:headed": "cd e2e && npx playwright test --headed",
+    "demo": "cd e2e && npx playwright test --config=playwright.demo.config.ts && npx tsx scripts/compose-video.ts",
+    "demo:compose": "cd e2e && npx tsx scripts/compose-video.ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.18.0",

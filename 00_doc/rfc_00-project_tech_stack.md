@@ -188,11 +188,11 @@ export default defineConfig({
 
 採用三層 Token 架構：
 
-| 層級             | 說明                                      | 範例                        |
-| ---------------- | ----------------------------------------- | --------------------------- |
-| Seed Tokens      | ~20 個核心值，Antd 演算法自動推導整套色彩 | `colorPrimary: '#1A6FD4'`   |
-| Map Tokens       | ~100 個自動衍生值，通常不需覆寫           | `colorPrimaryBg`（自動）    |
-| Component Tokens | 針對個別元件微調                          | `Card.boxShadow`            |
+| 層級             | 說明                                      | 範例                      |
+| ---------------- | ----------------------------------------- | ------------------------- |
+| Seed Tokens      | ~20 個核心值，Antd 演算法自動推導整套色彩 | `colorPrimary: '#1A6FD4'` |
+| Map Tokens       | ~100 個自動衍生值，通常不需覆寫           | `colorPrimaryBg`（自動）  |
+| Component Tokens | 針對個別元件微調                          | `Card.boxShadow`          |
 
 **Dark / Light Mode 切換**：
 
@@ -285,7 +285,7 @@ const router = createBrowserRouter([
 | Backend HTTP 測試 | **supertest**                             | Express integration test 標準工具，不需啟動 live server     |
 | Frontend 元件測試 | **@testing-library/react** + **jest-dom** | 測試使用者行為而非實作細節，Vitest 原生相容                 |
 | Mocking           | **vitest 內建** (`vi.mock`, `vi.fn`)      | 不需額外安裝 sinon                                          |
-| E2E               | **不做**                                  | Demo 項目維護成本過高                                       |
+| E2E               | **Playwright**                            | 測試即展示：CI 品質保障 + demo 影片自動產出（詳見 rfc_08）  |
 
 ### 6.2 測試分層策略
 
@@ -294,6 +294,7 @@ const router = createBrowserRouter([
 | Unit        | middleware 邏輯、config 結構 | Vitest + mock req/res                 | mock 外部依賴         |
 | Integration | 完整 API pipeline            | Vitest + supertest + in-memory SQLite | in-memory DB per file |
 | Component   | React 元件行為               | Vitest + testing-library + jsdom      | mock API + context    |
+| E2E         | 跨頁面完整使用者流程         | Playwright + 真實 DB                  | beforeAll resetDb()   |
 
 **關鍵設計決策：**
 
@@ -347,6 +348,11 @@ client/src/__tests__/
 ├── components/                  # component tests
 ├── pages/                       # page tests
 └── layouts/                     # layout tests
+
+e2e/                             # E2E 測試（跨 client + server）
+├── helpers/                     # 共用操作（shared.ts, db.ts）
+├── tests/                       # spec 檔案（01-06 按模組排序）
+└── scripts/                     # compose-video.ts（影片合成）
 ```
 
 ### 6.6 Coverage 目標
@@ -359,10 +365,13 @@ client/src/__tests__/
 
 ### 6.7 Dev Scripts
 
-| Script               | 指令         | 說明         |
-| -------------------- | ------------ | ------------ |
-| `npm test`           | `vitest run` | 執行全部測試 |
-| `npm run test:watch` | `vitest`     | watch 模式   |
+| Script                    | 指令                                                                | 說明                                     |
+| ------------------------- | ------------------------------------------------------------------- | ---------------------------------------- |
+| `npm test`                | `vitest run`                                                        | 執行 Unit / Integration / Component 測試 |
+| `npm run test:watch`      | `vitest`                                                            | watch 模式                               |
+| `npm run test:e2e`        | `cd e2e && npx playwright test`                                     | 執行 E2E 測試（headless）                |
+| `npm run test:e2e:headed` | `cd e2e && npx playwright test --headed`                            | E2E 可視模式                             |
+| `npm run demo`            | `cd e2e && npx playwright test && npx tsx scripts/compose-video.ts` | 測試 + 合成 demo 影片                    |
 
 ---
 
