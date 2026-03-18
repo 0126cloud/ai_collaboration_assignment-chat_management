@@ -57,4 +57,16 @@ export class AdminController {
       next(err);
     }
   };
+
+  resetPassword = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const id = Number(req.params.id);
+      await this.adminService.resetPassword(id, req.body.newPassword, req.user!.id);
+
+      res.locals.operationLog = { operationType: 'RESET_PASSWORD' };
+      ResponseHelper.success(res, { message: '密碼已重設' });
+    } catch (err) {
+      next(err);
+    }
+  };
 }

@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { Knex } from 'knex';
-import { createAdminSchema, updateAdminRoleSchema } from '@shared/schemas/admin';
+import {
+  createAdminSchema,
+  updateAdminRoleSchema,
+  resetAdminPasswordSchema,
+} from '@shared/schemas/admin';
 import { validate } from '../../middleware/validate';
 import { auth } from '../../middleware/auth';
 import { requirePermission } from '../../middleware/permission';
@@ -34,6 +38,15 @@ export function createAdminRoutes(db: Knex): Router {
     requirePermission('admin:toggle'),
     validate(updateAdminRoleSchema),
     ctrl.updateRole,
+  );
+
+  // PUT /:id/password — 重設管理員密碼
+  router.put(
+    '/:id/password',
+    auth,
+    requirePermission('admin:reset_password'),
+    validate(resetAdminPasswordSchema),
+    ctrl.resetPassword,
   );
 
   return router;

@@ -113,4 +113,18 @@ export class AdminService {
 
     return updated;
   }
+
+  async resetPassword(id: number, newPassword: string, operatorId: number) {
+    if (id === operatorId) {
+      throw new AppError(ErrorCode.ADMIN_CANNOT_SELF_MODIFY);
+    }
+
+    const admin = await this.db('admins').where({ id }).first();
+    if (!admin) {
+      throw new AppError(ErrorCode.ADMIN_NOT_FOUND);
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.db('admins').where({ id }).update({ password_hash: passwordHash });
+  }
 }
