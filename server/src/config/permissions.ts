@@ -15,6 +15,7 @@ export const ROLE_PERMISSIONS: Record<string, string[]> = {
     'report:review',
     'nickname:read',
     'nickname:review',
+    'player:reset_nickname',
   ],
   senior_manager: [],
 };
