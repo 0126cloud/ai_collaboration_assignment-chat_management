@@ -26,8 +26,8 @@ input:-webkit-autofill:active {
 }
 
 /* 覆寫 focus 時輸入框背景色，使其跟隨主題 */
-/* 排除 Ant Design Select 內部的隱藏搜尋 input，避免干擾 Select 選中文字顯示 */
-input:focus:not(.ant-select-selection-search-input) {
+/* 排除 Ant Design Select / DatePicker 等複合元件內部的 input，避免干擾文字顯示 */
+input:focus:not([class*='ant-select']):not([class*='ant-picker']) {
   background-color: var(--ant-color-bg-container) !important;
   color: var(--ant-color-text) !important;
 }
