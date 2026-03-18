@@ -38,7 +38,10 @@ const useStyles = createStyles(({ token }) => ({
     alignItems: 'center',
   },
   filterItem: {
-    minWidth: 160,
+    width: 250,
+  },
+  filterInput: {
+    maxWidth: 300,
   },
   messageCell: {
     maxWidth: 200,
@@ -270,14 +273,14 @@ const ReportReviewPage = () => {
             <Option value="rejected">已駁回</Option>
           </Select>
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="檢舉人帳號"
             value={reporterUsername}
             onChange={(e) => setReporterUsername(e.target.value || undefined)}
             allowClear
           />
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="被檢舉玩家帳號"
             value={targetUsername}
             onChange={(e) => setTargetUsername(e.target.value || undefined)}

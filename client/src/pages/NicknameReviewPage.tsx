@@ -30,7 +30,10 @@ const useStyles = createStyles(({ token }) => ({
     alignItems: 'center',
   },
   filterItem: {
-    minWidth: 180,
+    width: 250,
+  },
+  filterInput: {
+    maxWidth: 300,
   },
 }));
 
@@ -221,14 +224,14 @@ const NicknameReviewPage = () => {
             <Option value="rejected">已駁回</Option>
           </Select>
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="玩家帳號"
             value={username}
             onChange={(e) => setUsername(e.target.value || undefined)}
             allowClear
           />
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="申請暱稱"
             value={nickname}
             onChange={(e) => setNickname(e.target.value || undefined)}

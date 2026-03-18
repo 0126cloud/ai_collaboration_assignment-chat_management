@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Table, Card, Select, Input, DatePicker, Button, Space, Tag, Tooltip } from 'antd';
 import { SearchOutlined, ReloadOutlined } from '@ant-design/icons';
 import { createStyles } from 'antd-style';
@@ -30,11 +30,19 @@ const useStyles = createStyles(({ token }) => ({
     alignItems: 'center',
   },
   filterItem: {
-    minWidth: 180,
+    width: 250,
+  },
+  filterInput: {
+    maxWidth: 300,
   },
   requestDetail: {
     fontSize: token.fontSizeSM,
     lineHeight: 1.6,
+  },
+  preContent: {
+    margin: 0,
+    whiteSpace: 'pre-wrap' as const,
+    fontSize: token.fontSizeSM,
   },
 }));
 
@@ -46,57 +54,61 @@ const operationTypeOptions = OPERATION_TYPES.map((type) => ({
 const formatTime = (value: string): string =>
   dayjs.utc(value).tz('Asia/Taipei').format('YYYY-MM-DD HH:mm:ss');
 
-const renderRequest = (request: TOperationLogRequest) => {
-  const payloadStr = JSON.stringify(request.payload, null, 2);
-  return (
-    <Tooltip
-      title={
-        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: 12 }}>
-          {`${request.method} ${request.url}\n\n${payloadStr}`}
-        </pre>
-      }
-    >
-      <span>
-        <Tag>{request.method}</Tag>
-        {request.url}
-      </span>
-    </Tooltip>
-  );
-};
-
-const columns: ColumnsType<TOperationLogItem> = [
-  {
-    title: '操作類型',
-    dataIndex: 'operation_type',
-    key: 'operation_type',
-    width: 160,
-    render: (type: TOperationLogItem['operation_type']) => (
-      <Tag color="blue">{OPERATION_TYPE_LABELS[type] || type}</Tag>
-    ),
-  },
-  {
-    title: '操作者',
-    dataIndex: 'operator',
-    key: 'operator',
-    width: 120,
-  },
-  {
-    title: '請求資訊',
-    dataIndex: 'request',
-    key: 'request',
-    render: (request: TOperationLogRequest) => renderRequest(request),
-  },
-  {
-    title: '操作時間',
-    dataIndex: 'created_at',
-    key: 'created_at',
-    width: 180,
-    render: (value: string) => formatTime(value),
-  },
-];
-
 const OperationLogPage = () => {
   const { styles } = useStyles();
+
+  const renderRequest = (request: TOperationLogRequest) => {
+    const payloadStr = JSON.stringify(request.payload, null, 2);
+    return (
+      <Tooltip
+        title={
+          <pre className={styles.preContent}>
+            {`${request.method} ${request.url}\n\n${payloadStr}`}
+          </pre>
+        }
+      >
+        <span>
+          <Tag>{request.method}</Tag>
+          {request.url}
+        </span>
+      </Tooltip>
+    );
+  };
+
+  const columns: ColumnsType<TOperationLogItem> = useMemo(
+    () => [
+      {
+        title: '操作類型',
+        dataIndex: 'operation_type',
+        key: 'operation_type',
+        width: 160,
+        render: (type: TOperationLogItem['operation_type']) => (
+          <Tag color="blue">{OPERATION_TYPE_LABELS[type] || type}</Tag>
+        ),
+      },
+      {
+        title: '操作者',
+        dataIndex: 'operator',
+        key: 'operator',
+        width: 120,
+      },
+      {
+        title: '請求資訊',
+        dataIndex: 'request',
+        key: 'request',
+        render: (request: TOperationLogRequest) => renderRequest(request),
+      },
+      {
+        title: '操作時間',
+        dataIndex: 'created_at',
+        key: 'created_at',
+        width: 180,
+        render: (value: string) => formatTime(value),
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [styles],
+  );
 
   const [data, setData] = useState<TOperationLogItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -132,9 +144,11 @@ const OperationLogPage = () => {
     [operationType, operator, dateRange],
   );
 
+  // 只在 mount 時自動查詢，其他篩選條件需點擊查詢按鈕
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSearch = () => {
     fetchData(1, pagination.pageSize);
@@ -163,7 +177,7 @@ const OperationLogPage = () => {
             onChange={setOperationType}
           />
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="操作者"
             allowClear
             value={operator}

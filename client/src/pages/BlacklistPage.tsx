@@ -27,7 +27,10 @@ const useStyles = createStyles(({ token }) => ({
     alignItems: 'center',
   },
   filterItem: {
-    minWidth: 180,
+    width: 250,
+  },
+  filterInput: {
+    maxWidth: 300,
   },
   toolbar: {
     display: 'flex',
@@ -93,9 +96,11 @@ const BlacklistPage = () => {
     [blockTypeFilter, target, reason, chatroomId, dateRange, statusFilter],
   );
 
+  // 只在 mount 時自動查詢，所有篩選條件需點擊查詢按鈕
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleBlockTypeChange = (value: 'player' | 'ip') => {
     setBlockTypeFilter(value);
@@ -229,7 +234,7 @@ const BlacklistPage = () => {
             <Option value="all">全部</Option>
           </Select>
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="目標（模糊搜尋）"
             allowClear
             value={target}
@@ -247,7 +252,7 @@ const BlacklistPage = () => {
             <Option value="advertisement">advertisement</Option>
           </Select>
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="聊天室（含 * 全域）"
             allowClear
             value={chatroomId}

@@ -72,31 +72,43 @@ const CreateBlacklistModal = ({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      setLoading(true);
 
-      const payload = {
-        target: values.target,
-        reason: values.reason,
-        chatroom_id: values.chatroom_id || '*',
-      };
+      Modal.confirm({
+        title: '確認封鎖',
+        content: `確定要封鎖「${values.target}」嗎？`,
+        okText: '確認封鎖',
+        cancelText: '取消',
+        onOk: async () => {
+          setLoading(true);
+          try {
+            const payload = {
+              target: values.target,
+              reason: values.reason,
+              chatroom_id: values.chatroom_id || '*',
+            };
 
-      if (blockType === 'ip') {
-        await blacklistApi.blockIp(payload);
-      } else {
-        await blacklistApi.blockPlayer(payload);
-      }
+            if (blockType === 'ip') {
+              await blacklistApi.blockIp(payload);
+            } else {
+              await blacklistApi.blockPlayer(payload);
+            }
 
-      message.success('封鎖成功');
-      form.resetFields();
-      onSuccess();
-      onClose();
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { error?: { message?: string } } } };
-      if (axiosErr?.response?.data?.error?.message) {
-        message.error(axiosErr.response.data.error.message);
-      }
-    } finally {
-      setLoading(false);
+            message.success('封鎖成功');
+            form.resetFields();
+            onSuccess();
+            onClose();
+          } catch (err: unknown) {
+            const axiosErr = err as { response?: { data?: { error?: { message?: string } } } };
+            if (axiosErr?.response?.data?.error?.message) {
+              message.error(axiosErr.response.data.error.message);
+            }
+          } finally {
+            setLoading(false);
+          }
+        },
+      });
+    } catch {
+      // 表單驗證失敗，不做任何事
     }
   };
 
@@ -115,7 +127,14 @@ const CreateBlacklistModal = ({
       cancelText="取消"
       confirmLoading={loading}
     >
-      <Form form={form} layout="vertical" className={styles.form}>
+      <Form
+        form={form}
+        layout="vertical"
+        className={styles.form}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.preventDefault();
+        }}
+      >
         <Form.Item name="blockType" label="類型" initialValue="player">
           <Select onChange={handleBlockTypeChange}>
             <Option value="player">Player</Option>

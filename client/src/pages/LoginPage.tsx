@@ -59,7 +59,13 @@ const LoginPage = () => {
         <Typography.Title level={3} className={styles.title}>
           聊天管理後台
         </Typography.Title>
-        <Form<TLoginPayload> onFinish={onFinish} autoComplete="off">
+        <Form<TLoginPayload>
+          onFinish={onFinish}
+          autoComplete="off"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.preventDefault();
+          }}
+        >
           <Form.Item name="username" rules={rules.username}>
             <Input prefix={<UserOutlined />} placeholder="帳號" size="large" />
           </Form.Item>

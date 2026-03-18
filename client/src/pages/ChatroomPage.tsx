@@ -25,6 +25,9 @@ const useStyles = createStyles(({ token }) => ({
   filterItem: {
     minWidth: 220,
   },
+  filterInput: {
+    maxWidth: 300,
+  },
 }));
 
 const formatTime = (value: string): string =>
@@ -89,9 +92,11 @@ const ChatroomPage = () => {
     [name],
   );
 
+  // 只在 mount 時自動查詢，篩選條件需點擊查詢按鈕
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSearch = () => {
     fetchData(1, pagination.pageSize);
@@ -110,7 +115,7 @@ const ChatroomPage = () => {
       <Card className={styles.filterCard}>
         <div className={styles.filterRow}>
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="名稱或 ID 搜尋"
             allowClear
             value={name}
