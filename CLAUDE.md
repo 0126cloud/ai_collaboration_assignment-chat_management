@@ -24,6 +24,7 @@ Read the relevant document BEFORE starting any task:
 | Design system                  | `00_doc/rfc_07-design-system.md`             |
 | Testing guidelines             | `00_doc/rfc_09-testing-guidelines.md`        |
 | 環境變數配置設計               | `00_doc/rfc_10-system-config.md`             |
+| Production 模式設計            | `00_doc/rfc_11-production-mode.md`           |
 
 ## Skill 使用指引
 
