@@ -11,7 +11,9 @@ test.describe('聊天室模組', () => {
     await loginAs(page, 'admin01', '123456');
     await navigateTo(page, '聊天室');
     await waitForTable(page);
-    await expect(page.locator('.ant-table-tbody tr').first()).toBeVisible();
+    await expect(
+      page.getByTestId('chatroom__table').locator('tbody').getByRole('row').first(),
+    ).toBeVisible();
   });
 
   test('搜尋聊天室名稱篩選結果', async ({ page }) => {
@@ -20,8 +22,9 @@ test.describe('聊天室模組', () => {
     await waitForTable(page);
     await page.getByPlaceholder('名稱或 ID 搜尋').fill('Baccarat');
     await page.getByRole('button', { name: '查詢' }).click();
-    await waitForTable(page);
-    const rows = page.locator('.ant-table-tbody tr');
+    // 等待篩選結果回來（分頁從 5 筆變 2 筆）避免 race condition
+    await expect(page.getByText('共 2 筆')).toBeVisible({ timeout: 10000 });
+    const rows = page.getByTestId('chatroom__table').locator('tbody').getByRole('row');
     const count = await rows.count();
     for (let i = 0; i < count; i++) {
       await expect(rows.nth(i)).toContainText('Baccarat');

@@ -49,8 +49,7 @@ describe('LoginPage', () => {
     await user.click(screen.getByRole('button', { name: /登/i }));
 
     await waitFor(() => {
-      const errorElements = document.querySelectorAll('.ant-form-item-explain-error');
-      expect(errorElements.length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/請輸入/).length).toBeGreaterThanOrEqual(2);
     });
   });
 

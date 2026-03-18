@@ -1,10 +1,6 @@
 import { type Page, expect } from '@playwright/test';
 
-export async function loginAs(
-  page: Page,
-  username: string,
-  password: string,
-): Promise<void> {
+export async function loginAs(page: Page, username: string, password: string): Promise<void> {
   await page.goto('/login');
   await page.getByPlaceholder('帳號').fill(username);
   await page.getByPlaceholder('密碼').fill(password);
@@ -40,16 +36,16 @@ export async function selectOption(
 
 export async function confirmModal(
   page: Page,
-  okText: string = '確定',
+  okText: string | RegExp = '確定',
+  dialogName?: string | RegExp,
 ): Promise<void> {
-  const dialog = page.getByRole('dialog');
+  const dialog = dialogName
+    ? page.getByRole('dialog', { name: dialogName })
+    : page.getByRole('dialog');
   await dialog.waitFor({ state: 'visible' });
   await dialog.getByRole('button', { name: okText }).click();
 }
 
 export async function expectMessage(page: Page, text: string): Promise<void> {
-  await page
-    .locator('.ant-message-notice')
-    .filter({ hasText: text })
-    .waitFor({ timeout: 10000 });
+  await page.locator('.ant-message-notice').filter({ hasText: text }).waitFor({ timeout: 10000 });
 }

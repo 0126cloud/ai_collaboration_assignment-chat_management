@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfigProvider } from 'antd';
 import CreateBlacklistModal from '../../components/CreateBlacklistModal';
@@ -89,12 +89,10 @@ beforeEach(() => {
   });
 });
 
-// 等待並取得 Modal OK 按鈕（使用 CSS selector 以確保兼容 Antd Portal 渲染）
+// 等待並取得 Modal OK 按鈕（使用 data-testid 以避免直接使用 .ant-xxx class）
 async function waitForOkButton(): Promise<HTMLElement> {
   return await waitFor(() => {
-    const btn = document.querySelector('.ant-modal-footer .ant-btn-primary') as HTMLElement;
-    expect(btn).not.toBeNull();
-    return btn;
+    return screen.getByTestId('blacklist__modal__submit-btn');
   });
 }
 
@@ -201,12 +199,12 @@ describe('CreateBlacklistModal', () => {
     const okBtn = await waitForOkButton();
     fireEvent.click(okBtn);
 
-    // 等待確認對話框並確認
+    // 等待確認對話框並確認（使用 getByRole 查找確認按鈕）
     await waitFor(() => {
-      const confirmBtn = document.querySelector(
-        '.ant-modal-confirm-btns .ant-btn-primary',
-      ) as HTMLElement;
-      expect(confirmBtn).not.toBeNull();
+      const dialogs = screen.getAllByRole('dialog');
+      // 確認對話框是第二個 dialog
+      const confirmDialog = dialogs[dialogs.length - 1];
+      const confirmBtn = within(confirmDialog).getByRole('button', { name: /確認封鎖/ });
       fireEvent.click(confirmBtn);
     });
 

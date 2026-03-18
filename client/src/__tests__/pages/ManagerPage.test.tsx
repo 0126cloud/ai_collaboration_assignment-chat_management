@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfigProvider } from 'antd';
 import ManagerPage from '../../pages/ManagerPage';
@@ -142,7 +142,7 @@ describe('ManagerPage', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByTestId('toggle-btn-3')).toHaveTextContent('啟用');
+      expect(screen.getByTestId('manager__toggle-btn--3')).toHaveTextContent('啟用');
     });
   });
 
@@ -151,7 +151,7 @@ describe('ManagerPage', () => {
     renderPage();
 
     await waitFor(() => {
-      expect(screen.getByTestId('toggle-btn-2')).toHaveTextContent('停用');
+      expect(screen.getByTestId('manager__toggle-btn--2')).toHaveTextContent('停用');
     });
   });
 
@@ -160,7 +160,7 @@ describe('ManagerPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const toggleBtn = await screen.findByTestId('toggle-btn-2');
+    const toggleBtn = await screen.findByTestId('manager__toggle-btn--2');
     await user.click(toggleBtn);
 
     await waitFor(() => {
@@ -173,18 +173,18 @@ describe('ManagerPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const toggleBtn = await screen.findByTestId('toggle-btn-2');
+    const toggleBtn = await screen.findByTestId('manager__toggle-btn--2');
     await user.click(toggleBtn);
 
     await waitFor(() => expect(screen.queryAllByText(/確認/).length).toBeGreaterThan(0));
 
-    const modalOkButtons = document.querySelectorAll('.ant-modal-confirm-btns .ant-btn-primary');
-    if (modalOkButtons.length > 0) {
-      await user.click(modalOkButtons[0] as HTMLElement);
-      await waitFor(() => {
-        expect(mockToggle).toHaveBeenCalledWith(2);
-      });
-    }
+    const dialogs = screen.getAllByRole('dialog');
+    const confirmDialog = dialogs[dialogs.length - 1];
+    const okButton = within(confirmDialog).getByRole('button', { name: /確認停用/ });
+    await user.click(okButton);
+    await waitFor(() => {
+      expect(mockToggle).toHaveBeenCalledWith(2);
+    });
   });
 
   // @permissions
@@ -192,7 +192,7 @@ describe('ManagerPage', () => {
     renderPage();
 
     await waitFor(() => {
-      const selfToggleBtn = screen.getByTestId('toggle-btn-1');
+      const selfToggleBtn = screen.getByTestId('manager__toggle-btn--1');
       expect(selfToggleBtn).toBeDisabled();
     });
   });

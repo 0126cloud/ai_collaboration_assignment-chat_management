@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfigProvider } from 'antd';
 import NicknameReviewPage from '../../pages/NicknameReviewPage';
@@ -115,8 +115,8 @@ describe('NicknameReviewPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const approveButtons = await screen.findAllByText('核准');
-    await user.click(approveButtons[0]);
+    const approveBtn = await screen.findByTestId('nickname-review__approve-btn--player016');
+    await user.click(approveBtn);
 
     await waitFor(() => {
       expect(screen.queryAllByText('確認核准').length).toBeGreaterThan(0);
@@ -128,16 +128,16 @@ describe('NicknameReviewPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const approveButtons = await screen.findAllByText('核准');
-    await user.click(approveButtons[0]);
+    const approveBtn = await screen.findByTestId('nickname-review__approve-btn--player016');
+    await user.click(approveBtn);
 
     await waitFor(() => expect(screen.queryAllByText('確認核准').length).toBeGreaterThan(0));
 
-    // click the modal's OK button
-    const modalOkButtons = document.querySelectorAll('.ant-modal-confirm-btns .ant-btn-primary');
-    if (modalOkButtons.length > 0) {
-      await user.click(modalOkButtons[0] as HTMLElement);
-    }
+    // click the modal's OK button — 取最後一個 dialog（前一個測試的 modal 可能未清除）
+    const dialogs = screen.getAllByRole('dialog', { name: '確認核准' });
+    const dialog = dialogs[dialogs.length - 1];
+    const modalOkBtn = within(dialog).getByRole('button', { name: /核.*准/ });
+    await user.click(modalOkBtn);
 
     await waitFor(() => {
       expect(mockApprove).toHaveBeenCalledWith('player016');
@@ -149,8 +149,8 @@ describe('NicknameReviewPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const rejectButtons = await screen.findAllByText('駁回');
-    await user.click(rejectButtons[0]);
+    const rejectBtn = await screen.findByTestId('nickname-review__reject-btn--player016');
+    await user.click(rejectBtn);
 
     await waitFor(() => {
       expect(screen.queryAllByText('確認駁回').length).toBeGreaterThan(0);

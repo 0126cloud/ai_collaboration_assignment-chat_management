@@ -1,11 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-  loginAs,
-  navigateTo,
-  waitForTable,
-  confirmModal,
-  expectMessage,
-} from '../helpers/shared';
+import { loginAs, navigateTo, waitForTable, confirmModal, expectMessage } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 test.describe('聊天監控模組', () => {
@@ -17,7 +11,8 @@ test.describe('聊天監控模組', () => {
     await loginAs(page, 'admin01', '123456');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
-    await expect(page.locator('.ant-table-tbody tr').first()).toBeVisible();
+    const table = page.getByTestId('chat-monitor__table');
+    await expect(table.locator('tbody').getByRole('row').first()).toBeVisible();
   });
 
   test('依玩家帳號篩選訊息', async ({ page }) => {
@@ -27,7 +22,7 @@ test.describe('聊天監控模組', () => {
     await page.getByPlaceholder('玩家帳號').fill('player001');
     await page.getByRole('button', { name: '查詢' }).click();
     await waitForTable(page);
-    const rows = page.locator('.ant-table-tbody tr');
+    const rows = page.getByTestId('chat-monitor__table').locator('tbody').getByRole('row');
     const count = await rows.count();
     for (let i = 0; i < count; i++) {
       await expect(rows.nth(i)).toContainText('player001');
@@ -38,20 +33,21 @@ test.describe('聊天監控模組', () => {
     await loginAs(page, 'admin01', '123456');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
-    // Ant Design Select: click the selector then pick option
-    await page.locator('.ant-select').first().click();
+    // 點擊聊天室下拉選單並選擇選項
+    await page.getByTestId('chat-monitor__chatroom-select').click();
     await page.getByTitle('Baccarat Room 1').click();
     await page.getByRole('button', { name: '查詢' }).click();
     await waitForTable(page);
-    await expect(page.locator('.ant-table-tbody tr').first()).toBeVisible();
+    const table = page.getByTestId('chat-monitor__table');
+    await expect(table.locator('tbody').getByRole('row').first()).toBeVisible();
   });
 
   test('刪除訊息後顯示成功提示', async ({ page }) => {
     await loginAs(page, 'admin01', '123456');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
-    // Ant Design Button type="link" with icon renders as <button>
-    await page.locator('.ant-table-tbody tr').first().locator('button').filter({ hasText: /刪/ }).click();
+    // 點擊第一筆資料的刪除按鈕
+    await page.locator('[data-testid^="chat-monitor__delete-btn"]').first().click();
     await confirmModal(page, '確定刪除');
     await expectMessage(page, '訊息已刪除');
   });
@@ -60,14 +56,16 @@ test.describe('聊天監控模組', () => {
     await loginAs(page, 'admin01', '123456');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
-    const firstRow = page.locator('.ant-table-tbody tr').first();
-    const playerUsername = await firstRow.locator('td').nth(1).innerText();
-    await firstRow.locator('button').filter({ hasText: /封/ }).click();
+    const firstRow = page
+      .getByTestId('chat-monitor__table')
+      .locator('tbody')
+      .getByRole('row')
+      .first();
+    const playerUsername = await firstRow.getByRole('cell').nth(1).innerText();
+    await page.locator('[data-testid^="chat-monitor__block-btn"]').first().click();
     const dialog = page.getByRole('dialog');
     await dialog.waitFor({ state: 'visible' });
-    await expect(dialog.getByRole('textbox').first()).toHaveValue(
-      playerUsername.trim(),
-    );
+    await expect(dialog.getByRole('textbox').first()).toHaveValue(playerUsername.trim());
     await page.keyboard.press('Escape');
   });
 

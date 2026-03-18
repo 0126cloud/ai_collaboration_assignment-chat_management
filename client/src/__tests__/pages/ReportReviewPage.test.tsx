@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfigProvider } from 'antd';
 import ReportReviewPage from '../../pages/ReportReviewPage';
@@ -138,11 +138,12 @@ describe('ReportReviewPage', () => {
     mockList.mockResolvedValue(makeResponse(mockApprovedData, 1));
     renderPage();
 
-    await waitFor(async () => {
-      const approveButtons = screen.getAllByText('核准');
-      expect(approveButtons[0].closest('button')).toBeDisabled();
-      const rejectButtons = screen.getAllByText('駁回');
-      expect(rejectButtons[0].closest('button')).toBeDisabled();
+    await waitFor(() => {
+      // 使用 data-testid 定位按鈕
+      const approveBtn = screen.getByTestId('report-review__approve-btn--3');
+      expect(approveBtn).toBeDisabled();
+      const rejectBtn = screen.getByTestId('report-review__reject-btn--3');
+      expect(rejectBtn).toBeDisabled();
     });
   });
 
@@ -151,8 +152,9 @@ describe('ReportReviewPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const approveButtons = await screen.findAllByText('核准');
-    await user.click(approveButtons[0]);
+    // 使用 data-testid 定位第一筆核准按鈕
+    const approveBtn = await screen.findByTestId('report-review__approve-btn--1');
+    await user.click(approveBtn);
 
     await waitFor(() => {
       expect(screen.queryAllByText('確認核准').length).toBeGreaterThan(0);
@@ -166,15 +168,16 @@ describe('ReportReviewPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const approveButtons = await screen.findAllByText('核准');
-    await user.click(approveButtons[0]);
+    // 使用 data-testid 定位第一筆核准按鈕
+    const approveBtn = await screen.findByTestId('report-review__approve-btn--1');
+    await user.click(approveBtn);
 
     await waitFor(() => expect(screen.queryAllByText('確認核准').length).toBeGreaterThan(0));
 
-    const modalOkButtons = document.querySelectorAll('.ant-modal-confirm-btns .ant-btn-primary');
-    if (modalOkButtons.length > 0) {
-      await user.click(modalOkButtons[0] as HTMLElement);
-    }
+    // Modal.confirm 在 ConfigProvider 外渲染，按鈕文字有空格，使用 within + role 定位
+    const dialogs = screen.getAllByRole('dialog');
+    const lastDialog = dialogs[dialogs.length - 1];
+    await user.click(within(lastDialog).getByRole('button', { name: /核.*准/ }));
 
     await waitFor(() => {
       expect(mockApprove).toHaveBeenCalledWith(1);

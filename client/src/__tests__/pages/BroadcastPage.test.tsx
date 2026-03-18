@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ConfigProvider } from 'antd';
 import BroadcastPage from '../../pages/BroadcastPage';
@@ -180,13 +180,14 @@ describe('BroadcastPage', () => {
 
     await waitFor(() => expect(screen.queryAllByText('確認下架廣播').length).toBeGreaterThan(0));
 
-    const modalOkButtons = document.querySelectorAll('.ant-modal-confirm-btns .ant-btn-primary');
-    if (modalOkButtons.length > 0) {
-      await user.click(modalOkButtons[0] as HTMLElement);
-      await waitFor(() => {
-        expect(mockRemove).toHaveBeenCalledWith(expect.any(Number));
-      });
-    }
+    // 取最後一個確認對話框，避免前次測試殘留的 dialog 干擾
+    const dialogs = screen.getAllByRole('dialog', { name: /確認下架廣播/ });
+    const confirmDialog = dialogs[dialogs.length - 1];
+    const okBtn = within(confirmDialog).getByRole('button', { name: /確認下架/ });
+    await user.click(okBtn);
+    await waitFor(() => {
+      expect(mockRemove).toHaveBeenCalledWith(expect.any(Number));
+    });
   });
 
   // @happy_path — chatroom_id = 'all' 顯示為「全部聊天室」
