@@ -1,0 +1,32 @@
+/* 移除 Antd inline Menu 右側分隔線（iOS 風格 sidebar 不需要此邊框） */
+.ant-menu-inline,
+.ant-menu-vertical {
+  border-inline-end: none !important;
+}
+
+/* 告知瀏覽器目前的 color-scheme，使 autofill 高亮、捲軸等原生控件跟隨主題 */
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* 覆寫瀏覽器 autofill 背景色，使其跟隨 Antd CSS variables */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--ant-color-bg-container) inset !important;
+  -webkit-text-fill-color: var(--ant-color-text) !important;
+  caret-color: var(--ant-color-text) !important;
+  /* 延遲 background-color 動畫，防止瀏覽器在 autofill 時短暫顯示白色 */
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* 覆寫 focus 時輸入框背景色，使其跟隨主題 */
+input:focus {
+  background-color: var(--ant-color-bg-container) !important;
+  color: var(--ant-color-text) !important;
+}
