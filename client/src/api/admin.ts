@@ -4,6 +4,7 @@ import type {
   TAdminListQuery,
   TCreateAdminPayload,
   TUpdateAdminRolePayload,
+  TResetAdminPasswordPayload,
 } from '@shared/types/admin';
 import type { TApiResponse } from '@shared/types/api';
 
@@ -24,4 +25,6 @@ export const adminApi = {
   toggle: (id: number) => client.put<TApiResponse<TAdminItem>>(`/api/admins/${id}/toggle`),
   updateRole: (id: number, data: TUpdateAdminRolePayload) =>
     client.patch<TApiResponse<TAdminItem>>(`/api/admins/${id}/role`, data),
+  resetPassword: (id: number, data: TResetAdminPasswordPayload) =>
+    client.put<TApiResponse<{ message: string }>>(`/api/admins/${id}/password`, data),
 };

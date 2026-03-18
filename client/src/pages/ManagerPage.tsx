@@ -20,6 +20,9 @@ const useStyles = createStyles(({ token }) => ({
   filterItem: {
     minWidth: 160,
   },
+  roleSelect: {
+    minWidth: 120,
+  },
 }));
 
 const ROLE_LABEL: Record<string, string> = {
@@ -42,12 +45,16 @@ const ManagerPage = () => {
   const { styles } = useStyles();
   const { user } = useAuth();
   const [form] = Form.useForm<TFormValues>();
+  const [resetPwdForm] = Form.useForm<{ newPassword: string }>();
 
   const [data, setData] = useState<TAdminItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 20, total: 0, totalPages: 1 });
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resetPwdModalOpen, setResetPwdModalOpen] = useState(false);
+  const [resetPwdTarget, setResetPwdTarget] = useState<TAdminItem | null>(null);
+  const [resetPwdSubmitting, setResetPwdSubmitting] = useState(false);
 
   const fetchData = useCallback(
     async (page = 1) => {
@@ -69,19 +76,27 @@ const ManagerPage = () => {
     fetchData(1);
   }, [fetchData]);
 
-  const handleCreate = async (values: TFormValues) => {
-    setSubmitting(true);
-    try {
-      await adminApi.create(values);
-      message.success('新增管理員成功');
-      form.resetFields();
-      setModalOpen(false);
-      fetchData(1);
-    } catch {
-      message.error('新增管理員失敗');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleCreate = (values: TFormValues) => {
+    Modal.confirm({
+      title: '確認新增管理員',
+      content: `確定要新增帳號「${values.username}」嗎？`,
+      okText: '確認新增',
+      cancelText: '取消',
+      onOk: async () => {
+        setSubmitting(true);
+        try {
+          await adminApi.create(values);
+          message.success('新增管理員成功');
+          form.resetFields();
+          setModalOpen(false);
+          fetchData(1);
+        } catch {
+          message.error('新增管理員失敗');
+        } finally {
+          setSubmitting(false);
+        }
+      },
+    });
   };
 
   const handleToggle = (record: TAdminItem) => {
@@ -104,14 +119,53 @@ const ManagerPage = () => {
     });
   };
 
-  const handleRoleChange = async (record: TAdminItem, role: string) => {
-    try {
-      await adminApi.updateRole(record.id, { role: role as 'general_manager' | 'senior_manager' });
-      message.success('角色更新成功');
-      fetchData(pagination.page);
-    } catch {
-      message.error('角色更新失敗');
-    }
+  const handleRoleChange = (record: TAdminItem, role: string) => {
+    Modal.confirm({
+      title: '確認變更角色',
+      content: `確定要將「${record.username}」的角色變更為「${ROLE_LABEL[role]}」嗎？`,
+      okText: '確認變更',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await adminApi.updateRole(record.id, {
+            role: role as 'general_manager' | 'senior_manager',
+          });
+          message.success('角色更新成功');
+          fetchData(pagination.page);
+        } catch {
+          message.error('角色更新失敗');
+        }
+      },
+    });
+  };
+
+  const handleResetPassword = (record: TAdminItem) => {
+    setResetPwdTarget(record);
+    setResetPwdModalOpen(true);
+  };
+
+  const handleResetPasswordSubmit = (values: { newPassword: string }) => {
+    if (!resetPwdTarget) return;
+    Modal.confirm({
+      title: '確認重設密碼',
+      content: `確定要重設「${resetPwdTarget.username}」的密碼嗎？`,
+      okText: '確認重設',
+      cancelText: '取消',
+      onOk: async () => {
+        setResetPwdSubmitting(true);
+        try {
+          await adminApi.resetPassword(resetPwdTarget.id, values);
+          message.success('密碼已重設');
+          resetPwdForm.resetFields();
+          setResetPwdModalOpen(false);
+          setResetPwdTarget(null);
+        } catch {
+          message.error('重設密碼失敗');
+        } finally {
+          setResetPwdSubmitting(false);
+        }
+      },
+    });
   };
 
   const columns: ColumnsType<TAdminItem> = [
@@ -130,7 +184,7 @@ const ManagerPage = () => {
           <Select
             value={role}
             size="small"
-            style={{ minWidth: 120 }}
+            className={styles.roleSelect}
             onChange={(val) => handleRoleChange(record, val)}
           >
             <Option value="senior_manager">進階管理員</Option>
@@ -157,15 +211,20 @@ const ManagerPage = () => {
         const isSelf = record.id === user?.id;
         const label = record.is_active ? '停用' : '啟用';
         return (
-          <Button
-            type="link"
-            danger={record.is_active}
-            disabled={isSelf}
-            data-testid={`toggle-btn-${record.id}`}
-            onClick={() => handleToggle(record)}
-          >
-            {label}
-          </Button>
+          <Space>
+            <Button
+              type="link"
+              danger={record.is_active}
+              disabled={isSelf}
+              data-testid={`toggle-btn-${record.id}`}
+              onClick={() => handleToggle(record)}
+            >
+              {label}
+            </Button>
+            <Button type="link" disabled={isSelf} onClick={() => handleResetPassword(record)}>
+              重設密碼
+            </Button>
+          </Space>
         );
       },
     },
@@ -206,7 +265,14 @@ const ManagerPage = () => {
         footer={null}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreate}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.preventDefault();
+          }}
+        >
           <Form.Item
             label="帳號"
             name="username"
@@ -243,6 +309,52 @@ const ManagerPage = () => {
                 onClick={() => {
                   setModalOpen(false);
                   form.resetFields();
+                }}
+              >
+                取消
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={`重設密碼 — ${resetPwdTarget?.username}`}
+        open={resetPwdModalOpen}
+        onCancel={() => {
+          setResetPwdModalOpen(false);
+          resetPwdForm.resetFields();
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={resetPwdForm}
+          layout="vertical"
+          onFinish={handleResetPasswordSubmit}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.preventDefault();
+          }}
+        >
+          <Form.Item
+            label="新密碼"
+            name="newPassword"
+            rules={[
+              { required: true, message: '請輸入新密碼' },
+              { min: 6, message: '密碼至少 6 個字元' },
+            ]}
+          >
+            <Input.Password placeholder="請輸入新密碼（至少 6 個字元）" />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button type="primary" htmlType="submit" loading={resetPwdSubmitting}>
+                重設密碼
+              </Button>
+              <Button
+                onClick={() => {
+                  setResetPwdModalOpen(false);
+                  resetPwdForm.resetFields();
                 }}
               >
                 取消
