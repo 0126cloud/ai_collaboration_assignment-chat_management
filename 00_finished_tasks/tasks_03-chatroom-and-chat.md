@@ -444,20 +444,20 @@ Task 3.8（rfc_01 更新 + CLAUDE.md 更新）
 
 ## Progress
 
-| Task      | 狀態 | 完成日期   | 備註                         |
-| --------- | ---- | ---------- | ---------------------------- |
-| Task 3.1  | ✅   | 2026-03-17 | 4 張表 migration + testDb    |
-| Task 3.2  | ✅   | 2026-03-17 | 5 聊天室 + 18 玩家 + 64 訊息 |
-| Task 3.3  | ✅   | 2026-03-17 | types + schemas + index 更新 |
-| Task 3.4  | ✅   | 2026-03-17 | GET /api/chatrooms           |
-| Task 3.4t | ✅   | 2026-03-17 | 10 integration tests         |
+| Task      | 狀態 | 完成日期   | 備註                            |
+| --------- | ---- | ---------- | ------------------------------- |
+| Task 3.1  | ✅   | 2026-03-17 | 4 張表 migration + testDb       |
+| Task 3.2  | ✅   | 2026-03-17 | 5 聊天室 + 18 玩家 + 64 訊息    |
+| Task 3.3  | ✅   | 2026-03-17 | types + schemas + index 更新    |
+| Task 3.4  | ✅   | 2026-03-17 | GET /api/chatrooms              |
+| Task 3.4t | ✅   | 2026-03-17 | 10 integration tests            |
 | Task 3.5  | ✅   | 2026-03-17 | GET + DELETE /api/chat_messages |
-| Task 3.5t | ✅   | 2026-03-17 | 21 integration tests         |
-| Task 3.6  | ✅   | 2026-03-17 | ChatroomPage + api + router  |
-| Task 3.6t | ✅   | 2026-03-17 | 7 component tests            |
-| Task 3.7  | ✅   | 2026-03-17 | ChatMonitoringPage + api     |
-| Task 3.7t | ✅   | 2026-03-17 | 10 component tests           |
-| Task 3.8  | ✅   | 2026-03-17 | 文件更新 + prettier          |
+| Task 3.5t | ✅   | 2026-03-17 | 21 integration tests            |
+| Task 3.6  | ✅   | 2026-03-17 | ChatroomPage + api + router     |
+| Task 3.6t | ✅   | 2026-03-17 | 7 component tests               |
+| Task 3.7  | ✅   | 2026-03-17 | ChatMonitoringPage + api        |
+| Task 3.7t | ✅   | 2026-03-17 | 10 component tests              |
+| Task 3.8  | ✅   | 2026-03-17 | 文件更新 + prettier             |
 
 ## 完成檢查清單
 

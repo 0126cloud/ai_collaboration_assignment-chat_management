@@ -91,6 +91,7 @@ Phase 2（[rfc_02](rfc_02-operation-logs.md)）已完成操作紀錄模組，建
 - **操作紀錄**：寫入 operation_logs（type: `RESET_NICKNAME`）
 
 **新增檔案**：
+
 - `server/src/module/player/service.ts` — `PlayerService.resetNickname(username)`
 - `server/src/module/player/controller.ts` — `PlayerController.resetNickname`
 - `server/src/module/player/route.ts` — `createPlayerRoutes(db)` → 掛載於 `/api/players`
@@ -170,17 +171,17 @@ chat-management/
 
 **Migration**（`server/db/migrations/20260317000003_create_players.ts`）：
 
-| 欄位              | 型別                               | 說明                 |
-| ----------------- | ---------------------------------- | -------------------- |
-| username               | VARCHAR(50) PRIMARY KEY            | 玩家帳號（唯一識別）                                          |
-| nickname               | VARCHAR(50) NOT NULL               | 目前暱稱                                                      |
+| 欄位                   | 型別                               | 說明                                                                |
+| ---------------------- | ---------------------------------- | ------------------------------------------------------------------- |
+| username               | VARCHAR(50) PRIMARY KEY            | 玩家帳號（唯一識別）                                                |
+| nickname               | VARCHAR(50) NOT NULL               | 目前暱稱                                                            |
 | nickname_apply_at      | DATETIME nullable                  | 最後一次申請改暱稱的時間（RFC 05 新增，migration `20260317000008`） |
-| nickname_review_status | VARCHAR(20) nullable               | 'pending' \| 'approved' \| 'rejected' \| null                 |
-| nickname_reviewed_by   | VARCHAR(50) nullable               | 審核管理員帳號                                                |
-| nickname_reviewed_at   | DATETIME nullable                  | 審核時間                                                      |
-| created_at             | DATETIME DEFAULT CURRENT_TIMESTAMP |                                                               |
-| updated_at             | DATETIME DEFAULT CURRENT_TIMESTAMP |                                                               |
-| deleted_at             | DATETIME nullable                  | 軟刪除標記                                                    |
+| nickname_review_status | VARCHAR(20) nullable               | 'pending' \| 'approved' \| 'rejected' \| null                       |
+| nickname_reviewed_by   | VARCHAR(50) nullable               | 審核管理員帳號                                                      |
+| nickname_reviewed_at   | DATETIME nullable                  | 審核時間                                                            |
+| created_at             | DATETIME DEFAULT CURRENT_TIMESTAMP |                                                                     |
+| updated_at             | DATETIME DEFAULT CURRENT_TIMESTAMP |                                                                     |
+| deleted_at             | DATETIME nullable                  | 軟刪除標記                                                          |
 
 > 此表為多模組共用基礎表，後續黑名單、暱稱審核模組皆依賴 `players.username`。
 >
@@ -206,15 +207,15 @@ chat-management/
 
 **Migration**（`server/db/migrations/20260317000005_create_chat_messages.ts`）：
 
-| 欄位            | 型別                               | 說明                                |
-| --------------- | ---------------------------------- | ----------------------------------- |
-| id              | INTEGER PRIMARY KEY AUTOINCREMENT  |                                     |
-| chatroom_id     | VARCHAR(50) NOT NULL               | 所屬聊天室                          |
-| player_username | VARCHAR(50) NOT NULL               | 發訊玩家帳號                        |
-| ~~player_nickname~~ | ~~VARCHAR(50) NOT NULL~~       | ~~已移除：改為 JOIN players 取得即時暱稱~~ |
-| message         | TEXT NOT NULL                      | 訊息內容                            |
-| created_at      | DATETIME DEFAULT CURRENT_TIMESTAMP | 發訊時間                            |
-| deleted_at      | DATETIME nullable                  | 軟刪除標記（管理員刪除時間）        |
+| 欄位                | 型別                               | 說明                                       |
+| ------------------- | ---------------------------------- | ------------------------------------------ |
+| id                  | INTEGER PRIMARY KEY AUTOINCREMENT  |                                            |
+| chatroom_id         | VARCHAR(50) NOT NULL               | 所屬聊天室                                 |
+| player_username     | VARCHAR(50) NOT NULL               | 發訊玩家帳號                               |
+| ~~player_nickname~~ | ~~VARCHAR(50) NOT NULL~~           | ~~已移除：改為 JOIN players 取得即時暱稱~~ |
+| message             | TEXT NOT NULL                      | 訊息內容                                   |
+| created_at          | DATETIME DEFAULT CURRENT_TIMESTAMP | 發訊時間                                   |
+| deleted_at          | DATETIME nullable                  | 軟刪除標記（管理員刪除時間）               |
 
 **索引**：`chatroom_id`、`player_username`、`created_at`
 
@@ -626,13 +627,13 @@ export const chatMessageQuerySchema = z.object({
 
 ## 7. 風險與緩解
 
-| 風險                              | 影響                           | 緩解方式                                                     |
-| --------------------------------- | ------------------------------ | ------------------------------------------------------------ |
-| chatroom.id 為 string PK          | 無法自增，依賴外部系統產生 ID  | 本系統為 Mock Data，seed 預設固定 ID；正式環境由遊戲系統提供 |
-| 軟刪除可能累積大量已刪除資料      | 查詢效能下降                   | `deleted_at` 加入複合索引；Demo 環境資料量小，不構成問題     |
-| ~~封鎖玩家 / 暱稱重設按鈕 disabled~~ | 已於 Phase 4/9 啟用         | 封鎖（Phase 4）、暱稱重設（Phase 9）                        |
-| players 表為共用基礎表            | 後續模組修改可能影響現有功能   | Schema 設計預留擴充空間；migration 獨立，不互相干擾          |
-| chat_messages seed 需模擬真實對話 | 不真實的對話影響 Demo 展示效果 | Seed 設計時參考真實遊戲聊天室場景（下注、祝賀、閒聊等）      |
+| 風險                                 | 影響                           | 緩解方式                                                     |
+| ------------------------------------ | ------------------------------ | ------------------------------------------------------------ |
+| chatroom.id 為 string PK             | 無法自增，依賴外部系統產生 ID  | 本系統為 Mock Data，seed 預設固定 ID；正式環境由遊戲系統提供 |
+| 軟刪除可能累積大量已刪除資料         | 查詢效能下降                   | `deleted_at` 加入複合索引；Demo 環境資料量小，不構成問題     |
+| ~~封鎖玩家 / 暱稱重設按鈕 disabled~~ | 已於 Phase 4/9 啟用            | 封鎖（Phase 4）、暱稱重設（Phase 9）                         |
+| players 表為共用基礎表               | 後續模組修改可能影響現有功能   | Schema 設計預留擴充空間；migration 獨立，不互相干擾          |
+| chat_messages seed 需模擬真實對話    | 不真實的對話影響 Demo 展示效果 | Seed 設計時參考真實遊戲聊天室場景（下注、祝賀、閒聊等）      |
 
 ---
 

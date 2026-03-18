@@ -304,27 +304,27 @@ app.use(operationLogger);
 
 **操作類型枚舉**（用於篩選下拉選單）：
 
-| operation_type     | 說明            | 對應模組  |
-| ------------------ | --------------- | --------- |
-| `CREATE_ADMIN`     | 新增管理員帳號  | admin     |
-| `TOGGLE_ADMIN`     | 啟用/禁用管理員 | admin     |
-| `RESET_PASSWORD`   | 重設管理員密碼  | admin     |
-| `DELETE_MESSAGE`   | 刪除聊天訊息    | chat      |
-| `BLOCK_PLAYER`     | 封鎖玩家        | blacklist |
-| `UNBLOCK_PLAYER`   | 解封玩家        | blacklist |
-| `BLOCK_IP`         | 封鎖 IP         | ip_block  |
-| `UNBLOCK_IP`       | 解封 IP         | ip_block  |
-| `CREATE_BROADCAST` | 發送廣播訊息    | broadcast |
-| `APPROVE_REPORT`   | 核准玩家檢舉    | report    |
-| `REJECT_REPORT`    | 駁回玩家檢舉    | report    |
-| `APPROVE_NICKNAME` | 核准暱稱變更    | nickname  |
-| `REJECT_NICKNAME`  | 駁回暱稱變更    | nickname  |
-| `CHANGE_PASSWORD`  | 修改自己密碼    | auth      |
-| `LOGIN`            | 管理員登入      | auth      |
-| `LOGOUT`           | 管理員登出      | auth      |
-| `UPDATE_ADMIN_ROLE` | 更新管理員角色 | admin     |
-| `RESET_NICKNAME`   | 重設玩家暱稱    | player    |
-| `DELETE_BROADCAST` | 下架廣播訊息    | broadcast |
+| operation_type      | 說明            | 對應模組  |
+| ------------------- | --------------- | --------- |
+| `CREATE_ADMIN`      | 新增管理員帳號  | admin     |
+| `TOGGLE_ADMIN`      | 啟用/禁用管理員 | admin     |
+| `RESET_PASSWORD`    | 重設管理員密碼  | admin     |
+| `DELETE_MESSAGE`    | 刪除聊天訊息    | chat      |
+| `BLOCK_PLAYER`      | 封鎖玩家        | blacklist |
+| `UNBLOCK_PLAYER`    | 解封玩家        | blacklist |
+| `BLOCK_IP`          | 封鎖 IP         | ip_block  |
+| `UNBLOCK_IP`        | 解封 IP         | ip_block  |
+| `CREATE_BROADCAST`  | 發送廣播訊息    | broadcast |
+| `APPROVE_REPORT`    | 核准玩家檢舉    | report    |
+| `REJECT_REPORT`     | 駁回玩家檢舉    | report    |
+| `APPROVE_NICKNAME`  | 核准暱稱變更    | nickname  |
+| `REJECT_NICKNAME`   | 駁回暱稱變更    | nickname  |
+| `CHANGE_PASSWORD`   | 修改自己密碼    | auth      |
+| `LOGIN`             | 管理員登入      | auth      |
+| `LOGOUT`            | 管理員登出      | auth      |
+| `UPDATE_ADMIN_ROLE` | 更新管理員角色  | admin     |
+| `RESET_NICKNAME`    | 重設玩家暱稱    | player    |
+| `DELETE_BROADCAST`  | 下架廣播訊息    | broadcast |
 
 > 此枚舉定義在 `shared/types/operationLog.ts`，前後端共用。目前僅 `CREATE_ADMIN` 與 `CHANGE_PASSWORD` 有實際寫入，其餘在各模組開發時逐步啟用。
 >

@@ -157,6 +157,7 @@ app.use('/api/admins', createAdminRoutes(db));
 ```
 
 設計理由：
+
 - **明確 DI**：DB instance 從外部注入，而非依賴全域變數，依賴關係一眼可見
 - **共用連線**：所有 module 共用同一個 Knex instance，確保連線池不重複建立
 - **易測試**：測試時可注入 in-memory SQLite，production DB 不受影響

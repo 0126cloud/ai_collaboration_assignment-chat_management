@@ -225,6 +225,7 @@ export enum ErrorCode {
 ```
 
 > **為何使用字串 enum 而非數字？**
+>
 > - **Log 可讀性**：錯誤出現時直接顯示 `AUTH_TOKEN_EXPIRED`，不需對照數字表
 > - **無碰撞風險**：多人開發時若各自新增 error code，數字容易衝突；字串不會
 > - **未來 i18n 擴展**：字串值可直接作為國際化訊息的 key，無需額外 mapping
@@ -680,7 +681,7 @@ router.put(
 | GET    | `/api/reports`                            | `report:read`              | Phase 5   |
 | POST   | `/api/reports/:id/approve`                | `report:review`            | Phase 5   |
 | POST   | `/api/reports/:id/reject`                 | `report:review`            | Phase 5   |
-| GET    | `/api/players/nickname/reviews`                   | `nickname:read`            | Phase 5   |
+| GET    | `/api/players/nickname/reviews`           | `nickname:read`            | Phase 5   |
 | POST   | `/api/players/:username/nickname/approve` | `nickname:review`          | Phase 5   |
 | POST   | `/api/players/:username/nickname/reject`  | `nickname:review`          | Phase 5   |
 | GET    | `/api/admins`                             | `admin:read`               | Phase 1D  |

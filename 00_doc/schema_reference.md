@@ -123,15 +123,15 @@
 
 **RFC**: [rfc_03](rfc_03-chatroom-and-chat.md) | **Migration**: `20260317000005_create_chat_messages.ts`
 
-| 欄位            | 型別        | 約束             | 說明                            |
-| --------------- | ----------- | ---------------- | ------------------------------- |
-| id              | INTEGER     | PRIMARY KEY AUTO |                                 |
-| chatroom_id     | VARCHAR(50) | NOT NULL         | 所屬聊天室                      |
-| player_username | VARCHAR(50) | NOT NULL         | 發訊玩家帳號                    |
-| ~~player_nickname~~ | ~~VARCHAR(50)~~ | ~~已移除~~ | ~~改為 JOIN players.nickname~~ |
-| message         | TEXT        | NOT NULL         | 訊息內容                        |
-| created_at      | DATETIME    | DEFAULT now()    | 發訊時間                        |
-| deleted_at      | DATETIME    | nullable         | 軟刪除標記（管理員刪除時間）    |
+| 欄位                | 型別            | 約束             | 說明                           |
+| ------------------- | --------------- | ---------------- | ------------------------------ |
+| id                  | INTEGER         | PRIMARY KEY AUTO |                                |
+| chatroom_id         | VARCHAR(50)     | NOT NULL         | 所屬聊天室                     |
+| player_username     | VARCHAR(50)     | NOT NULL         | 發訊玩家帳號                   |
+| ~~player_nickname~~ | ~~VARCHAR(50)~~ | ~~已移除~~       | ~~改為 JOIN players.nickname~~ |
+| message             | TEXT            | NOT NULL         | 訊息內容                       |
+| created_at          | DATETIME        | DEFAULT now()    | 發訊時間                       |
+| deleted_at          | DATETIME        | nullable         | 軟刪除標記（管理員刪除時間）   |
 
 **索引**: `chatroom_id`、`player_username`、`created_at`
 
@@ -142,16 +142,16 @@
 **RFC**: [rfc_04](rfc_04-blacklist-and-ip-blocking.md)
 **Migration**: `20260317000006_create_blacklist.ts` + `20260317000007_blacklist_is_blocked.ts`（`deleted_at` → `is_blocked`）+ `20260318000012_blacklist_global_chatroom_all.ts`（`chatroom_id='*'` → `'all'`）
 
-| 欄位        | 型別         | 約束                   | 說明                                       |
-| ----------- | ------------ | ---------------------- | ------------------------------------------ |
-| id          | INTEGER      | PRIMARY KEY AUTO       |                                            |
-| block_type  | VARCHAR(10)  | NOT NULL               | `'player'` \| `'ip'`                       |
-| target      | VARCHAR(100) | NOT NULL               | 玩家帳號或 IP（支援萬用字元如 `116.62.*`） |
-| reason      | VARCHAR(20)  | NOT NULL               | `'spam'` \| `'abuse'` \| `'advertisement'` |
-| operator    | VARCHAR(50)  | NOT NULL               | 操作者帳號（快照）                         |
-| chatroom_id | VARCHAR(50)  | NOT NULL DEFAULT `'all'` | 特定聊天室 ID 或 `'all'`（全域封鎖）      |
-| created_at  | DATETIME     | DEFAULT now()          |                                            |
-| is_blocked  | BOOLEAN      | NOT NULL DEFAULT true  | 封鎖狀態（true=封鎖中，false=已解封）      |
+| 欄位        | 型別         | 約束                     | 說明                                       |
+| ----------- | ------------ | ------------------------ | ------------------------------------------ |
+| id          | INTEGER      | PRIMARY KEY AUTO         |                                            |
+| block_type  | VARCHAR(10)  | NOT NULL                 | `'player'` \| `'ip'`                       |
+| target      | VARCHAR(100) | NOT NULL                 | 玩家帳號或 IP（支援萬用字元如 `116.62.*`） |
+| reason      | VARCHAR(20)  | NOT NULL                 | `'spam'` \| `'abuse'` \| `'advertisement'` |
+| operator    | VARCHAR(50)  | NOT NULL                 | 操作者帳號（快照）                         |
+| chatroom_id | VARCHAR(50)  | NOT NULL DEFAULT `'all'` | 特定聊天室 ID 或 `'all'`（全域封鎖）       |
+| created_at  | DATETIME     | DEFAULT now()            |                                            |
+| is_blocked  | BOOLEAN      | NOT NULL DEFAULT true    | 封鎖狀態（true=封鎖中，false=已解封）      |
 
 **索引**: `(block_type, target)`、`created_at`
 **唯一約束**: `(block_type, target, chatroom_id)`

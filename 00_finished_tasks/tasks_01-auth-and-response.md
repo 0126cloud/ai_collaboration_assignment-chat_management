@@ -820,7 +820,7 @@ Task 1.17（prd_00 / rfc_01 / authentication.feature 文件更新）
 | Task 1.12t | ✅   | 2026-03-17 | 11 tests passed（login cookie 2 + me 6 + logout 3）                  |
 | Task 1.13  | ✅   | 2026-03-17 | 移除 localStorage, withCredentials, NotFoundPage, Login 跳轉         |
 | Task 1.13t | ✅   | 2026-03-17 | 19 tests passed（context 6 + route 4 + login 5 + 404 2 + sidebar 2） |
-| Task 1.14  | ✅   | 2026-03-18 | shared schemas/types + operationLog 擴充（UPDATE_ADMIN_ROLE 補充）    |
+| Task 1.14  | ✅   | 2026-03-18 | shared schemas/types + operationLog 擴充（UPDATE_ADMIN_ROLE 補充）   |
 | Task 1.14t | ✅   | 2026-03-18 | TypeScript 編譯驗證                                                  |
 | Task 1.15t | ✅   | 2026-03-18 | server integration tests（20 cases：list 6 + toggle 7 + role 7）     |
 | Task 1.15  | ✅   | 2026-03-18 | errorCodes + admin service/controller/route                          |

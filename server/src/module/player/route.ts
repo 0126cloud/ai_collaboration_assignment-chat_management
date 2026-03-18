@@ -19,7 +19,12 @@ export function createPlayerRoutes(db: Knex): Router {
   );
 
   // GET /nickname/reviews — 暱稱審核列表
-  router.get('/nickname/reviews', auth, requirePermission('nickname:read'), ctrl.listNicknameReviews);
+  router.get(
+    '/nickname/reviews',
+    auth,
+    requirePermission('nickname:read'),
+    ctrl.listNicknameReviews,
+  );
 
   // POST /:username/nickname/approve — 核准暱稱
   router.post(

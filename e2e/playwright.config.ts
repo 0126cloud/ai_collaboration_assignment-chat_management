@@ -6,10 +6,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 60000,
-  reporter: [
-    ['html'],
-    ['json', { outputFile: 'test-results/results.json' }],
-  ],
+  reporter: [['html'], ['json', { outputFile: 'test-results/results.json' }]],
   use: {
     baseURL: 'http://localhost:5173',
     video: 'retain-on-failure',

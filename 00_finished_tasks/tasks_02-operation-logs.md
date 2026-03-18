@@ -352,19 +352,19 @@ Task 2.7 → 2.7t（LOGIN / LOGOUT 操作紀錄 + 測試）
 
 ## Progress
 
-| Task      | 狀態 | 完成日期   | 備註                                     |
-| --------- | ---- | ---------- | ---------------------------------------- |
+| Task      | 狀態 | 完成日期   | 備註                                    |
+| --------- | ---- | ---------- | --------------------------------------- |
 | Task 2.1  | ✅   | 2026-03-17 | Migration 新 schema + 20 筆 seed data   |
-| Task 2.2  | ✅   | 2026-03-17 | operationLogger afterware middleware     |
-| Task 2.3  | ✅   | 2026-03-17 | admin/auth controller 改用 res.locals    |
-| Task 2.3t | ✅   | 2026-03-17 | unit + integration tests                 |
-| Task 2.4  | ✅   | 2026-03-17 | GET /api/operation-logs + shared types   |
-| Task 2.4t | ✅   | 2026-03-17 | 13 個 integration tests                  |
-| Task 2.5  | ✅   | 2026-03-17 | OperationLogPage + 路由 + API 封裝       |
-| Task 2.5t | ✅   | 2026-03-17 | 6 個 component tests                     |
-| Task 2.6  | ✅   | 2026-03-17 | CLAUDE.md + tasks 狀態更新               |
-| Task 2.7  | ✅   | 2026-03-17 | LOGIN/LOGOUT + operationLogger 覆寫支援  |
-| Task 2.7t | ✅   | 2026-03-17 | 6 個 integration tests                   |
+| Task 2.2  | ✅   | 2026-03-17 | operationLogger afterware middleware    |
+| Task 2.3  | ✅   | 2026-03-17 | admin/auth controller 改用 res.locals   |
+| Task 2.3t | ✅   | 2026-03-17 | unit + integration tests                |
+| Task 2.4  | ✅   | 2026-03-17 | GET /api/operation-logs + shared types  |
+| Task 2.4t | ✅   | 2026-03-17 | 13 個 integration tests                 |
+| Task 2.5  | ✅   | 2026-03-17 | OperationLogPage + 路由 + API 封裝      |
+| Task 2.5t | ✅   | 2026-03-17 | 6 個 component tests                    |
+| Task 2.6  | ✅   | 2026-03-17 | CLAUDE.md + tasks 狀態更新              |
+| Task 2.7  | ✅   | 2026-03-17 | LOGIN/LOGOUT + operationLogger 覆寫支援 |
+| Task 2.7t | ✅   | 2026-03-17 | 6 個 integration tests                  |
 
 ## 完成檢查清單
 

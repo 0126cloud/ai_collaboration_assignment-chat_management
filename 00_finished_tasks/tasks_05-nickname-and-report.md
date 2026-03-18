@@ -444,27 +444,28 @@ Task 5.6 (前端 NicknameReviewPage)  ←→  Task 5.7 (前端 ReportReviewPage)
 **背景**：Phase 5 使用 `nickname_approved`（boolean）標記待審核狀態，設計與 `reports.status`（'pending' | 'approved' | 'rejected'）不一致。本 Phase 統一為 status 欄位設計，並在 NicknameReviewPage 加入 status 篩選器與欄位。
 
 **關鍵設計決策**：
+
 - `nickname_apply_at` 在 approve/reject 後**保留**（不設 null），對齊 `reports.created_at` 永不清除的慣例，歷史列表可按申請時間排序
 - 所有狀態的列表皆以 `ORDER BY nickname_apply_at ASC` 排序
 
 **受影響檔案**：
 
-| 動作   | 路徑                                                                           |
-| ------ | ------------------------------------------------------------------------------ |
-| Create | `server/db/migrations/20260318000010_nickname_review_status.ts`                |
-| Modify | `server/db/seeds/04_players.ts`                                                |
-| Modify | `shared/types/nicknameReview.ts`                                               |
-| Modify | `shared/schemas/nicknameReview.ts`                                             |
-| Modify | `server/src/module/nicknameReview/service.ts`                                  |
-| Modify | `server/src/module/nicknameReview/controller.ts`                               |
-| Modify | `server/src/__tests__/helpers/testDb.ts`                                       |
-| Modify | `server/src/__tests__/integration/nicknameReview.test.ts`                      |
-| Modify | `server/src/__tests__/integration/report.test.ts`（移除 nickname_approved）    |
-| Modify | `client/src/pages/NicknameReviewPage.tsx`                                      |
-| Modify | `client/src/__tests__/pages/NicknameReviewPage.test.tsx`                       |
-| Modify | `00_doc/rfc_03-chatroom-and-chat.md`                                           |
-| Modify | `00_doc/rfc_05-nickname-and-report.md`                                         |
-| Modify | `00_doc/prd_00-chat_management_backstage.md`                                   |
+| 動作   | 路徑                                                                        |
+| ------ | --------------------------------------------------------------------------- |
+| Create | `server/db/migrations/20260318000010_nickname_review_status.ts`             |
+| Modify | `server/db/seeds/04_players.ts`                                             |
+| Modify | `shared/types/nicknameReview.ts`                                            |
+| Modify | `shared/schemas/nicknameReview.ts`                                          |
+| Modify | `server/src/module/nicknameReview/service.ts`                               |
+| Modify | `server/src/module/nicknameReview/controller.ts`                            |
+| Modify | `server/src/__tests__/helpers/testDb.ts`                                    |
+| Modify | `server/src/__tests__/integration/nicknameReview.test.ts`                   |
+| Modify | `server/src/__tests__/integration/report.test.ts`（移除 nickname_approved） |
+| Modify | `client/src/pages/NicknameReviewPage.tsx`                                   |
+| Modify | `client/src/__tests__/pages/NicknameReviewPage.test.tsx`                    |
+| Modify | `00_doc/rfc_03-chatroom-and-chat.md`                                        |
+| Modify | `00_doc/rfc_05-nickname-and-report.md`                                      |
+| Modify | `00_doc/prd_00-chat_management_backstage.md`                                |
 
 ---
 
@@ -473,7 +474,6 @@ Task 5.6 (前端 NicknameReviewPage)  ←→  Task 5.7 (前端 ReportReviewPage)
 ### 建立 / 修改檔案
 
 1. `server/db/migrations/20260318000010_nickname_review_status.ts`
-
    - `up()`：
      1. `alterTable('players')` 新增 `nickname_review_status VARCHAR(20) nullable`、`nickname_reviewed_by VARCHAR(50) nullable`、`nickname_reviewed_at DATETIME nullable`
      2. 資料遷移：`knex('players').whereRaw('nickname_approved = ? AND nickname_apply_at IS NOT NULL', [false]).update({ nickname_review_status: 'pending' })`
@@ -542,7 +542,6 @@ Task 5.6 (前端 NicknameReviewPage)  ←→  Task 5.7 (前端 ReportReviewPage)
 ### 建立 / 修改檔案
 
 1. `server/src/module/nicknameReview/service.ts`
-
    - `list()`：`status = query.status ?? 'pending'`，改為 `.where('nickname_review_status', status)`；`select()` 新增三個新欄位；排序維持 `ORDER BY nickname_apply_at ASC`
    - `approve(username, operator)`：
      - 加入 `operator: string` 第二參數

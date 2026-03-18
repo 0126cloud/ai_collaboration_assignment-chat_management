@@ -35,9 +35,9 @@ Phase 4（[rfc_04](rfc_04-blacklist-and-ip-blocking.md)）已完成黑名單與 
 
 **修改現有表：**
 
-| 表名      | 變更          | 說明                                              |
-| --------- | ------------- | ------------------------------------------------- |
-| `players` | 新增 4 個欄位 | `nickname_apply_at DATETIME nullable`（申請時間，審核後**保留**）、`nickname_review_status VARCHAR(20) nullable`（審核狀態）、`nickname_reviewed_by VARCHAR(50) nullable`（審核者）、`nickname_reviewed_at DATETIME nullable`（審核時間）|
+| 表名      | 變更          | 說明                                                                                                                                                                                                                                      |
+| --------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `players` | 新增 4 個欄位 | `nickname_apply_at DATETIME nullable`（申請時間，審核後**保留**）、`nickname_review_status VARCHAR(20) nullable`（審核狀態）、`nickname_reviewed_by VARCHAR(50) nullable`（審核者）、`nickname_reviewed_at DATETIME nullable`（審核時間） |
 
 **新增資料表：**
 
@@ -56,7 +56,7 @@ Phase 4（[rfc_04](rfc_04-blacklist-and-ip-blocking.md)）已完成黑名單與 
 
 | API                                            | 權限              | 說明              |
 | ---------------------------------------------- | ----------------- | ----------------- |
-| `GET /api/players/nickname/reviews`                    | `nickname:read`   | 待審核暱稱列表    |
+| `GET /api/players/nickname/reviews`            | `nickname:read`   | 待審核暱稱列表    |
 | `POST /api/players/:username/nickname/approve` | `nickname:review` | 核准暱稱          |
 | `POST /api/players/:username/nickname/reject`  | `nickname:review` | 駁回暱稱（重設）  |
 | `GET /api/reports`                             | `report:read`     | 檢舉列表          |
@@ -190,15 +190,15 @@ export async function down(knex: Knex): Promise<void> {
 - **需權限**：`nickname:read`
 - **Query Parameters**：
 
-| 參數           | 型別   | 必填 | 說明                                          | 預設值    |
-| -------------- | ------ | ---- | --------------------------------------------- | --------- |
-| status         | string | 否   | `'pending'` \| `'approved'` \| `'rejected'`   | `pending` |
-| username       | string | 否   | 玩家帳號（模糊搜尋）                          | —         |
-| nickname       | string | 否   | 申請暱稱（模糊搜尋）                          | —         |
-| applyStartDate | string | 否   | 申請時間起（UTC ISO 8601）                    | —         |
-| applyEndDate   | string | 否   | 申請時間迄（UTC ISO 8601）                    | —         |
-| page           | number | 否   | 頁碼                                          | 1         |
-| pageSize       | number | 否   | 每頁筆數                                      | 20        |
+| 參數           | 型別   | 必填 | 說明                                        | 預設值    |
+| -------------- | ------ | ---- | ------------------------------------------- | --------- |
+| status         | string | 否   | `'pending'` \| `'approved'` \| `'rejected'` | `pending` |
+| username       | string | 否   | 玩家帳號（模糊搜尋）                        | —         |
+| nickname       | string | 否   | 申請暱稱（模糊搜尋）                        | —         |
+| applyStartDate | string | 否   | 申請時間起（UTC ISO 8601）                  | —         |
+| applyEndDate   | string | 否   | 申請時間迄（UTC ISO 8601）                  | —         |
+| page           | number | 否   | 頁碼                                        | 1         |
+| pageSize       | number | 否   | 每頁筆數                                    | 20        |
 
 - **篩選邏輯**：
   - `WHERE nickname_review_status = status`（預設 `'pending'`），以及 `deleted_at IS NULL`
@@ -416,8 +416,18 @@ REPORT_ALREADY_REVIEWED = 'REPORT_ALREADY_REVIEWED',
 
 ```ts
 router.get('/nickname/reviews', auth, requirePermission('nickname:read'), ctrl.listNicknameReviews);
-router.post('/:username/nickname/approve', auth, requirePermission('nickname:review'), ctrl.approveNickname);
-router.post('/:username/nickname/reject', auth, requirePermission('nickname:review'), ctrl.rejectNickname);
+router.post(
+  '/:username/nickname/approve',
+  auth,
+  requirePermission('nickname:review'),
+  ctrl.approveNickname,
+);
+router.post(
+  '/:username/nickname/reject',
+  auth,
+  requirePermission('nickname:review'),
+  ctrl.rejectNickname,
+);
 ```
 
 **service.ts** 關鍵方法：

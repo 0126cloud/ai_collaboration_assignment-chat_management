@@ -19,6 +19,7 @@
 **目標**：讓接手人員能一眼看到系統所有環境變數需求。
 
 **變動檔案**：
+
 - 新增 `server/.env.example`
 - 修改 `server/.env`（補上 `CORS_ORIGIN`）
 
@@ -43,6 +44,7 @@ grep -r 'process\.env\.' server/src --include='*.ts' | grep -oP '(?<=process\.en
 **目標**：HTTP JSON response 的 `Content-Type` header 帶有 `charset` 設定。
 
 **變動檔案**：
+
 - `server/src/app.ts`
 
 **說明**：
@@ -75,10 +77,12 @@ curl -I http://localhost:3000/api/health
 ## Task 10.3：實作 MAX_CHATTING_RECORD_NUM — pageSize 驗證與查詢上限
 
 **目標**：
+
 1. `pageSize` 超過 `MAX_CHATTING_RECORD_NUM` 時，API 回傳 `400`
 2. Service 層加入防禦性上限，避免大量資料洩漏
 
 **變動檔案**：
+
 - `server/src/module/chatMessage/controller.ts`
 - `server/src/module/chatMessage/service.ts`
 
@@ -125,6 +129,7 @@ curl "http://localhost:3000/api/chat_messages?page=1&pageSize=50" \
 **目標**：文件路由更新，改動檔案符合 Prettier 格式。
 
 **變動檔案**：
+
 - `CLAUDE.md`（Document Routing 新增 rfc_10 指向）
 - prettier format：`server/src/app.ts`、`server/src/module/chatMessage/controller.ts`、`server/src/module/chatMessage/service.ts`
 
