@@ -35,4 +35,82 @@ export class AdminService {
 
     return newAdmin;
   }
+
+  async list(query: { page: number; pageSize: number; username?: string; role?: string }) {
+    const { page, pageSize, username, role } = query;
+
+    let baseQuery = this.db('admins').select('id', 'username', 'role', 'is_active', 'created_at');
+
+    if (username) {
+      baseQuery = baseQuery.where('username', 'like', `%${username}%`);
+    }
+    if (role) {
+      baseQuery = baseQuery.where({ role });
+    }
+
+    const total = await this.db('admins')
+      .modify((q) => {
+        if (username) q.where('username', 'like', `%${username}%`);
+        if (role) q.where({ role });
+      })
+      .count('id as count')
+      .first()
+      .then((r) => Number(r?.count ?? 0));
+
+    const data = await baseQuery
+      .orderBy('id', 'asc')
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    return {
+      data,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    };
+  }
+
+  async toggle(id: number, operatorId: number) {
+    if (id === operatorId) {
+      throw new AppError(ErrorCode.ADMIN_CANNOT_SELF_MODIFY);
+    }
+
+    const admin = await this.db('admins').where({ id }).first();
+    if (!admin) {
+      throw new AppError(ErrorCode.ADMIN_NOT_FOUND);
+    }
+
+    const newIsActive = !admin.is_active;
+    await this.db('admins').where({ id }).update({ is_active: newIsActive });
+
+    const updated = await this.db('admins')
+      .select('id', 'username', 'role', 'is_active', 'created_at')
+      .where({ id })
+      .first();
+
+    return updated;
+  }
+
+  async updateRole(id: number, role: string, operatorId: number) {
+    if (id === operatorId) {
+      throw new AppError(ErrorCode.ADMIN_CANNOT_SELF_MODIFY);
+    }
+
+    const admin = await this.db('admins').where({ id }).first();
+    if (!admin) {
+      throw new AppError(ErrorCode.ADMIN_NOT_FOUND);
+    }
+
+    await this.db('admins').where({ id }).update({ role });
+
+    const updated = await this.db('admins')
+      .select('id', 'username', 'role', 'is_active', 'created_at')
+      .where({ id })
+      .first();
+
+    return updated;
+  }
 }
