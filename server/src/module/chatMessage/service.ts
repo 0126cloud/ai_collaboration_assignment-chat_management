@@ -18,25 +18,27 @@ export class ChatMessageService {
   constructor(private db: Knex) {}
 
   async list(query: IChatMessageQuery) {
-    let qb = this.db('chat_messages').whereNull('deleted_at');
+    let qb = this.db('chat_messages')
+      .join('players', 'chat_messages.player_username', 'players.username')
+      .whereNull('chat_messages.deleted_at');
 
     if (query.chatroomId) {
-      qb = qb.where('chatroom_id', query.chatroomId);
+      qb = qb.where('chat_messages.chatroom_id', query.chatroomId);
     }
     if (query.playerUsername) {
-      qb = qb.where('player_username', query.playerUsername);
+      qb = qb.where('chat_messages.player_username', query.playerUsername);
     }
     if (query.playerNickname) {
-      qb = qb.where('player_nickname', 'like', `%${query.playerNickname}%`);
+      qb = qb.where('players.nickname', 'like', `%${query.playerNickname}%`);
     }
     if (query.message) {
-      qb = qb.where('message', 'like', `%${query.message}%`);
+      qb = qb.where('chat_messages.message', 'like', `%${query.message}%`);
     }
     if (query.startDate) {
-      qb = qb.where('created_at', '>=', query.startDate);
+      qb = qb.where('chat_messages.created_at', '>=', query.startDate);
     }
     if (query.endDate) {
-      qb = qb.where('created_at', '<=', query.endDate);
+      qb = qb.where('chat_messages.created_at', '<=', query.endDate);
     }
 
     // 計算 total
@@ -46,8 +48,15 @@ export class ChatMessageService {
     const maxRecords = Number(process.env.MAX_CHATTING_RECORD_NUM ?? 200);
     const effectivePageSize = Math.min(query.pageSize, maxRecords);
     const data = await qb
-      .select('id', 'chatroom_id', 'player_username', 'player_nickname', 'message', 'created_at')
-      .orderBy('created_at', 'desc')
+      .select(
+        'chat_messages.id',
+        'chat_messages.chatroom_id',
+        'chat_messages.player_username',
+        'players.nickname as player_nickname',
+        'chat_messages.message',
+        'chat_messages.created_at',
+      )
+      .orderBy('chat_messages.created_at', 'desc')
       .limit(effectivePageSize)
       .offset((query.page - 1) * effectivePageSize);
 

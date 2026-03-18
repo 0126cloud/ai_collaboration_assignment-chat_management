@@ -211,14 +211,14 @@ chat-management/
 | id              | INTEGER PRIMARY KEY AUTOINCREMENT  |                                     |
 | chatroom_id     | VARCHAR(50) NOT NULL               | 所屬聊天室                          |
 | player_username | VARCHAR(50) NOT NULL               | 發訊玩家帳號                        |
-| player_nickname | VARCHAR(50) NOT NULL               | 發訊時的暱稱（冗餘快照欄位，見下方說明） |
+| ~~player_nickname~~ | ~~VARCHAR(50) NOT NULL~~       | ~~已移除：改為 JOIN players 取得即時暱稱~~ |
 | message         | TEXT NOT NULL                      | 訊息內容                            |
 | created_at      | DATETIME DEFAULT CURRENT_TIMESTAMP | 發訊時間                            |
 | deleted_at      | DATETIME nullable                  | 軟刪除標記（管理員刪除時間）        |
 
 **索引**：`chatroom_id`、`player_username`、`created_at`
 
-> **`player_nickname` 設計說明**：此欄位為快照（snapshot），在訊息寫入時記錄玩家當下的暱稱，日後即使玩家更改暱稱，歷史訊息仍顯示發訊時的暱稱，確保稽核時的歷史準確性。這同時帶來效能優勢（查詢免 JOIN players 表）。
+> **`player_nickname` 設計變更**：原為快照（snapshot）欄位，已於 Bugfix 中移除。改為查詢時 JOIN `players` 表取得 `players.nickname`，確保重設暱稱後訊息列表即時反映最新暱稱。migration: `20260318000013_remove_player_nickname_from_chat_messages`。
 
 ### 5.5 API — GET `/api/chatrooms`
 

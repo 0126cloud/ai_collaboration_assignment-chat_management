@@ -21,28 +21,27 @@ beforeAll(async () => {
   seniorToken = generateToken({ id: 1, username: 'admin01', role: 'senior_manager' });
   generalToken = generateToken({ id: 2, username: 'admin02', role: 'general_manager' });
 
-  // 插入測試用聊天室與訊息
+  // 插入測試用聊天室與玩家
   await db('chatrooms').insert([
     { id: 'del_room', name: 'Delete Test Room', online_user_count: 0 },
   ]);
+
+  await db('players').insert([{ username: 'player001', nickname: 'TestPlayer' }]);
 
   await db('chat_messages').insert([
     {
       chatroom_id: 'del_room',
       player_username: 'player001',
-      player_nickname: 'TestPlayer',
       message: '待刪除訊息 1',
     },
     {
       chatroom_id: 'del_room',
       player_username: 'player001',
-      player_nickname: 'TestPlayer',
       message: '待刪除訊息 2',
     },
     {
       chatroom_id: 'del_room',
       player_username: 'player001',
-      player_nickname: 'TestPlayer',
       message: '已刪除訊息',
       deleted_at: '2026-01-01 00:00:00',
     },
@@ -116,7 +115,6 @@ describe('DELETE /api/chat_messages/:id', () => {
     await db('chat_messages').insert({
       chatroom_id: 'del_room',
       player_username: 'player001',
-      player_nickname: 'TestPlayer',
       message: 'GM 刪除測試',
     });
     const msg = await db('chat_messages').where('message', 'GM 刪除測試').first();

@@ -128,7 +128,7 @@
 | id              | INTEGER     | PRIMARY KEY AUTO |                                 |
 | chatroom_id     | VARCHAR(50) | NOT NULL         | 所屬聊天室                      |
 | player_username | VARCHAR(50) | NOT NULL         | 發訊玩家帳號                    |
-| player_nickname | VARCHAR(50) | NOT NULL         | 發訊時的暱稱（快照，避免 JOIN） |
+| ~~player_nickname~~ | ~~VARCHAR(50)~~ | ~~已移除~~ | ~~改為 JOIN players.nickname~~ |
 | message         | TEXT        | NOT NULL         | 訊息內容                        |
 | created_at      | DATETIME    | DEFAULT now()    | 發訊時間                        |
 | deleted_at      | DATETIME    | nullable         | 軟刪除標記（管理員刪除時間）    |
@@ -219,6 +219,6 @@
 | ----------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | **軟刪除**        | 大多數表使用 `deleted_at DATETIME nullable`，例外：`blacklist` 使用 `is_blocked`，`reports` 無刪除機制                 |
 | **時間儲存**      | 全部 UTC+0 儲存，前端以 dayjs 轉換為 UTC+8 顯示                                                                        |
-| **快照欄位**      | `operator VARCHAR(50)`、`player_nickname VARCHAR(50)` 等為寫入時快照，事後不同步更新                                   |
+| **快照欄位**      | `operator VARCHAR(50)` 為寫入時快照，事後不同步更新。`player_nickname` 已移除，改為 JOIN players 取得即時暱稱          |
 | **Magic values**  | `chatroom_id = 'all'` 統一代表「全部聊天室」（blacklist 與 broadcasts 皆用此值），以字串代替 NULL 避免 UNIQUE 約束問題 |
 | **FK 無 DB 約束** | SQLite 預設不強制 FK，應用層自行維護一致性                                                                             |

@@ -33,41 +33,43 @@ beforeAll(async () => {
     { id: 'room_b', name: 'Room B', online_user_count: 20 },
   ]);
 
+  // 插入測試用玩家
+  await db('players').insert([
+    { username: 'player001', nickname: 'LuckyBoy' },
+    { username: 'player002', nickname: 'BigWinner' },
+    { username: 'player003', nickname: 'StarPlayer' },
+  ]);
+
   // 插入測試用訊息
   const now = new Date();
   await db('chat_messages').insert([
     {
       chatroom_id: 'room_a',
       player_username: 'player001',
-      player_nickname: 'LuckyBoy',
       message: '大家好',
       created_at: hoursAgo(now, 1),
     },
     {
       chatroom_id: 'room_a',
       player_username: 'player002',
-      player_nickname: 'BigWinner',
       message: '恭喜贏了',
       created_at: hoursAgo(now, 2),
     },
     {
       chatroom_id: 'room_b',
       player_username: 'player001',
-      player_nickname: 'LuckyBoy',
       message: '換個房間',
       created_at: hoursAgo(now, 3),
     },
     {
       chatroom_id: 'room_a',
       player_username: 'player003',
-      player_nickname: 'StarPlayer',
       message: '好刺激',
       created_at: hoursAgo(now, 48),
     },
     {
       chatroom_id: 'room_a',
       player_username: 'player001',
-      player_nickname: 'LuckyBoy',
       message: '已刪除訊息',
       created_at: hoursAgo(now, 5),
       deleted_at: hoursAgo(now, 4),

@@ -79,7 +79,6 @@ export async function setupTestSchema(database: Knex): Promise<void> {
     table.increments('id').primary();
     table.string('chatroom_id', 50).notNullable();
     table.string('player_username', 50).notNullable();
-    table.string('player_nickname', 50).notNullable();
     table.text('message').notNullable();
     table.timestamp('created_at').notNullable().defaultTo(database.fn.now());
     table.timestamp('deleted_at').nullable();

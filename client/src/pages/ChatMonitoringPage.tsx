@@ -154,6 +154,7 @@ const ChatMonitoringPage = () => {
         try {
           await playerApi.resetNickname(record.player_username);
           message.success('暱稱已重設');
+          fetchData(pagination.page, pagination.pageSize);
         } catch {
           message.error('重設暱稱失敗');
         }
