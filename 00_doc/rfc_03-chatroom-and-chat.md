@@ -174,6 +174,7 @@ chat-management/
 | ----------------- | ---------------------------------- | -------------------- |
 | username               | VARCHAR(50) PRIMARY KEY            | 玩家帳號（唯一識別）                                          |
 | nickname               | VARCHAR(50) NOT NULL               | 目前暱稱                                                      |
+| nickname_apply_at      | DATETIME nullable                  | 最後一次申請改暱稱的時間（RFC 05 新增，migration `20260317000008`） |
 | nickname_review_status | VARCHAR(20) nullable               | 'pending' \| 'approved' \| 'rejected' \| null                 |
 | nickname_reviewed_by   | VARCHAR(50) nullable               | 審核管理員帳號                                                |
 | nickname_reviewed_at   | DATETIME nullable                  | 審核時間                                                      |
@@ -182,6 +183,8 @@ chat-management/
 | deleted_at             | DATETIME nullable                  | 軟刪除標記                                                    |
 
 > 此表為多模組共用基礎表，後續黑名單、暱稱審核模組皆依賴 `players.username`。
+>
+> **`nickname_apply_at` 語意說明**：記錄玩家最後一次申請改暱稱的時間，審核後（approved/rejected）不清除，作為歷史記錄保留。判斷是否有待審請求應以 `nickname_review_status = 'pending'` 為準，而非 `nickname_apply_at IS NOT NULL`。
 
 ### 5.3 DB Schema — chatroom_players 表
 

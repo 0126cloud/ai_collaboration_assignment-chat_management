@@ -322,6 +322,9 @@ app.use(operationLogger);
 | `CHANGE_PASSWORD`  | 修改自己密碼    | auth      |
 | `LOGIN`            | 管理員登入      | auth      |
 | `LOGOUT`           | 管理員登出      | auth      |
+| `UPDATE_ADMIN_ROLE` | 更新管理員角色 | admin     |
+| `RESET_NICKNAME`   | 重設玩家暱稱    | player    |
+| `DELETE_BROADCAST` | 下架廣播訊息    | broadcast |
 
 > 此枚舉定義在 `shared/types/operationLog.ts`，前後端共用。目前僅 `CREATE_ADMIN` 與 `CHANGE_PASSWORD` 有實際寫入，其餘在各模組開發時逐步啟用。
 >
