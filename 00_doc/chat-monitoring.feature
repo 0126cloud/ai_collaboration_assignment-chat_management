@@ -15,7 +15,7 @@ Feature: 聊天監控
 
   # ─── 查看訊息列表 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 查看聊天訊息列表（預設分頁）
     Given 管理員 "admin01" 已登入
     When 管理員請求聊天訊息列表
@@ -26,7 +26,7 @@ Feature: 聊天監控
     And 預設 pageSize 為 30
     And 紀錄依 created_at 降冪排列（最新的在前）
 
-  @happy_path
+  @integration @happy_path
   Scenario: 查看聊天訊息列表（自訂分頁）
     Given 管理員 "admin01" 已登入
     When 管理員請求聊天訊息列表，頁碼 2，每頁 10 筆
@@ -37,42 +37,42 @@ Feature: 聊天監控
 
   # ─── 篩選 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 依聊天室篩選訊息
     Given 管理員 "admin01" 已登入
     When 管理員篩選聊天室為 "baccarat_001"
     Then 系統回傳 200 狀態碼
     And 所有回傳訊息的 chatroom_id 皆為 "baccarat_001"
 
-  @happy_path
+  @integration @happy_path
   Scenario: 依玩家帳號篩選訊息
     Given 管理員 "admin01" 已登入
     When 管理員篩選玩家帳號為 "player123"
     Then 系統回傳 200 狀態碼
     And 所有回傳訊息的 player_username 皆為 "player123"
 
-  @happy_path
+  @integration @happy_path
   Scenario: 依玩家暱稱模糊搜尋訊息
     Given 管理員 "admin01" 已登入
     When 管理員搜尋玩家暱稱 "Lucky"
     Then 系統回傳 200 狀態碼
     And 所有回傳訊息的 player_nickname 包含 "Lucky"
 
-  @happy_path
+  @integration @happy_path
   Scenario: 依訊息內容關鍵字搜尋
     Given 管理員 "admin01" 已登入
     When 管理員搜尋訊息關鍵字 "Hello"
     Then 系統回傳 200 狀態碼
     And 所有回傳訊息的 message 包含 "Hello"
 
-  @happy_path
+  @integration @happy_path
   Scenario: 依時間範圍篩選訊息
     Given 管理員 "admin01" 已登入
     When 管理員篩選時間範圍為 "2026-03-10" 至 "2026-03-15"
     Then 系統回傳 200 狀態碼
     And 所有回傳訊息的 created_at 在指定範圍內
 
-  @happy_path
+  @integration @happy_path
   Scenario: 複合條件篩選
     Given 管理員 "admin01" 已登入
     When 管理員同時篩選聊天室為 "baccarat_001" 且搜尋訊息關鍵字 "win"
@@ -81,7 +81,7 @@ Feature: 聊天監控
 
   # ─── 刪除訊息 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 刪除聊天訊息
     Given 管理員 "admin01" 已登入
     And 系統中有一筆 id 為 1 的未刪除訊息
@@ -91,14 +91,14 @@ Feature: 聊天監控
 
   # ─── 軟刪除 ───
 
-  @soft_delete
+  @integration @soft_delete
   Scenario: 已刪除訊息不出現在列表中
     Given 管理員 "admin01" 已登入
     And 管理員已刪除訊息 id 1
     When 管理員請求聊天訊息列表
     Then 回傳訊息中不包含 id 為 1 的訊息
 
-  @soft_delete
+  @integration @soft_delete
   Scenario: 刪除訊息後自動產生操作紀錄
     Given 管理員 "admin01" 已登入
     When 管理員刪除訊息 id 1
@@ -106,7 +106,7 @@ Feature: 聊天監控
     Then 最新一筆紀錄的 operator 為 "admin01"
     And 最新一筆紀錄的 request 包含 method "DELETE"
 
-  @soft_delete
+  @integration @soft_delete
   Scenario: 重複刪除已刪除的訊息
     Given 管理員 "admin01" 已登入
     And 管理員已刪除訊息 id 1
@@ -116,31 +116,31 @@ Feature: 聊天監控
 
   # ─── 權限 ───
 
-  @permissions
+  @integration @permissions
   Scenario: 一般管理員可查看聊天訊息
     Given 管理員 "admin02" 已登入
     When 管理員請求聊天訊息列表
     Then 系統回傳 200 狀態碼
 
-  @permissions
+  @integration @permissions
   Scenario: 一般管理員可刪除聊天訊息
     Given 管理員 "admin02" 已登入
     When 管理員刪除訊息 id 2
     Then 系統回傳 200 狀態碼
 
-  @permissions
+  @integration @permissions
   Scenario: 高級管理員可查看聊天訊息
     Given 管理員 "admin01" 已登入
     When 管理員請求聊天訊息列表
     Then 系統回傳 200 狀態碼
 
-  @permissions
+  @integration @permissions
   Scenario: 未登入無法查看聊天訊息
     When 管理員未帶 Token 請求聊天訊息列表
     Then 系統回傳 401 狀態碼
     And 錯誤碼為 "AUTH_MISSING_TOKEN"
 
-  @permissions
+  @integration @permissions
   Scenario: 未登入無法刪除聊天訊息
     When 管理員未帶 Token 刪除訊息 id 1
     Then 系統回傳 401 狀態碼
@@ -148,14 +148,14 @@ Feature: 聊天監控
 
   # ─── 驗證 ───
 
-  @validation
+  @integration @validation
   Scenario: 分頁參數非正整數
     Given 管理員 "admin01" 已登入
     When 管理員請求聊天訊息列表，頁碼 -1
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @validation
+  @integration @validation
   Scenario: 篩選無結果
     Given 管理員 "admin01" 已登入
     When 管理員搜尋訊息關鍵字 "不存在的內容xyz"
@@ -163,25 +163,65 @@ Feature: 聊天監控
     And 回應資料為空陣列
     And pagination.total 為 0
 
-  @validation
+  @integration @validation
   Scenario: 刪除不存在的訊息
     Given 管理員 "admin01" 已登入
     When 管理員刪除訊息 id 99999
     Then 系統回傳 404 狀態碼
     And 錯誤碼為 "CHAT_MESSAGE_NOT_FOUND"
 
-  # ─── 前端 UI 佔位 ───
+  # ─── 前端 UI ───
 
-  @ui_only
+  @component @ui_only
   Scenario: 封鎖玩家按鈕可點擊並開啟 Modal
     Given 管理員 "admin01" 已登入
     When 前端渲染聊天監控頁面
     Then 每筆訊息的操作欄有「封鎖玩家」按鈕
     And 「封鎖玩家」按鈕為 enabled 狀態（可點擊）
 
-  @ui_only
-  Scenario: 重設暱稱按鈕存在但不可操作
+  # ─── 重設暱稱 ───
+
+  @e2e @happy_path
+  Scenario: 從聊天監控頁面重設玩家暱稱
+    Given 管理員 "admin01" 已登入
+    And 玩家 "player123" 的暱稱為 "LuckyBoy"
+    When 前端在訊息列點擊「重設暱稱」按鈕並確認對話框
+    Then 系統呼叫 PUT /api/players/player123/nickname/reset
+    And 玩家 "player123" 的暱稱重設為 "player123"
+    And 頁面顯示操作成功提示
+
+  @integration @happy_path
+  Scenario: 重設暱稱 API 成功
+    Given 管理員 "admin01" 已登入
+    And 玩家 "player123" 的暱稱為 "LuckyBoy"
+    When 管理員呼叫 PUT /api/players/player123/nickname/reset
+    Then 系統回傳 200 狀態碼
+    And 玩家 "player123" 的 nickname 變為 "player123"
+    And 玩家 "player123" 的 nickname_review_status 變為 null
+    And 操作紀錄包含 operationType 為 "RESET_NICKNAME" 的紀錄
+
+  @integration @permissions
+  Scenario: 一般管理員可重設暱稱
+    Given 管理員 "admin02"（general_manager）已登入
+    When 管理員呼叫 PUT /api/players/player123/nickname/reset
+    Then 系統回傳 200 狀態碼
+
+  @integration @permissions
+  Scenario: 未登入無法重設暱稱
+    When 未帶 Token 呼叫 PUT /api/players/player123/nickname/reset
+    Then 系統回傳 401 狀態碼
+    And 錯誤碼為 "AUTH_MISSING_TOKEN"
+
+  @integration @validation
+  Scenario: 重設不存在的玩家暱稱
+    Given 管理員 "admin01" 已登入
+    When 管理員呼叫 PUT /api/players/nonexistent/nickname/reset
+    Then 系統回傳 404 狀態碼
+    And 錯誤碼為 "PLAYER_NOT_FOUND"
+
+  @component @ui_only
+  Scenario: 重設暱稱按鈕為可點擊狀態
     Given 管理員 "admin01" 已登入
     When 前端渲染聊天監控頁面
     Then 每筆訊息的操作欄有「重設暱稱」按鈕
-    And 「重設暱稱」按鈕為 disabled 狀態（暱稱審核功能尚未整合至此頁面）
+    And 「重設暱稱」按鈕為 enabled 狀態

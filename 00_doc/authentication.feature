@@ -14,7 +14,7 @@ Feature: 使用者認證與權限控制
 
   # ─── 登入 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 使用正確帳密登入成功
     When 管理員以帳號 "admin01" 密碼 "123456" 登入
     Then 系統回傳 200 狀態碼
@@ -23,7 +23,7 @@ Feature: 使用者認證與權限控制
     And 回應包含使用者資訊（id、username、role）
     And 回應格式為 { success: true, data: { token, user } }
 
-  @happy_path
+  @integration @happy_path
   Scenario: 登入後透過 /api/auth/me 取得使用者資訊與權限
     Given 管理員 "admin01" 已登入
     When 管理員請求 /api/auth/me
@@ -32,7 +32,7 @@ Feature: 使用者認證與權限控制
     And 回應包含 role 為 "senior_manager"
     And 回應包含 21 個權限項目
 
-  @happy_path
+  @integration @happy_path
   Scenario: 一般管理員透過 /api/auth/me 取得權限清單
     Given 管理員 "admin02" 已登入
     When 管理員請求 /api/auth/me
@@ -41,7 +41,7 @@ Feature: 使用者認證與權限控制
     And 回應包含 role 為 "general_manager"
     And 回應包含 15 個權限項目
 
-  @happy_path
+  @integration @happy_path
   Scenario: 頁面重新載入後恢復登入狀態
     Given 管理員 "admin01" 已登入
     When 頁面重新載入
@@ -50,7 +50,7 @@ Feature: 使用者認證與權限控制
     And 回傳使用者資訊與權限清單
     And 前端恢復登入狀態
 
-  @happy_path
+  @integration @happy_path
   Scenario: 登出成功清除 Cookie
     Given 管理員 "admin01" 已登入
     When 管理員請求登出（POST /api/auth/logout）
@@ -58,38 +58,38 @@ Feature: 使用者認證與權限控制
     And 系統清除 HttpOnly Cookie
     And 再次請求 /api/auth/me 回傳 401
 
-  @security
+  @integration @security
   Scenario: Cookie 過期後存取受保護 API
     Given 管理員 "admin01" 的 Cookie 已過期
     When 管理員請求 /api/auth/me
     Then 系統回傳 401 狀態碼
     And 錯誤碼為 "AUTH_TOKEN_EXPIRED"
 
-  @validation
+  @integration @validation
   Scenario: 登入時缺少帳號欄位
     When 管理員以空白帳號和密碼 "123456" 登入
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @validation
+  @integration @validation
   Scenario: 登入時缺少密碼欄位
     When 管理員以帳號 "admin01" 和空白密碼登入
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @error_handling
+  @integration @validation
   Scenario: 帳號不存在
     When 管理員以帳號 "nonexistent" 密碼 "123456" 登入
     Then 系統回傳 401 狀態碼
     And 錯誤碼為 "AUTH_INVALID_CREDENTIALS"
 
-  @error_handling
+  @integration @validation
   Scenario: 密碼錯誤
     When 管理員以帳號 "admin01" 密碼 "wrong_password" 登入
     Then 系統回傳 401 狀態碼
     And 錯誤碼為 "AUTH_INVALID_CREDENTIALS"
 
-  @permissions
+  @integration @permissions
   Scenario: 帳號已停用無法登入
     When 管理員以帳號 "admin03" 密碼 "123456" 登入
     Then 系統回傳 403 狀態碼
@@ -97,7 +97,7 @@ Feature: 使用者認證與權限控制
 
   # ─── 修改密碼 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 成功修改自己的密碼
     Given 管理員 "admin01" 已登入
     When 管理員以舊密碼 "123456" 新密碼 "new_password" 修改密碼
@@ -105,21 +105,21 @@ Feature: 使用者認證與權限控制
     And 回應包含成功訊息
     And 使用新密碼可以重新登入
 
-  @validation
+  @integration @validation
   Scenario: 修改密碼時缺少舊密碼
     Given 管理員 "admin01" 已登入
     When 管理員以空白舊密碼和新密碼 "new_password" 修改密碼
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @validation
+  @integration @validation
   Scenario: 新密碼長度不足
     Given 管理員 "admin01" 已登入
     When 管理員以舊密碼 "123456" 新密碼 "123" 修改密碼
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @error_handling
+  @integration @validation
   Scenario: 舊密碼不正確
     Given 管理員 "admin01" 已登入
     When 管理員以舊密碼 "wrong_old" 新密碼 "new_password" 修改密碼
@@ -128,19 +128,19 @@ Feature: 使用者認證與權限控制
 
   # ─── Token 安全 ───
 
-  @security
+  @integration @security
   Scenario: 未提供 Token 存取受保護 API
     When 管理員未帶 Token 請求修改密碼
     Then 系統回傳 401 狀態碼
     And 錯誤碼為 "AUTH_MISSING_TOKEN"
 
-  @security
+  @integration @security
   Scenario: 提供無效 Token
     When 管理員以無效 Token 請求修改密碼
     Then 系統回傳 401 狀態碼
     And 錯誤碼為 "AUTH_INVALID_TOKEN"
 
-  @security
+  @integration @security
   Scenario: 提供過期 Token
     When 管理員以過期 Token 請求修改密碼
     Then 系統回傳 401 狀態碼
@@ -148,7 +148,7 @@ Feature: 使用者認證與權限控制
 
   # ─── 新增管理員 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 高級管理員成功新增管理員帳號
     Given 管理員 "admin01" 已登入
     When 管理員新增帳號 username "admin04" password "123456" role "general_manager"
@@ -156,35 +156,35 @@ Feature: 使用者認證與權限控制
     And 回應包含新帳號的 id、username、role、is_active、created_at
     And 回應格式為 { success: true, data: { ... } }
 
-  @validation
+  @integration @validation
   Scenario: 新增管理員帳號名稱長度不足
     Given 管理員 "admin01" 已登入
     When 管理員新增帳號 username "ab" password "123456" role "general_manager"
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @validation
+  @integration @validation
   Scenario: 新增管理員密碼長度不足
     Given 管理員 "admin01" 已登入
     When 管理員新增帳號 username "admin04" password "123" role "general_manager"
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @validation
+  @integration @validation
   Scenario: 新增管理員角色無效
     Given 管理員 "admin01" 已登入
     When 管理員新增帳號 username "admin04" password "123456" role "invalid_role"
     Then 系統回傳 400 狀態碼
     And 錯誤碼為 "VALIDATION_ERROR"
 
-  @error_handling
+  @integration @validation
   Scenario: 新增管理員帳號已存在
     Given 管理員 "admin01" 已登入
     When 管理員新增帳號 username "admin02" password "123456" role "general_manager"
     Then 系統回傳 409 狀態碼
     And 錯誤碼為 "ADMIN_USERNAME_DUPLICATE"
 
-  @permissions
+  @integration @permissions
   Scenario: 一般管理員無法新增管理員帳號
     Given 管理員 "admin02" 已登入
     When 管理員新增帳號 username "admin04" password "123456" role "general_manager"
@@ -193,7 +193,7 @@ Feature: 使用者認證與權限控制
 
   # ─── 帳號管理 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 高級管理員取得管理員列表
     Given 管理員 "admin01" 已登入
     When 管理員請求 GET /api/admins
@@ -201,14 +201,14 @@ Feature: 使用者認證與權限控制
     And 回應包含分頁管理員列表
     And 回應不包含 password_hash
 
-  @permissions
+  @integration @permissions
   Scenario: 一般管理員無法查看管理員列表
     Given 管理員 "admin02" 已登入
     When 管理員請求 GET /api/admins
     Then 系統回傳 403 狀態碼
     And 錯誤碼為 "FORBIDDEN_INSUFFICIENT_PERMISSIONS"
 
-  @happy_path
+  @integration @happy_path
   Scenario: 高級管理員停用管理員帳號
     Given 管理員 "admin01" 已登入
     When 管理員停用帳號 id=2（admin02）
@@ -216,28 +216,28 @@ Feature: 使用者認證與權限控制
     And admin02 的 is_active 為 false
     And operation_logs 有 TOGGLE_ADMIN 紀錄
 
-  @happy_path
+  @integration @happy_path
   Scenario: 高級管理員啟用管理員帳號
     Given 管理員 "admin01" 已登入
     When 管理員啟用帳號 id=3（admin03）
     Then 系統回傳 200 狀態碼
     And admin03 的 is_active 為 true
 
-  @permissions
+  @integration @permissions
   Scenario: 無法停用自己的帳號
     Given 管理員 "admin01" 已登入
     When 管理員嘗試停用自己（id=1）
     Then 系統回傳 403 狀態碼
     And 錯誤碼為 "ADMIN_CANNOT_SELF_MODIFY"
 
-  @error_handling
+  @integration @validation
   Scenario: 停用不存在的帳號
     Given 管理員 "admin01" 已登入
     When 管理員嘗試停用 id=9999
     Then 系統回傳 404 狀態碼
     And 錯誤碼為 "ADMIN_NOT_FOUND"
 
-  @happy_path
+  @integration @happy_path
   Scenario: 高級管理員更新管理員角色
     Given 管理員 "admin01" 已登入
     When 管理員更新 id=2 的角色為 "senior_manager"
@@ -245,14 +245,14 @@ Feature: 使用者認證與權限控制
     And admin02 的 role 為 "senior_manager"
     And operation_logs 有 UPDATE_ADMIN_ROLE 紀錄
 
-  @permissions
+  @integration @permissions
   Scenario: 無法修改自己的角色
     Given 管理員 "admin01" 已登入
     When 管理員嘗試更新自己（id=1）的角色
     Then 系統回傳 403 狀態碼
     And 錯誤碼為 "ADMIN_CANNOT_SELF_MODIFY"
 
-  @validation
+  @integration @validation
   Scenario: 更新角色為無效值
     Given 管理員 "admin01" 已登入
     When 管理員嘗試更新 id=2 的角色為 "invalid_role"
@@ -261,39 +261,39 @@ Feature: 使用者認證與權限控制
 
   # ─── 權限控制 ───
 
-  @permissions
+  @integration @permissions
   Scenario: 一般管理員無法存取廣播功能
     Given 管理員 "admin02" 已登入
     When 管理員嘗試發送廣播訊息
     Then 系統回傳 403 狀態碼
     And 錯誤碼為 "FORBIDDEN_INSUFFICIENT_PERMISSIONS"
 
-  @permissions
+  @integration @permissions
   Scenario: 一般管理員無法存取帳號管理
     Given 管理員 "admin02" 已登入
     When 管理員嘗試查看管理員列表
     Then 系統回傳 403 狀態碼
     And 錯誤碼為 "FORBIDDEN_INSUFFICIENT_PERMISSIONS"
 
-  @permissions
+  @integration @permissions
   Scenario: 高級管理員可存取所有功能
     Given 管理員 "admin01" 已登入
     When 管理員嘗試發送廣播訊息
     Then 系統回傳成功狀態碼
 
-  @permissions
+  @integration @permissions
   Scenario: Sidebar 依角色顯示選單 — 高級管理員
     Given 管理員 "admin01" 已登入
     When 前端渲染 Sidebar 選單
     Then 選單顯示 8 個項目（含廣播與帳號管理）
 
-  @permissions
+  @integration @permissions
   Scenario: Sidebar 依角色顯示選單 — 一般管理員
     Given 管理員 "admin02" 已登入
     When 前端渲染 Sidebar 選單
     Then 選單顯示 6 個項目（不含廣播與帳號管理）
 
-  @permissions
+  @integration @permissions
   Scenario: 未授權頁面導向
     Given 管理員 "admin02" 已登入
     When 管理員嘗試直接存取廣播頁面 URL
@@ -301,15 +301,39 @@ Feature: 使用者認證與權限控制
 
   # ─── 頁面導向 ───
 
-  @happy_path
+  @integration @happy_path
   Scenario: 已登入使用者進入登入頁自動跳轉主頁
     Given 管理員 "admin01" 已登入
     When 管理員進入 /login 頁面
     Then 系統自動導向首頁 /
 
-  @happy_path
+  @integration @happy_path
   Scenario: 登入後存取不存在的頁面顯示 404
     Given 管理員 "admin01" 已登入
     When 管理員進入不存在的頁面 URL（如 /nonexistent）
     Then 系統在 AdminLayout 內顯示 NotFoundPage（404 提示）
     And Sidebar 與 Header 仍正常顯示
+
+  # ─── E2E ───
+
+  @e2e @happy_path
+  Scenario: 使用正確帳密登入完整流程
+    When 管理員在登入頁輸入帳號 "admin01" 密碼 "123456" 並送出
+    Then 系統導向首頁
+    And 頁面顯示管理員使用者資訊
+
+  @e2e @happy_path
+  Scenario: 高級管理員可見所有選單項目
+    Given 管理員 "admin01" 已登入
+    Then sidebar 顯示所有選單項目（含廣播與帳號管理）
+
+  @e2e @permissions
+  Scenario: 一般管理員選單項目受限
+    Given 管理員 "admin02" 已登入
+    Then sidebar 不顯示廣播與帳號管理選單
+
+  @e2e @happy_path
+  Scenario: 登出後導回登入頁
+    Given 管理員 "admin01" 已登入
+    When 管理員點擊登出
+    Then 系統導回登入頁面
