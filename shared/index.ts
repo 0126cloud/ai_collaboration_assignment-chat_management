@@ -1,6 +1,11 @@
 // Schemas
 export { loginSchema, changePasswordSchema } from './schemas/auth';
-export { createAdminSchema, adminListQuerySchema, updateAdminRoleSchema } from './schemas/admin';
+export {
+  createAdminSchema,
+  adminListQuerySchema,
+  updateAdminRoleSchema,
+  resetAdminPasswordSchema,
+} from './schemas/admin';
 export { operationLogQuerySchema } from './schemas/operationLog';
 
 // Types
@@ -18,6 +23,7 @@ export type {
   TAdminItem,
   TAdminListQuery,
   TUpdateAdminRolePayload,
+  TResetAdminPasswordPayload,
 } from './types/admin';
 export type {
   TOperationType,

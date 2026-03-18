@@ -16,3 +16,7 @@ export const adminListQuerySchema = z.object({
 export const updateAdminRoleSchema = z.object({
   role: z.enum(['general_manager', 'senior_manager'], { message: '角色值無效' }),
 });
+
+export const resetAdminPasswordSchema = z.object({
+  newPassword: z.string().min(6, '密碼至少 6 個字元'),
+});

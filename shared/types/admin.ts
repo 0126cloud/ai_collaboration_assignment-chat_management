@@ -3,6 +3,7 @@ import type {
   createAdminSchema,
   adminListQuerySchema,
   updateAdminRoleSchema,
+  resetAdminPasswordSchema,
 } from '../schemas/admin';
 
 export type TCreateAdminPayload = z.infer<typeof createAdminSchema>;
@@ -26,3 +27,5 @@ export type TAdminItem = {
 export type TAdminListQuery = z.infer<typeof adminListQuerySchema>;
 
 export type TUpdateAdminRolePayload = z.infer<typeof updateAdminRoleSchema>;
+
+export type TResetAdminPasswordPayload = z.infer<typeof resetAdminPasswordSchema>;

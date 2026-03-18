@@ -16,6 +16,8 @@ export const OPERATION_TYPES = [
   'CHANGE_PASSWORD',
   'LOGIN',
   'LOGOUT',
+  'RESET_NICKNAME',
+  'DELETE_BROADCAST',
 ] as const;
 
 export type TOperationType = (typeof OPERATION_TYPES)[number];
@@ -39,6 +41,8 @@ export const OPERATION_TYPE_LABELS: Record<TOperationType, string> = {
   CHANGE_PASSWORD: '修改自己密碼',
   LOGIN: '管理員登入',
   LOGOUT: '管理員登出',
+  RESET_NICKNAME: '重設玩家暱稱',
+  DELETE_BROADCAST: '下架廣播訊息',
 };
 
 export type TOperationLogRequest = {
