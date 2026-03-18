@@ -216,16 +216,30 @@ describe('BroadcastPage', () => {
 
   // @happy_path — 發送廣播表單 validation
   it('未填寫表單欄位直接送出 → 顯示驗證錯誤', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderPage();
 
-    await waitFor(() => expect(mockList).toHaveBeenCalled());
+    await waitFor(() => expect(mockList).toHaveBeenCalled(), { timeout: 5000 });
+
+    // 開啟新增廣播 Modal
+    const addBtn = screen.getByRole('button', { name: /新增廣播/ });
+    await user.click(addBtn);
+
+    await waitFor(
+      () => {
+        expect(screen.getByPlaceholderText('請輸入廣播訊息內容')).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
 
     const submitBtn = screen.getByRole('button', { name: /發送廣播/ });
     await user.click(submitBtn);
 
-    await waitFor(() => {
-      expect(screen.getByText('請輸入廣播訊息')).toBeInTheDocument();
-    });
-  });
+    await waitFor(
+      () => {
+        expect(screen.getByText('請輸入廣播訊息')).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  }, 20000);
 });

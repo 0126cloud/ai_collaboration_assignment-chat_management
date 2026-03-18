@@ -201,6 +201,15 @@ describe('CreateBlacklistModal', () => {
     const okBtn = await waitForOkButton();
     fireEvent.click(okBtn);
 
+    // 等待確認對話框並確認
+    await waitFor(() => {
+      const confirmBtn = document.querySelector(
+        '.ant-modal-confirm-btns .ant-btn-primary',
+      ) as HTMLElement;
+      expect(confirmBtn).not.toBeNull();
+      fireEvent.click(confirmBtn);
+    });
+
     await waitFor(() => {
       expect(mockOnSuccess).toHaveBeenCalled();
     });

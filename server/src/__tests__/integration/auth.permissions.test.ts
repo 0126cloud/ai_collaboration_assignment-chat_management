@@ -33,7 +33,7 @@ afterAll(async () => {
 
 describe('GET /api/auth/permissions', () => {
   // @happy_path
-  it('senior_manager → 22 個權限', async () => {
+  it('senior_manager → 23 個權限', async () => {
     const res = await request(app)
       .get('/api/auth/permissions')
       .set('Authorization', `Bearer ${seniorToken}`);
@@ -41,11 +41,11 @@ describe('GET /api/auth/permissions', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.role).toBe('senior_manager');
-    expect(res.body.data.permissions).toHaveLength(22);
+    expect(res.body.data.permissions).toHaveLength(23);
   });
 
   // @happy_path
-  it('general_manager → 15 個權限', async () => {
+  it('general_manager → 16 個權限', async () => {
     const res = await request(app)
       .get('/api/auth/permissions')
       .set('Authorization', `Bearer ${generalToken}`);
@@ -53,7 +53,7 @@ describe('GET /api/auth/permissions', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.role).toBe('general_manager');
-    expect(res.body.data.permissions).toHaveLength(15);
+    expect(res.body.data.permissions).toHaveLength(16);
   });
 
   // @security

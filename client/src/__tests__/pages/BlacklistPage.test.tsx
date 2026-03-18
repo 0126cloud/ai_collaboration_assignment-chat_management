@@ -185,7 +185,7 @@ describe('BlacklistPage', () => {
   });
 
   // @ui_only
-  it('切換 type 為 IP → 呼叫 listIps API', async () => {
+  it('切換 type 為 IP 並點擊查詢 → 呼叫 listIps API', async () => {
     renderPage();
     const user = userEvent.setup();
 
@@ -202,6 +202,9 @@ describe('BlacklistPage', () => {
     });
 
     await user.click(screen.getByText('IP'));
+
+    // 切換類型後需點擊查詢按鈕才觸發 API
+    await user.click(screen.getByText('查詢'));
 
     await waitFor(() => {
       expect(mockListIps).toHaveBeenCalled();
@@ -275,7 +278,7 @@ describe('BlacklistPage', () => {
   });
 
   // @ui_only
-  it('切換狀態篩選為「已解封」→ API 帶 status=unblocked', async () => {
+  it('切換狀態篩選為「已解封」並點擊查詢 → API 帶 status=unblocked', async () => {
     mockListPlayers.mockResolvedValue({
       data: {
         success: true,
@@ -300,6 +303,9 @@ describe('BlacklistPage', () => {
 
     const unblocked = screen.getAllByText('已解封');
     await user.click(unblocked[unblocked.length - 1]);
+
+    // 篩選條件需點擊查詢按鈕才會觸發 API
+    await user.click(screen.getByText('查詢'));
 
     await waitFor(() => {
       const lastCall = mockListPlayers.mock.calls[mockListPlayers.mock.calls.length - 1][0];

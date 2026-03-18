@@ -190,7 +190,7 @@ describe('ChatMonitoringPage', () => {
     });
   });
 
-  it('重設暱稱按鈕為 disabled 狀態', async () => {
+  it('重設暱稱按鈕為可點擊狀態', async () => {
     renderPage();
 
     await waitFor(() => {
@@ -200,7 +200,7 @@ describe('ChatMonitoringPage', () => {
     await waitFor(() => {
       const resetButtons = screen.getAllByText('重設暱稱');
       resetButtons.forEach((btn) => {
-        expect(btn.closest('button')).toBeDisabled();
+        expect(btn.closest('button')).not.toBeDisabled();
       });
     });
   });

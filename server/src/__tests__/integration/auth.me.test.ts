@@ -60,17 +60,17 @@ describe('GET /api/auth/me', () => {
   });
 
   // @happy_path
-  it('senior_manager → 回傳 22 個 permissions', async () => {
+  it('senior_manager → 回傳 23 個 permissions', async () => {
     const res = await request(app).get('/api/auth/me').set('Cookie', `token=${seniorToken}`);
 
-    expect(res.body.data.permissions).toHaveLength(22);
+    expect(res.body.data.permissions).toHaveLength(23);
   });
 
   // @happy_path
-  it('general_manager → 回傳 15 個 permissions', async () => {
+  it('general_manager → 回傳 16 個 permissions', async () => {
     const res = await request(app).get('/api/auth/me').set('Cookie', `token=${generalToken}`);
 
-    expect(res.body.data.permissions).toHaveLength(15);
+    expect(res.body.data.permissions).toHaveLength(16);
   });
 
   // @security

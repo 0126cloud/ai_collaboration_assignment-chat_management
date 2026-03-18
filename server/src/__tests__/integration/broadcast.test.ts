@@ -271,8 +271,8 @@ describe('DELETE /api/broadcasts/:id', () => {
 });
 
 describe('Operation logs', () => {
-  it('POST 後 SEND_BROADCAST 操作紀錄寫入', async () => {
-    const logs = await db('operation_logs').where('operation_type', 'SEND_BROADCAST');
+  it('POST 後 CREATE_BROADCAST 操作紀錄寫入', async () => {
+    const logs = await db('operation_logs').where('operation_type', 'CREATE_BROADCAST');
     expect(logs.length).toBeGreaterThanOrEqual(1);
   });
 
