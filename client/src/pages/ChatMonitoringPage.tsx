@@ -1,16 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Table,
-  Card,
-  Select,
-  Input,
-  DatePicker,
-  Button,
-  Space,
-  Modal,
-  message,
-  Tooltip,
-} from 'antd';
+import { Table, Card, Select, Input, DatePicker, Button, Space, Modal, message } from 'antd';
 import {
   SearchOutlined,
   ReloadOutlined,
@@ -24,6 +13,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { chatMessageApi } from '../api/chatMessage';
 import { chatroomApi } from '../api/chatroom';
+import { playerApi } from '../api/player';
 import CreateBlacklistModal from '../components/CreateBlacklistModal';
 import type { TChatMessageItem, TChatMessageQuery } from '@shared/types/chatMessage';
 import type { ColumnsType } from 'antd/es/table';
@@ -44,7 +34,10 @@ const useStyles = createStyles(({ token }) => ({
     alignItems: 'center',
   },
   filterItem: {
-    minWidth: 180,
+    width: 250,
+  },
+  filterInput: {
+    maxWidth: 300,
   },
 }));
 
@@ -120,9 +113,11 @@ const ChatMonitoringPage = () => {
     [chatroomId, playerUsername, playerNickname, messageKeyword, dateRange],
   );
 
+  // 只在 mount 時自動查詢，其他篩選條件需點擊查詢按鈕
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSearch = () => {
     fetchData(1, pagination.pageSize);
@@ -147,6 +142,23 @@ const ChatMonitoringPage = () => {
       chatroomId: record.chatroom_id,
     });
     setBlockModalOpen(true);
+  };
+
+  const handleResetNickname = (record: TChatMessageItem) => {
+    Modal.confirm({
+      title: '確認重設暱稱',
+      content: `確定要將玩家「${record.player_username}」的暱稱重設為帳號名稱嗎？`,
+      okText: '確認重設',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          await playerApi.resetNickname(record.player_username);
+          message.success('暱稱已重設');
+        } catch {
+          message.error('重設暱稱失敗');
+        }
+      },
+    });
   };
 
   const handleDelete = (record: TChatMessageItem) => {
@@ -222,11 +234,14 @@ const ChatMonitoringPage = () => {
           >
             封鎖
           </Button>
-          <Tooltip title="功能開發中">
-            <Button type="link" size="small" icon={<EditOutlined />} disabled>
-              重設暱稱
-            </Button>
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleResetNickname(record)}
+          >
+            重設暱稱
+          </Button>
         </Space>
       ),
     },
@@ -247,21 +262,21 @@ const ChatMonitoringPage = () => {
             onChange={setChatroomId}
           />
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="玩家帳號"
             allowClear
             value={playerUsername}
             onChange={(e) => setPlayerUsername(e.target.value || undefined)}
           />
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="玩家暱稱"
             allowClear
             value={playerNickname}
             onChange={(e) => setPlayerNickname(e.target.value || undefined)}
           />
           <Input
-            className={styles.filterItem}
+            className={styles.filterInput}
             placeholder="訊息關鍵字"
             allowClear
             value={messageKeyword}
