@@ -24,6 +24,7 @@ const useStyles = createStyles(({ token }) => ({
   title: {
     textAlign: 'center' as const,
     marginBottom: token.marginLG,
+    paddingBottom: token.paddingMD,
   },
 }));
 

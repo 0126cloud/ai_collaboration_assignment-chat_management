@@ -10,9 +10,13 @@ import {
   UserOutlined,
   SettingOutlined,
   LogoutOutlined,
+  SunOutlined,
+  MoonOutlined,
+  DesktopOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../theme/context/ThemeContext';
 
 const { Header, Sider, Content } = Layout;
 
@@ -21,9 +25,10 @@ const useStyles = createStyles(({ token }) => ({
     minHeight: '100vh',
   },
   siderTitle: {
-    color: token.colorTextLightSolid,
-    padding: token.padding,
+    color: token.colorText,
+    padding: `26px ${token.padding}px ${token.padding}px 28px`,
     display: 'block',
+    marginBottom: '0px',
   },
   header: {
     padding: `0 ${token.paddingLG}px`,
@@ -31,14 +36,18 @@ const useStyles = createStyles(({ token }) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  headerText: {
-    color: token.colorTextLightSolid,
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
   },
   logoutButton: {
-    color: token.colorTextLightSolid,
+    color: token.colorText,
+  },
+  themeButton: {
+    color: token.colorText,
   },
   content: {
-    padding: token.paddingLG,
+    padding: token.paddingMD,
   },
 }));
 
@@ -51,7 +60,7 @@ const allMenuItems = [
   },
   {
     key: '/blacklist',
-    label: '黑名單管理 (IP, Player)',
+    label: '黑名單管理',
     icon: <StopOutlined />,
     permission: 'blacklist:read',
   },
@@ -93,11 +102,18 @@ const allMenuItems = [
   },
 ];
 
+const themeIcon = {
+  light: <SunOutlined />,
+  dark: <MoonOutlined />,
+  system: <DesktopOutlined />,
+};
+
 const AdminLayout = () => {
   const { styles } = useStyles();
   const { user, logout, hasPermission } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleTheme } = useTheme();
 
   const menuItems = allMenuItems.filter((item) => hasPermission(item.permission));
 
@@ -112,10 +128,11 @@ const AdminLayout = () => {
 
   return (
     <Layout className={styles.layout}>
-      <Sider>
-        <Typography.Text className={styles.siderTitle}>聊天管理後台</Typography.Text>
+      <Sider width={180}>
+        <Typography.Title level={5} className={styles.siderTitle}>
+          聊天管理後台
+        </Typography.Title>
         <Menu
-          theme="dark"
           mode="inline"
           selectedKeys={[location.pathname]}
           items={menuItems}
@@ -124,15 +141,25 @@ const AdminLayout = () => {
       </Sider>
       <Layout>
         <Header className={styles.header}>
-          <Typography.Text className={styles.headerText}>{user?.username}</Typography.Text>
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
-            className={styles.logoutButton}
-          >
-            登出
-          </Button>
+          <div></div>
+          <div className={styles.headerRight}>
+            <Button
+              type="text"
+              icon={themeIcon[mode]}
+              onClick={toggleTheme}
+              className={styles.themeButton}
+            >
+              主題
+            </Button>
+            <Button
+              type="text"
+              icon={<LogoutOutlined />}
+              onClick={handleLogout}
+              className={styles.logoutButton}
+            >
+              登出 {user?.username}
+            </Button>
+          </div>
         </Header>
         <Content className={styles.content}>
           <Outlet />
