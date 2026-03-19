@@ -92,7 +92,7 @@ function createTitleCard(
       { stdio: 'pipe' },
     );
     execSync(
-      `ffmpeg -y -loop 1 -i "${pngPath}" -t ${duration} -r 25 -c:v libx264 -pix_fmt yuv420p "${outputPath}"`,
+      `ffmpeg -y -loop 1 -i "${pngPath}" -t ${duration} -r 30 -c:v libx264 -crf 18 -pix_fmt yuv420p "${outputPath}"`,
       { stdio: 'pipe' },
     );
   } finally {
@@ -100,9 +100,14 @@ function createTitleCard(
   }
 }
 
-// WebM 轉 MP4
+// WebM 轉 MP4（tpad 凍結首尾幀，固定 30fps + 高品質）
 function convertToMp4(webmPath: string, outputPath: string): void {
-  execSync(`ffmpeg -y -i "${webmPath}" -c:v libx264 -c:a aac "${outputPath}"`, { stdio: 'pipe' });
+  execSync(
+    `ffmpeg -y -i "${webmPath}" ` +
+      `-vf "tpad=start_duration=1:stop_duration=2:start_mode=clone:stop_mode=clone" ` +
+      `-r 30 -c:v libx264 -crf 18 -preset slow -c:a aac "${outputPath}"`,
+    { stdio: 'pipe' },
+  );
 }
 
 // 主流程
@@ -186,7 +191,7 @@ async function main(): Promise<void> {
   const outputPath = path.join(OUTPUT_DIR, 'demo.mp4');
   console.log('\n🎞️  合成最終影片...');
   execSync(
-    `ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -c:v libx264 -c:a aac "${outputPath}"`,
+    `ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -r 30 -c:v libx264 -crf 18 -preset slow -c:a aac "${outputPath}"`,
     { stdio: 'pipe' },
   );
 
