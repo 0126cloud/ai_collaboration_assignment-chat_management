@@ -1,0 +1,2265 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>System Design — Chat Management Backstage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-primary: #f8f7f4;
+        --bg-secondary: #f0efe9;
+        --bg-card: #ffffff;
+        --bg-card-hover: #fafaf8;
+        --border: #e2e0d8;
+        --border-accent: #d0cec4;
+        --text-primary: #1a1a2e;
+        --text-secondary: #555566;
+        --text-muted: #8a8998;
+        --accent-indigo: #5b4cd6;
+        --accent-indigo-dim: rgba(91, 76, 214, 0.08);
+        --accent-teal: #0f9b8e;
+        --accent-teal-dim: rgba(15, 155, 142, 0.07);
+        --accent-amber: #c8920a;
+        --accent-amber-dim: rgba(200, 146, 10, 0.08);
+        --accent-rose: #d44a7a;
+        --accent-rose-dim: rgba(212, 74, 122, 0.07);
+        --accent-emerald: #2e8b60;
+        --accent-emerald-dim: rgba(46, 139, 96, 0.07);
+        --accent-blue: #3b7dd8;
+        --accent-blue-dim: rgba(59, 125, 216, 0.08);
+        --font-display: 'DM Serif Display', serif;
+        --font-body: 'IBM Plex Sans', 'Noto Sans TC', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --font-tc: 'Noto Sans TC', sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font-body);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      ::selection {
+        background: var(--accent-indigo);
+        color: white;
+      }
+
+      /* ─── Hero ─── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        padding: 60px 24px;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 600px 400px at 30% 20%, rgba(91, 76, 214, 0.06), transparent),
+          radial-gradient(ellipse 500px 500px at 70% 70%, rgba(15, 155, 142, 0.05), transparent),
+          radial-gradient(ellipse 400px 300px at 50% 50%, rgba(200, 146, 10, 0.04), transparent);
+        pointer-events: none;
+      }
+      .hero-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(91, 76, 214, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(91, 76, 214, 0.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+        mask-image: radial-gradient(ellipse 80% 70% at center, black, transparent);
+        pointer-events: none;
+      }
+      .hero-label {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent-indigo);
+        margin-bottom: 24px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.3s;
+      }
+      .hero h1 {
+        font-family: var(--font-display);
+        font-size: clamp(40px, 6vw, 80px);
+        font-weight: 400;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        margin-bottom: 20px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.5s;
+      }
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent-indigo);
+      }
+      .hero-sub {
+        font-family: var(--font-tc);
+        font-size: 19px;
+        font-weight: 300;
+        color: var(--text-secondary);
+        max-width: 560px;
+        margin-bottom: 48px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.7s;
+      }
+      .hero-stats {
+        display: flex;
+        gap: 48px;
+        flex-wrap: wrap;
+        justify-content: center;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.9s;
+      }
+      .hero-stat {
+        text-align: center;
+      }
+      .hero-stat .num {
+        font-family: var(--font-display);
+        font-size: 42px;
+        color: var(--text-primary);
+        display: block;
+      }
+      .hero-stat .unit {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 4px;
+        display: block;
+      }
+      .hero-scroll {
+        position: absolute;
+        bottom: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 1.2s;
+      }
+      .hero-scroll span {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .hero-scroll .line {
+        width: 1px;
+        height: 40px;
+        background: linear-gradient(to bottom, var(--accent-indigo), transparent);
+        animation: scrollPulse 2s ease infinite;
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes scrollPulse {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scaleY(0.6);
+        }
+        50% {
+          opacity: 1;
+          transform: scaleY(1);
+        }
+      }
+
+      /* ─── Nav ─── */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(248, 247, 244, 0.88);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 24px;
+      }
+      .nav-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .nav-inner::-webkit-scrollbar {
+        display: none;
+      }
+      .nav a {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 14px 16px;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+      .nav a:hover,
+      .nav a.active {
+        color: var(--accent-indigo);
+        border-bottom-color: var(--accent-indigo);
+      }
+
+      /* ─── Sections ─── */
+      section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 80px 24px;
+      }
+      .section-header {
+        margin-bottom: 48px;
+      }
+      .section-label {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent-indigo);
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(28px, 4vw, 44px);
+        font-weight: 400;
+        line-height: 1.2;
+        margin-bottom: 14px;
+      }
+      .section-desc {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 640px;
+        font-weight: 300;
+      }
+
+      /* ─── Cards ─── */
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+      }
+      .card:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-card-hover);
+        transform: translateY(-2px);
+      }
+      .card-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+      .card-title {
+        font-family: var(--font-tc);
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .card-body {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+
+      /* ─── KPI ─── */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 48px;
+      }
+      .kpi-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 22px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+      .kpi-card .label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .kpi-card .value {
+        font-family: var(--font-display);
+        font-size: 32px;
+        color: var(--text-primary);
+      }
+      .kpi-card .sub {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+      }
+      .kpi-card[data-accent='indigo'] {
+        border-left: 3px solid var(--accent-indigo);
+      }
+      .kpi-card[data-accent='teal'] {
+        border-left: 3px solid var(--accent-teal);
+      }
+      .kpi-card[data-accent='amber'] {
+        border-left: 3px solid var(--accent-amber);
+      }
+      .kpi-card[data-accent='rose'] {
+        border-left: 3px solid var(--accent-rose);
+      }
+      .kpi-card[data-accent='emerald'] {
+        border-left: 3px solid var(--accent-emerald);
+      }
+      .kpi-card[data-accent='blue'] {
+        border-left: 3px solid var(--accent-blue);
+      }
+
+      /* ─── Image Panel ─── */
+      .img-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 32px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+      }
+      .img-panel h3 {
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .img-panel .img-sub {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+      }
+      .img-panel img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+
+      /* ─── Grid layouts ─── */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      /* ─── Accent cards ─── */
+      .accent-card {
+        border-radius: 12px;
+        padding: 22px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        transition: all 0.3s ease;
+      }
+      .accent-card:hover {
+        transform: translateY(-2px);
+      }
+      .accent-card[data-color='indigo'] {
+        border-left: 3px solid var(--accent-indigo);
+      }
+      .accent-card[data-color='teal'] {
+        border-left: 3px solid var(--accent-teal);
+      }
+      .accent-card[data-color='amber'] {
+        border-left: 3px solid var(--accent-amber);
+      }
+      .accent-card[data-color='rose'] {
+        border-left: 3px solid var(--accent-rose);
+      }
+      .accent-card[data-color='emerald'] {
+        border-left: 3px solid var(--accent-emerald);
+      }
+      .accent-card[data-color='blue'] {
+        border-left: 3px solid var(--accent-blue);
+      }
+      .accent-card .ac-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .accent-card .ac-title {
+        font-family: var(--font-tc);
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .accent-card .ac-body {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      /* ─── Tables ─── */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      .data-table th {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--border);
+        background: var(--bg-secondary);
+      }
+      .data-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .data-table tr:hover td {
+        background: var(--bg-card-hover);
+      }
+      .data-table .mono {
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      /* ─── Tags ─── */
+      .tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+      }
+      .tag-indigo {
+        background: var(--accent-indigo-dim);
+        color: var(--accent-indigo);
+      }
+      .tag-teal {
+        background: var(--accent-teal-dim);
+        color: var(--accent-teal);
+      }
+      .tag-amber {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+      }
+      .tag-rose {
+        background: var(--accent-rose-dim);
+        color: var(--accent-rose);
+      }
+      .tag-emerald {
+        background: var(--accent-emerald-dim);
+        color: var(--accent-emerald);
+      }
+      .tag-blue {
+        background: var(--accent-blue-dim);
+        color: var(--accent-blue);
+      }
+
+      /* ─── Callout ─── */
+      .callout {
+        padding: 20px 24px;
+        border-left: 3px solid var(--accent-indigo);
+        background: var(--accent-indigo-dim);
+        border-radius: 0 10px 10px 0;
+        font-size: 14px;
+        line-height: 1.8;
+        color: var(--text-secondary);
+        margin: 24px 0;
+      }
+      .callout strong {
+        color: var(--accent-indigo);
+        font-weight: 600;
+      }
+      .callout code {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        background: rgba(91, 76, 214, 0.1);
+        padding: 1px 6px;
+        border-radius: 3px;
+      }
+
+      /* ─── Pipeline ─── */
+      .pipeline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+        margin: 20px 0;
+      }
+      .pipeline .step {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        padding: 8px 14px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        white-space: nowrap;
+      }
+      .pipeline .arrow {
+        color: var(--accent-indigo);
+        font-size: 16px;
+        padding: 0 2px;
+      }
+
+      /* ─── Checklist ─── */
+      .checklist {
+        list-style: none;
+        padding: 0;
+      }
+      .checklist li {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .checklist li:last-child {
+        border-bottom: none;
+      }
+      .check {
+        color: var(--accent-emerald);
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      /* ─── Phase Progress ─── */
+      .phase-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .phase-item {
+        padding: 16px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .phase-item .phase-num {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent-indigo);
+        font-weight: 500;
+      }
+      .phase-item .phase-name {
+        font-family: var(--font-tc);
+        font-weight: 500;
+      }
+      .phase-item .phase-check {
+        margin-left: auto;
+        color: var(--accent-emerald);
+      }
+
+      /* ─── Priority tags ─── */
+      .priority {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .priority-p0 {
+        background: #fde8e8;
+        color: #c53030;
+      }
+      .priority-p1 {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .priority-p2 {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+      .priority-p3 {
+        background: #f0fdf4;
+        color: #166534;
+      }
+
+      /* ─── Screenshot Gallery ─── */
+      .screenshot-gallery {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 32px;
+      }
+      .screenshot-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+      .screenshot-item:hover {
+        border-color: var(--border-accent);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        transform: translateY(-2px);
+      }
+      .screenshot-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .screenshot-item .caption {
+        padding: 12px 16px;
+        font-family: var(--font-tc);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border);
+      }
+      @media (max-width: 768px) {
+        .screenshot-gallery {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ─── Video Panel ─── */
+      .video-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 32px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        overflow: hidden;
+      }
+      .video-panel h3 {
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .video-panel .video-sub {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+      }
+      .video-panel video {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+
+      /* ─── Scroll fade-in ─── */
+      .fade-in {
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ─── Footer ─── */
+      footer {
+        text-align: center;
+        padding: 60px 24px;
+        border-top: 1px solid var(--border);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+      }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 768px) {
+        .hero-stats {
+          gap: 32px;
+        }
+        .hero-stat .num {
+          font-size: 32px;
+        }
+        .pipeline {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .pipeline .arrow {
+          transform: rotate(90deg);
+        }
+        .nav a {
+          padding: 12px 12px;
+          font-size: 11px;
+        }
+        .data-table {
+          font-size: 12px;
+        }
+        .data-table th,
+        .data-table td {
+          padding: 8px 10px;
+        }
+      }
+      /* ─── Back to Home ─── */
+      .back-home {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.3s ease;
+        z-index: 10;
+      }
+      .back-home:hover {
+        color: var(--accent-indigo);
+      }
+      .back-home svg {
+        transition: transform 0.3s ease;
+      }
+      .back-home:hover svg {
+        transform: translateX(-3px);
+      }
+
+      /* ─── Scroll to Top ─── */
+      .scroll-top {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+      .scroll-top.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      .scroll-top:hover {
+        border-color: var(--accent-indigo);
+        color: var(--accent-indigo);
+        box-shadow: 0 4px 16px rgba(91, 76, 214, 0.12);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════ HERO ═══════════════ -->
+    <div class="hero" id="top">
+      <div class="hero-grid"></div>
+      <a href="index.html" class="back-home">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5" /><path d="M12 19l-7-7 7-7" />
+        </svg>
+        Home
+      </a>
+      <div class="hero-label">System Architecture</div>
+      <h1>Chat Management <em>Backstage</em></h1>
+      <p class="hero-sub">聊天管理後台系統架構設計與完成度總覽</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="num">9</span><span class="unit">Modules</span></div>
+        <div class="hero-stat"><span class="num">9</span><span class="unit">DB Tables</span></div>
+        <div class="hero-stat"><span class="num">10</span><span class="unit">Pages</span></div>
+        <div class="hero-stat"><span class="num">48</span><span class="unit">Test Files</span></div>
+      </div>
+      <div class="hero-scroll">
+        <span>Scroll</span>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ NAV ═══════════════ -->
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="#architecture">Architecture</a>
+        <a href="#backend">Backend</a>
+        <a href="#frontend">Frontend</a>
+        <a href="#database">Database</a>
+        <a href="#rbac">RBAC</a>
+        <a href="#testing">Testing</a>
+        <a href="#completion">Completion</a>
+        <a href="#demo">Demo</a>
+        <a href="#roadmap">Roadmap</a>
+      </div>
+    </nav>
+
+    <!-- ═══════════════ 1. ARCHITECTURE ═══════════════ -->
+    <section id="architecture">
+      <div class="section-header fade-in">
+        <div class="section-label">01 — Overview</div>
+        <h2 class="section-title">System Architecture</h2>
+        <p class="section-desc">
+          Monorepo 架構，client / server / shared / e2e 四層分離，透過根層 concurrently
+          統一管理開發與部署。
+        </p>
+      </div>
+
+      <div class="img-panel fade-in">
+        <h3>系統架構圖</h3>
+        <p class="img-sub">
+          前端 SPA → Vite Proxy → Express API → SQLite，Production 模式由 Express 直接 serve
+          前端靜態檔案
+        </p>
+        <img src="./assets/00_system-design.png" alt="System Architecture Diagram" />
+      </div>
+
+      <div class="grid-3 fade-in" style="margin-top: 32px">
+        <div class="accent-card" data-color="indigo">
+          <div class="ac-label">Frontend</div>
+          <div class="ac-title">React 18 + Vite + TypeScript</div>
+          <div class="ac-body">
+            Ant Design 6.x 元件庫 + antd-style 樣式管理<br />React Router v6 路由 + Axios HTTP
+            Client<br />dayjs UTC+8 時間顯示
+          </div>
+        </div>
+        <div class="accent-card" data-color="teal">
+          <div class="ac-label">Backend</div>
+          <div class="ac-title">Express.js + TypeScript</div>
+          <div class="ac-body">
+            SQLite (better-sqlite3) 零配置資料庫<br />Knex.js Query Builder + Migration/Seed<br />Cookie-based
+            JWT + bcryptjs
+          </div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">Shared</div>
+          <div class="ac-title">Zod Schema + TypeScript Types</div>
+          <div class="ac-body">
+            前後端共用驗證邏輯與型別定義<br />@shared/* path alias 跨專案引用<br />9 套 Schema 對應
+            9 個 API 模組
+          </div>
+        </div>
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">Testing</div>
+          <div class="ac-title">Vitest + Playwright</div>
+          <div class="ac-body">
+            三層測試：Unit / Integration / E2E<br />supertest + :memory: SQLite 隔離測試<br />Playwright
+            錄影 + 自動合成 Demo 影片
+          </div>
+        </div>
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">DevOps</div>
+          <div class="ac-title">Docker + concurrently</div>
+          <div class="ac-body">
+            多階段 Docker build（node:20-alpine）<br />docker compose up 一鍵啟動<br />分環境
+            .env.development / .env.production
+          </div>
+        </div>
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">Auth</div>
+          <div class="ac-title">JWT HttpOnly Cookie + RBAC</div>
+          <div class="ac-body">
+            Config-based 權限管理（22 權限 × 2 角色）<br />requirePermission() middleware
+            路由守衛<br />SameSite=Strict 防護 + 敏感欄位遮罩
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 2. BACKEND ═══════════════ -->
+    <section id="backend">
+      <div class="section-header fade-in">
+        <div class="section-label">02 — Backend</div>
+        <h2 class="section-title">Backend Architecture</h2>
+        <p class="section-desc">
+          9 個後端模組全部遵循 Route → Controller → Service 三層分離，透過工廠注入模式傳遞 DB 依賴。
+        </p>
+      </div>
+
+      <div class="callout fade-in">
+        <strong>Module Pattern</strong> — 每個模組使用
+        <code>createXxxRoutes(db: Knex): Router</code> 工廠函式，顯式傳遞 DB
+        依賴，不使用全域單例。Integration test 可直接傳入 <code>:memory:</code> SQLite 實例。
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 32px 0 16px"
+        class="fade-in"
+      >
+        Database Strategy — 為何選用 SQLite + 如何保留切換彈性
+      </h3>
+      <div class="grid-2 fade-in" style="margin-bottom: 32px">
+        <div class="accent-card" data-color="teal">
+          <div class="ac-label">選用理由</div>
+          <div class="ac-title">SQLite（better-sqlite3）</div>
+          <div class="ac-body">
+            <strong>零配置部署</strong>：無需安裝額外資料庫服務，clone 後即可開發<br />
+            <strong>同步 API</strong>：better-sqlite3 為 in-process 同步引擎，延遲極低<br />
+            <strong>Demo 定位</strong>：單用戶管理後台，不需要並發寫入能力<br />
+            <strong>測試友善</strong>：<code>:memory:</code> 模式讓每個測試檔案擁有獨立 DB 實例
+          </div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">切換彈性</div>
+          <div class="ac-title">Knex.js 抽象層 + 工廠注入</div>
+          <div class="ac-body">
+            <strong>Knex Query Builder</strong>：所有 SQL 透過 Knex API 組裝，不含 SQLite
+            專屬語法<br />
+            <strong>Migration 機制</strong>：14 個 migration 檔案定義完整 schema，可重播至任意 DB<br />
+            <strong>工廠注入</strong>：<code>createXxxRoutes(db)</code> 傳入 Knex 實例，切換 DB
+            只需改 <code>knexfile.ts</code> 的 client 設定<br />
+            <strong>已驗證</strong>：Integration test 使用 <code>:memory:</code> vs Production 使用
+            file DB，證明抽象層無洩漏
+          </div>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        Middleware Pipeline
+      </h3>
+      <div class="pipeline fade-in">
+        <span class="step">express.json()</span><span class="arrow">→</span>
+        <span class="step">cookie-parser</span><span class="arrow">→</span>
+        <span class="step">CORS</span><span class="arrow">→</span> <span class="step">Encoding</span
+        ><span class="arrow">→</span> <span class="step">DB Init</span><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-indigo); color: var(--accent-indigo)"
+          >operationLogger</span
+        ><span class="arrow">→</span> <span class="step">API Routes</span
+        ><span class="arrow">→</span> <span class="step">Static Files</span
+        ><span class="arrow">→</span> <span class="step">404 Handler</span
+        ><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-rose); color: var(--accent-rose)"
+          >Error Handler</span
+        >
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 32px 0 16px"
+        class="fade-in"
+      >
+        9 Backend Modules
+      </h3>
+      <div class="grid-3 fade-in">
+        <div class="accent-card" data-color="indigo">
+          <div class="ac-label">/api/auth</div>
+          <div class="ac-title">認證模組</div>
+          <div class="ac-body">login / logout / me / password / permissions</div>
+        </div>
+        <div class="accent-card" data-color="indigo">
+          <div class="ac-label">/api/admins</div>
+          <div class="ac-title">帳號管理</div>
+          <div class="ac-body">CRUD + toggle / role / password reset</div>
+        </div>
+        <div class="accent-card" data-color="teal">
+          <div class="ac-label">/api/chatrooms</div>
+          <div class="ac-title">聊天室</div>
+          <div class="ac-body">列表查詢（唯讀）+ 名稱搜尋</div>
+        </div>
+        <div class="accent-card" data-color="teal">
+          <div class="ac-label">/api/chat_messages</div>
+          <div class="ac-title">聊天監控</div>
+          <div class="ac-body">多條件篩選 + 軟刪除 + 操作紀錄</div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">/api/blacklist</div>
+          <div class="ac-title">黑名單 + IP 封鎖</div>
+          <div class="ac-body">player / ip 雙路由 + upsert 封鎖邏輯</div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">/api/players</div>
+          <div class="ac-title">玩家管理</div>
+          <div class="ac-body">暱稱審核 approve/reject + 重設暱稱</div>
+        </div>
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">/api/reports</div>
+          <div class="ac-title">檢舉審核</div>
+          <div class="ac-body">核准自動封鎖（transaction）+ 駁回</div>
+        </div>
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">/api/broadcasts</div>
+          <div class="ac-title">系統廣播</div>
+          <div class="ac-body">動態 status 計算 + 軟刪除下架</div>
+        </div>
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">/api/operation-logs</div>
+          <div class="ac-title">操作紀錄</div>
+          <div class="ac-body">afterware 自動寫入 + 篩選查詢</div>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        Unified Response Envelope
+      </h3>
+      <div class="grid-3 fade-in">
+        <div class="card">
+          <div class="card-label">Success</div>
+          <pre
+            style="
+              font-family: var(--font-mono);
+              font-size: 12px;
+              color: var(--accent-emerald);
+              line-height: 1.6;
+              margin-top: 8px;
+            "
+          >
+{ "success": true,
+  "data": { ... } }</pre
+          >
+        </div>
+        <div class="card">
+          <div class="card-label">Error</div>
+          <pre
+            style="
+              font-family: var(--font-mono);
+              font-size: 12px;
+              color: var(--accent-rose);
+              line-height: 1.6;
+              margin-top: 8px;
+            "
+          >
+{ "success": false,
+  "error": {
+    "code": "AUTH_...",
+    "message": "..."
+  }
+}</pre
+          >
+        </div>
+        <div class="card">
+          <div class="card-label">Paginated</div>
+          <pre
+            style="
+              font-family: var(--font-mono);
+              font-size: 12px;
+              color: var(--accent-indigo);
+              line-height: 1.6;
+              margin-top: 8px;
+            "
+          >
+{ "success": true,
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "total": 100
+  }
+}</pre
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 3. FRONTEND ═══════════════ -->
+    <section id="frontend">
+      <div class="section-header fade-in">
+        <div class="section-label">03 — Frontend</div>
+        <h2 class="section-title">Frontend Architecture</h2>
+        <p class="section-desc">
+          React 18 SPA，10 個頁面依權限動態渲染，Design System 支援 Dark / Light / System 三態切換。
+        </p>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        Component Tree
+      </h3>
+      <div class="pipeline fade-in">
+        <span class="step" style="border-color: var(--accent-rose); color: var(--accent-rose)"
+          >ThemeProvider</span
+        ><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-amber); color: var(--accent-amber)"
+          >ConfigProvider</span
+        ><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-teal); color: var(--accent-teal)"
+          >AuthProvider</span
+        ><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-indigo); color: var(--accent-indigo)"
+          >RouterProvider</span
+        ><span class="arrow">→</span> <span class="step">AdminLayout</span
+        ><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-emerald); color: var(--accent-emerald)"
+          >Pages</span
+        >
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 32px 0 16px"
+        class="fade-in"
+      >
+        10 Frontend Pages
+      </h3>
+      <div style="overflow-x: auto" class="fade-in">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Page</th>
+              <th>Permission</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">/login</td>
+              <td>LoginPage</td>
+              <td><span class="tag tag-emerald">Public</span></td>
+              <td>帳號密碼登入 + 已登入自動跳轉</td>
+            </tr>
+            <tr>
+              <td class="mono">/chat</td>
+              <td>ChatMonitoringPage</td>
+              <td><span class="tag tag-indigo">chat:read</span></td>
+              <td>訊息監控 + 刪除 + 封鎖 + 暱稱重設</td>
+            </tr>
+            <tr>
+              <td class="mono">/blacklist</td>
+              <td>BlacklistPage</td>
+              <td><span class="tag tag-indigo">blacklist:read</span></td>
+              <td>Player / IP 封鎖管理 + 新增 Modal</td>
+            </tr>
+            <tr>
+              <td class="mono">/chatrooms</td>
+              <td>ChatroomPage</td>
+              <td><span class="tag tag-indigo">chatroom:read</span></td>
+              <td>聊天室列表（唯讀）+ 搜尋</td>
+            </tr>
+            <tr>
+              <td class="mono">/broadcasts</td>
+              <td>BroadcastPage</td>
+              <td><span class="tag tag-amber">broadcast:read</span></td>
+              <td>發送廣播 + 狀態標籤 + 下架</td>
+            </tr>
+            <tr>
+              <td class="mono">/operation-logs</td>
+              <td>OperationLogPage</td>
+              <td><span class="tag tag-indigo">operation_log:read</span></td>
+              <td>操作紀錄篩選 + request JSON 展開</td>
+            </tr>
+            <tr>
+              <td class="mono">/reports</td>
+              <td>ReportReviewPage</td>
+              <td><span class="tag tag-indigo">report:read</span></td>
+              <td>檢舉審核（核准自動封鎖）</td>
+            </tr>
+            <tr>
+              <td class="mono">/nickname-reviews</td>
+              <td>NicknameReviewPage</td>
+              <td><span class="tag tag-indigo">nickname:read</span></td>
+              <td>暱稱審核（駁回自動重設）</td>
+            </tr>
+            <tr>
+              <td class="mono">/admins</td>
+              <td>ManagerPage</td>
+              <td><span class="tag tag-amber">admin:read</span></td>
+              <td>帳號管理（角色/密碼/啟停用）</td>
+            </tr>
+            <tr>
+              <td class="mono">/*</td>
+              <td>NotFoundPage</td>
+              <td><span class="tag tag-emerald">Public</span></td>
+              <td>404 頁面（在 AdminLayout 內顯示）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        Shared Layer — Zod 一處定義，三處使用
+      </h3>
+      <div class="grid-3 fade-in">
+        <div class="accent-card" data-color="teal">
+          <div class="ac-label">Backend</div>
+          <div class="ac-title">validate(schema) middleware</div>
+          <div class="ac-body">
+            驗證 req.body，失敗回傳統一 error envelope；parsed data 覆寫原始 body（strip unknown
+            fields）
+          </div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">Frontend</div>
+          <div class="ac-title">zodToAntdRules(schema)</div>
+          <div class="ac-body">
+            將 Zod schema 轉換為 Ant Design Form 的 rules 格式，前後端驗證邏輯一致
+          </div>
+        </div>
+        <div class="accent-card" data-color="indigo">
+          <div class="ac-label">Types</div>
+          <div class="ac-title">z.infer&lt;typeof schema&gt;</div>
+          <div class="ac-body">自動從 Zod schema 推導 TypeScript 型別，不需手動維護 interface</div>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        Design System
+      </h3>
+      <div class="grid-2 fade-in">
+        <div class="card">
+          <div class="card-label">Seed Tokens (Light)</div>
+          <div
+            class="card-body"
+            style="font-family: var(--font-mono); font-size: 12px; line-height: 2"
+          >
+            <span
+              style="
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                background: #1a6fd4;
+                vertical-align: middle;
+                margin-right: 6px;
+              "
+            ></span
+            >colorPrimary: #1A6FD4<br />
+            <span
+              style="
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                background: #34c759;
+                vertical-align: middle;
+                margin-right: 6px;
+              "
+            ></span
+            >colorSuccess: #34C759 (iOS Green)<br />
+            <span
+              style="
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                background: #ff9500;
+                vertical-align: middle;
+                margin-right: 6px;
+              "
+            ></span
+            >colorWarning: #FF9500 (iOS Orange)<br />
+            <span
+              style="
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                background: #ff3b30;
+                vertical-align: middle;
+                margin-right: 6px;
+              "
+            ></span
+            >colorError: #FF3B30 (iOS Red)<br />
+            <span
+              style="
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                background: #5856d6;
+                vertical-align: middle;
+                margin-right: 6px;
+              "
+            ></span
+            >colorInfo: #5856D6 (iOS Indigo)<br />
+            <span
+              style="
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                background: #f2f2f7;
+                vertical-align: middle;
+                margin-right: 6px;
+                border: 1px solid #ccc;
+              "
+            ></span
+            >colorBgLayout: #F2F2F7
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">Theme Features</div>
+          <div class="card-body">
+            <strong>三態切換</strong>：Light / Dark / System（跟隨 OS）<br />
+            <strong>Token 層級</strong>：Seed → Map（自動推導）→ Component<br />
+            <strong>Dark Mode</strong>：darkAlgorithm 自動推導，僅覆寫 colorPrimary: #2E88EE<br />
+            <strong>圓角</strong>：borderRadius 10px / 14px / 8px<br />
+            <strong>陰影</strong>：Card / Modal 使用 iOS 細膩陰影<br />
+            <strong>持久化</strong>：localStorage 保存主題偏好
+          </div>
+        </div>
+      </div>
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        UI Screenshots
+      </h3>
+      <div class="screenshot-gallery fade-in">
+        <div class="screenshot-item">
+          <img src="./assets/02_chatroom-list.jpg" alt="Chatroom List" />
+          <div class="caption">聊天室列表</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_chat-message-list.jpg" alt="Chat Message List" />
+          <div class="caption">訊息監控</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_blacklist.jpg" alt="Blacklist Management" />
+          <div class="caption">黑名單管理</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_broadcast.jpg" alt="Broadcast" />
+          <div class="caption">系統廣播</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_operation-log.jpg" alt="Operation Log" />
+          <div class="caption">操作紀錄</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_report.jpg" alt="Report Review" />
+          <div class="caption">檢舉審核</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_nickname-approve.jpg" alt="Nickname Review" />
+          <div class="caption">暱稱審核</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_create-manager.jpg" alt="Create Manager" />
+          <div class="caption">新增管理員</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/02_change-password.jpg" alt="Change Password" />
+          <div class="caption">修改密碼</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 4. DATABASE ═══════════════ -->
+    <section id="database">
+      <div class="section-header fade-in">
+        <div class="section-label">04 — Database</div>
+        <h2 class="section-title">Database Schema</h2>
+        <p class="section-desc">
+          9 張資料表、14 個 migration、三種刪除策略。SQLite 零配置，Knex.js 抽象層讓未來可切換 DB。
+        </p>
+      </div>
+
+      <div class="img-panel fade-in">
+        <h3>Entity-Relationship Diagram</h3>
+        <p class="img-sub">9 張資料表的欄位結構與關聯關係</p>
+        <img src="./assets/00_chat-managemant-db.png" alt="Database ER Diagram" />
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 32px 0 16px"
+        class="fade-in"
+      >
+        9 Data Tables
+      </h3>
+      <div style="overflow-x: auto" class="fade-in">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Table</th>
+              <th>PK Type</th>
+              <th>Purpose</th>
+              <th>Delete Strategy</th>
+              <th>RFC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">admins</td>
+              <td>INT AUTO</td>
+              <td>管理員帳號（角色、狀態）</td>
+              <td><span class="tag tag-emerald">—</span></td>
+              <td>rfc_01</td>
+            </tr>
+            <tr>
+              <td class="mono">operation_logs</td>
+              <td>INT AUTO</td>
+              <td>操作稽核紀錄（request JSON）</td>
+              <td><span class="tag tag-rose">不可刪除</span></td>
+              <td>rfc_02</td>
+            </tr>
+            <tr>
+              <td class="mono">chatrooms</td>
+              <td>VARCHAR(50)</td>
+              <td>聊天室列表（業務 ID）</td>
+              <td><span class="tag tag-indigo">deleted_at</span></td>
+              <td>rfc_03</td>
+            </tr>
+            <tr>
+              <td class="mono">players</td>
+              <td>VARCHAR(50)</td>
+              <td>玩家帳號（含暱稱審核欄位）</td>
+              <td><span class="tag tag-indigo">deleted_at</span></td>
+              <td>rfc_03</td>
+            </tr>
+            <tr>
+              <td class="mono">chatroom_players</td>
+              <td>INT AUTO</td>
+              <td>聊天室 ↔ 玩家多對多關聯</td>
+              <td><span class="tag tag-indigo">deleted_at</span></td>
+              <td>rfc_03</td>
+            </tr>
+            <tr>
+              <td class="mono">chat_messages</td>
+              <td>INT AUTO</td>
+              <td>聊天訊息（軟刪除）</td>
+              <td><span class="tag tag-indigo">deleted_at</span></td>
+              <td>rfc_03</td>
+            </tr>
+            <tr>
+              <td class="mono">blacklist</td>
+              <td>INT AUTO</td>
+              <td>玩家/IP 封鎖（統一表）</td>
+              <td><span class="tag tag-amber">is_blocked</span></td>
+              <td>rfc_04</td>
+            </tr>
+            <tr>
+              <td class="mono">reports</td>
+              <td>INT AUTO</td>
+              <td>玩家檢舉審核</td>
+              <td><span class="tag tag-rose">不可刪除</span></td>
+              <td>rfc_05</td>
+            </tr>
+            <tr>
+              <td class="mono">broadcasts</td>
+              <td>INT AUTO</td>
+              <td>系統廣播（動態計算 status）</td>
+              <td><span class="tag tag-indigo">deleted_at</span></td>
+              <td>rfc_06</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        設計慣例
+      </h3>
+      <div class="grid-4 fade-in">
+        <div class="accent-card" data-color="indigo">
+          <div class="ac-title">時間儲存</div>
+          <div class="ac-body">全部 UTC+0 儲存<br />前端 dayjs 轉 UTC+8 顯示</div>
+        </div>
+        <div class="accent-card" data-color="teal">
+          <div class="ac-title">快照欄位</div>
+          <div class="ac-body">operator 為寫入時快照<br />player_nickname 改為 JOIN</div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-title">Magic Value</div>
+          <div class="ac-body">chatroom_id = 'all'<br />代表全域（避免 NULL UNIQUE）</div>
+        </div>
+        <div class="accent-card" data-color="rose">
+          <div class="ac-title">FK 約束</div>
+          <div class="ac-body">SQLite 預設不強制 FK<br />應用層自行維護一致性</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 5. RBAC ═══════════════ -->
+    <section id="rbac">
+      <div class="section-header fade-in">
+        <div class="section-label">05 — Security</div>
+        <h2 class="section-title">RBAC Permission System</h2>
+        <p class="section-desc">
+          Config-Based RBAC：22 項權限 × 2 角色，前後端雙重守衛，無需額外 DB 表。
+        </p>
+      </div>
+
+      <div class="grid-2 fade-in" style="margin-bottom: 32px">
+        <div class="accent-card" data-color="teal">
+          <div class="ac-label">General Manager</div>
+          <div class="ac-title">16 項權限</div>
+          <div class="ac-body">
+            聊天監控、黑名單管理、IP封鎖、聊天室、操作紀錄、檢舉審核、暱稱審核、玩家暱稱重設、修改自己密碼
+          </div>
+        </div>
+        <div class="accent-card" data-color="indigo">
+          <div class="ac-label">Senior Manager</div>
+          <div class="ac-title">22 項權限（全部）</div>
+          <div class="ac-body">
+            繼承 General Manager 所有權限 + 帳號管理（CRUD + toggle + 重設密碼）+ 系統廣播（發送 +
+            下架）
+          </div>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        Permission Matrix（22 × 2）
+      </h3>
+      <div style="overflow-x: auto" class="fade-in">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Permission</th>
+              <th>General</th>
+              <th>Senior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>auth</td>
+              <td class="mono">auth:change_own_password</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>chat</td>
+              <td class="mono">chat:read / chat:delete</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>blacklist</td>
+              <td class="mono">blacklist:read / create / delete</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>ip_block</td>
+              <td class="mono">ip_block:read / create / delete</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>chatroom</td>
+              <td class="mono">chatroom:read</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>operation_log</td>
+              <td class="mono">operation_log:read</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>report</td>
+              <td class="mono">report:read / review</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>nickname</td>
+              <td class="mono">nickname:read / review</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td>player</td>
+              <td class="mono">player:reset_nickname</td>
+              <td>✓</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td style="color: var(--accent-indigo); font-weight: 600">admin</td>
+              <td class="mono">admin:read / create / toggle / reset_password</td>
+              <td>—</td>
+              <td>✓</td>
+            </tr>
+            <tr>
+              <td style="color: var(--accent-indigo); font-weight: 600">broadcast</td>
+              <td class="mono">broadcast:read / create / delete</td>
+              <td>—</td>
+              <td>✓</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout fade-in" style="margin-top: 32px">
+        <strong>守衛機制</strong>：① 後端 <code>requirePermission()</code> middleware 在 route
+        層級強制驗證 → ② 前端 <code>ProtectedRoute</code> 阻擋無權限頁面 → ③ Sidebar
+        <code>menuItems.filter()</code> 隱藏無權限選單項目
+      </div>
+    </section>
+
+    <!-- ═══════════════ 6. TESTING ═══════════════ -->
+    <section id="testing">
+      <div class="section-header fade-in">
+        <div class="section-label">06 — Testing</div>
+        <h2 class="section-title">Testing Strategy</h2>
+        <p class="section-desc">
+          三層測試金字塔 — Unit / Integration / Component / E2E，:memory: SQLite 與 production
+          同引擎。
+        </p>
+      </div>
+
+      <div class="kpi-grid fade-in">
+        <div class="kpi-card" data-accent="indigo">
+          <div class="label">Unit Tests</div>
+          <div class="value">4</div>
+          <div class="sub">middleware + config</div>
+        </div>
+        <div class="kpi-card" data-accent="teal">
+          <div class="label">Integration</div>
+          <div class="value">20</div>
+          <div class="sub">API pipeline + DB</div>
+        </div>
+        <div class="kpi-card" data-accent="amber">
+          <div class="label">Component</div>
+          <div class="value">15</div>
+          <div class="sub">React + Testing Library</div>
+        </div>
+        <div class="kpi-card" data-accent="rose">
+          <div class="label">E2E Tests</div>
+          <div class="value">9</div>
+          <div class="sub">Playwright specs</div>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        Test Coverage
+      </h3>
+      <div class="screenshot-gallery fade-in" style="margin-bottom: 32px">
+        <div class="screenshot-item">
+          <img src="./assets/01_client-test-coverage.jpg" alt="Client Test Coverage" />
+          <div class="caption">Client Test Coverage</div>
+        </div>
+        <div class="screenshot-item">
+          <img src="./assets/01_server-test-coverage.jpg" alt="Server Test Coverage" />
+          <div class="caption">Server Test Coverage</div>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        測試環境資源
+      </h3>
+      <div style="overflow-x: auto" class="fade-in">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Server Vitest</th>
+              <th>Client Vitest</th>
+              <th>E2E (Playwright)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Database</td>
+              <td class="mono">:memory: SQLite</td>
+              <td>無</td>
+              <td class="mono">dev.sqlite（resetDb）</td>
+            </tr>
+            <tr>
+              <td>HTTP</td>
+              <td>supertest（不佔 port）</td>
+              <td>無</td>
+              <td>dev server（3000 + 5173）</td>
+            </tr>
+            <tr>
+              <td>隔離性</td>
+              <td><span class="tag tag-emerald">完全隔離</span></td>
+              <td><span class="tag tag-emerald">完全隔離</span></td>
+              <td><span class="tag tag-amber">共用 dev DB</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout fade-in" style="margin-top: 32px">
+        <strong>Demo Video 自動生成</strong> — Playwright 開啟
+        <code>video: 'on'</code> 錄影，測試完成後 <code>compose-video.ts</code> 將 .webm 片段轉為
+        MP4 + 燒入 SRT 字幕 + 插入標題卡 + 串接合成 <code>output/demo.mp4</code>。一份 E2E
+        測試同時達成 CI 品質保障 + 功能展示影片。
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 32px 0 16px"
+        class="fade-in"
+      >
+        Gherkin-first 開發流程
+      </h3>
+      <div class="pipeline fade-in">
+        <span class="step">PRD 定義 FR</span><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-amber); color: var(--accent-amber)"
+          >撰寫 .feature</span
+        ><span class="arrow">→</span> <span class="step">RFC 測試計畫</span
+        ><span class="arrow">→</span> <span class="step">Task 穿插測試</span
+        ><span class="arrow">→</span>
+        <span class="step" style="border-color: var(--accent-emerald); color: var(--accent-emerald)"
+          >功能 + 測試同步寫</span
+        >
+      </div>
+    </section>
+
+    <!-- ═══════════════ 7. COMPLETION ═══════════════ -->
+    <section id="completion">
+      <div class="section-header fade-in">
+        <div class="section-label">07 — Status</div>
+        <h2 class="section-title">System Completion</h2>
+        <p class="section-desc">
+          12 個開發 Phase 全部完成，9 個功能模組全部上線，涵蓋原始需求的所有功能項目。
+        </p>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        12 Development Phases
+      </h3>
+      <div class="phase-grid fade-in">
+        <div class="phase-item">
+          <span class="phase-num">P00</span><span class="phase-name">專案初始化</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P01</span><span class="phase-name">Auth + Response</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P02</span><span class="phase-name">操作紀錄</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P03</span><span class="phase-name">聊天室 + 監控</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P04</span><span class="phase-name">黑名單 + IP</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P05</span><span class="phase-name">暱稱 + 檢舉</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P06</span><span class="phase-name">系統廣播</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P07</span><span class="phase-name">Design System</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P08</span><span class="phase-name">E2E + Demo</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P09</span><span class="phase-name">暱稱重設 API</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P10</span><span class="phase-name">環境變數配置</span
+          ><span class="phase-check">✓</span>
+        </div>
+        <div class="phase-item">
+          <span class="phase-num">P12</span><span class="phase-name">Production Mode</span
+          ><span class="phase-check">✓</span>
+        </div>
+      </div>
+
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        Assignment Requirements vs Delivery
+      </h3>
+      <div class="grid-2 fade-in">
+        <div class="card">
+          <div class="card-label">Backend API (Assignment §5)</div>
+          <ul class="checklist">
+            <li><span class="check">✓</span> login — JWT HttpOnly Cookie 登入</li>
+            <li><span class="check">✓</span> getChatHistory — 多條件篩選 + 分頁</li>
+            <li><span class="check">✓</span> deleteMessage — 軟刪除 + 操作紀錄</li>
+            <li><span class="check">✓</span> blockPlayer — upsert 封鎖 + chatroom 指定</li>
+            <li><span class="check">✓</span> unblockPlayer — is_blocked 狀態切換</li>
+            <li><span class="check">✓</span> broadcastMessage — 動態 status + 下架</li>
+            <li><span class="check">✓</span> getChatrooms — 列表 + 名稱搜尋</li>
+            <li><span class="check">✓</span> getOperationLogs — afterware 自動寫入</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-label">Frontend Pages (Assignment §5)</div>
+          <ul class="checklist">
+            <li><span class="check">✓</span> Login Page — 表單驗證 + 已登入跳轉</li>
+            <li><span class="check">✓</span> Chat Monitoring — 刪除 / 封鎖 / 暱稱重設</li>
+            <li><span class="check">✓</span> Blacklist Management — Player + IP 雙模式</li>
+            <li><span class="check">✓</span> Broadcast Message — 發送 + 狀態 Tag + 下架</li>
+            <li><span class="check">✓</span> Operation Logs — 篩選 + request 展開</li>
+            <li><span class="check">✓</span> Player Reports — 核准自動封鎖</li>
+            <li><span class="check">✓</span> Nickname Approval — 駁回自動重設</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ DEMO ═══════════════ -->
+    <section id="demo">
+      <div class="section-header fade-in">
+        <div class="section-label">Demo</div>
+        <h2 class="section-title">Live Demo</h2>
+        <p class="section-desc">E2E 測試自動錄製的系統操作展示影片，涵蓋主要功能流程。</p>
+      </div>
+
+      <div class="video-panel fade-in">
+        <h3>系統操作展示</h3>
+        <p class="video-sub">由 Playwright E2E 測試自動錄製，經 compose-video.ts 合成</p>
+        <video controls preload="metadata">
+          <source src="./assets/demo.mp4" type="video/mp4" />
+          您的瀏覽器不支援影片播放。
+        </video>
+      </div>
+    </section>
+
+    <!-- ═══════════════ 8. ROADMAP ═══════════════ -->
+    <section id="roadmap">
+      <div class="section-header fade-in">
+        <div class="section-label">08 — Roadmap</div>
+        <h2 class="section-title">Future Improvements</h2>
+        <p class="section-desc">
+          以下為系統正式上線後的完整優化規劃，按優先級排序。涵蓋安全加固、即時通訊升級、UI/UX 優化、
+          資料庫遷移等面向，每個階段包含具體技術方案、量化效益指標與風險評估。
+        </p>
+      </div>
+
+      <!-- ─── P0 ─── -->
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin-bottom: 16px"
+        class="fade-in"
+      >
+        <span class="priority priority-p0">P0</span>&nbsp; 安全加固
+      </h3>
+      <div class="grid-3 fade-in" style="margin-bottom: 16px">
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">預估 0.5 天</div>
+          <div class="ac-title">Rate Limiting</div>
+          <div class="ac-body">
+            <strong>問題</strong>：登入 API 無頻率限制，可暴力破解密碼<br />
+            <strong>方案</strong>：<code>express-rate-limit</code> — 登入 5 次/分鐘/IP，全域 API 100
+            次/分鐘<br />
+            <strong>影響</strong>：app.ts + auth/route.ts<br />
+            <strong>驗收</strong>：超頻返回 429，E2E 驗證鎖定行為
+          </div>
+        </div>
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">預估 0.5 天</div>
+          <div class="ac-title">CSRF 防護強化</div>
+          <div class="ac-body">
+            <strong>問題</strong>：HttpOnly Cookie 防 XSS，但未完整防禦 CSRF<br />
+            <strong>方案</strong>：Cookie 加入 SameSite=Strict 屬性（已部分實作），可進階採用 Double
+            Submit Cookie 模式<br />
+            <strong>影響</strong>：auth/controller.ts + client interceptor
+          </div>
+        </div>
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">預估 1 天</div>
+          <div class="ac-title">帳號鎖定機制</div>
+          <div class="ac-body">
+            <strong>問題</strong>：連續登入失敗無限制<br />
+            <strong>方案</strong>：admins 新增 <code>failed_attempts</code> +
+            <code>locked_until</code> 欄位，5 次失敗鎖定 15 分鐘<br />
+            <strong>影響</strong>：新增 migration + auth/service.ts + errorCodes.ts
+          </div>
+        </div>
+      </div>
+      <div class="grid-3 fade-in" style="margin-bottom: 16px">
+        <div class="accent-card" data-color="rose">
+          <div class="ac-label">預估 0.5 天</div>
+          <div class="ac-title">Security Headers</div>
+          <div class="ac-body">
+            <strong>問題</strong>：缺少標準安全回應標頭，瀏覽器無法啟用內建防護<br />
+            <strong>方案</strong>：引入 <code>helmet</code> middleware — 自動設定
+            X-Content-Type-Options、X-Frame-Options、
+            Content-Security-Policy、Strict-Transport-Security 等標頭<br />
+            <strong>影響</strong>：app.ts 新增一行 middleware
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── P1 ─── -->
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        <span class="priority priority-p1">P1</span>&nbsp; 即時通訊 &amp; 架構補強
+      </h3>
+      <div class="grid-3 fade-in" style="margin-bottom: 16px">
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">預估 3 天</div>
+          <div class="ac-title">WebSocket 即時通訊</div>
+          <div class="ac-body">
+            <strong>問題</strong
+            >：聊天監控頁面需手動刷新，管理員操作（禁言/刪訊）無法即時同步給其他在線管理員<br />
+            <strong>為何選 WebSocket 而非 SSE</strong>：<br />
+            &bull; 管理後台需要雙向通訊 — server 推送新訊息 + client 回報已讀/操作狀態<br />
+            &bull; 多管理員同時操作需即時同步（A 禁言某玩家，B 的畫面應即時反映）<br />
+            &bull; SSE 受限瀏覽器 6 連線上限，多分頁場景容易耗盡<br />
+            <strong>方案</strong>：<code>Socket.IO</code> — 自動降級 polling、內建 reconnect 與 room
+            機制<br />
+            <strong>架構</strong>：<br />
+            &bull; Server：<code>socketManager.ts</code> 掛載於 Express HTTP server，JWT 驗證
+            middleware<br />
+            &bull; Room 設計：每個 chatroom 對應一個 room，管理員進入監控頁自動 join<br />
+            &bull; 事件頻道：<code>chat:message</code> / <code>chat:delete</code> /
+            <code>admin:action</code> / <code>player:status</code><br />
+            &bull; Client：新增 <code>useSocket</code> hook +
+            <code>SocketContext</code>，頁面卸載自動 disconnect<br />
+            <strong>影響</strong>：server/src/socket/ 新模組 + ChatMonitoringPage 重構 +
+            package.json 新增 socket.io / socket.io-client<br />
+            <strong>效益</strong>：訊息延遲從手動刷新（秒級）降至 &lt;100ms，管理員協作體驗大幅提升
+          </div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">預估 1 天</div>
+          <div class="ac-title">In-Memory Cache</div>
+          <div class="ac-body">
+            <strong>問題</strong>：每次 API 請求直接查詢 SQLite，高頻讀取可優化<br />
+            <strong>方案</strong>：Node.js <code>node-cache</code> 快取 RBAC 權限設定（長 TTL）+
+            黑名單查詢（30s TTL）<br />
+            <strong>Invalidation 策略</strong>：寫入操作後主動
+            <code>del(key)</code> 清除對應快取，避免髒讀。 operationLogger afterware
+            作為觸發點，確保 cache 與 DB 一致性<br />
+            <strong>影響</strong>：新增 cache.ts + permission middleware + blacklist service<br />
+            <strong>效益</strong>：RBAC 查詢 RT 預估降低 80%（記憶體 vs. SQLite I/O）
+          </div>
+        </div>
+        <div class="accent-card" data-color="amber">
+          <div class="ac-label">預估 1 天</div>
+          <div class="ac-title">Error Boundary 策略</div>
+          <div class="ac-body">
+            <strong>問題</strong>：前端缺乏系統性錯誤處理，React render error 可能白屏<br />
+            <strong>方案</strong>：頂層 ErrorBoundary + Axios interceptor 統一處理
+            401/403/429/500/離線<br />
+            <strong>細節</strong>：401 自動導回登入、403 顯示權限不足提示、429 顯示冷卻倒數、 500
+            顯示通用錯誤頁、離線狀態顯示 banner 提示<br />
+            <strong>影響</strong>：新增 ErrorBoundary.tsx + 增強 api/client.ts + App.tsx
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── P2 ─── -->
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        <span class="priority priority-p2">P2</span>&nbsp; UI/UX 優化 &amp; 工程實務
+      </h3>
+      <div class="grid-3 fade-in" style="margin-bottom: 16px">
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">預估 3 天</div>
+          <div class="ac-title">UI/UX 體驗升級</div>
+          <div class="ac-body">
+            <strong>問題</strong>：10
+            個頁面缺乏統一的載入狀態、空狀態、微互動回饋，使用者體驗不連貫<br />
+            <strong>方案（分三階段）</strong>：<br />
+            <strong>Phase 1 — 載入體驗（1 天）</strong><br />
+            &bull; 全域引入 Skeleton 骨架屏取代 Spin，表格 / 卡片 / 表單各一套模板<br />
+            &bull; 路由切換加入 <code>NProgress</code> 頂部進度條<br />
+            &bull; 操作按鈕加入 loading 態，防止重複提交<br />
+            <strong>Phase 2 — 空狀態 &amp; 引導（1 天）</strong><br />
+            &bull; 為「無資料」「篩選無結果」「搜尋無結果」設計三種 Empty 元件<br />
+            &bull; 關鍵操作（禁言/封鎖/刪除）加入 Popconfirm 二次確認，取代原生 confirm<br />
+            <strong>Phase 3 — 微互動（1 天）</strong><br />
+            &bull; 表格列新增/刪除時加入 <code>framer-motion</code> list animation<br />
+            &bull; 成功操作 toast 改用 Antd <code>message</code> 帶圖標，2 秒自動消失<br />
+            &bull; Sidebar 選中項加入 indicator 動畫<br />
+            <strong>影響</strong>：新增 Skeleton components + 更新所有 page loading 邏輯
+          </div>
+        </div>
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">預估 2 天</div>
+          <div class="ac-title">響應式設計 &amp; 無障礙</div>
+          <div class="ac-body">
+            <strong>問題</strong>：後台僅適配桌面版，無平板/行動裝置支援；缺乏基本無障礙標記<br />
+            <strong>方案</strong>：<br />
+            &bull; AdminLayout Sidebar 加入 Drawer 模式，≤768px 時自動收合為 hamburger<br />
+            &bull; 表格在小螢幕改為 Card List 排列（Antd Table
+            <code>responsive</code> breakpoint）<br />
+            &bull; 所有 icon-only 按鈕補上 <code>aria-label</code>，表單元件確保 label 關聯<br />
+            &bull; 色彩對比度檢查，確保 WCAG 2.1 AA 標準（contrast ratio ≥ 4.5:1）<br />
+            <strong>影響</strong>：AdminLayout.tsx + 各 page 表格元件 + theme tokens 微調<br />
+            <strong>效益</strong>：支援管理員以平板巡場監控，擴大使用場景
+          </div>
+        </div>
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">預估 1 天</div>
+          <div class="ac-title">前端效能優化</div>
+          <div class="ac-body">
+            <strong>問題</strong>：聊天監控頁面訊息量大時 DOM 節點爆增，列表渲染卡頓<br />
+            <strong>方案</strong>：<br />
+            &bull; 聊天訊息列表引入 <code>react-virtuoso</code> 虛擬滾動，僅渲染可視區域<br />
+            &bull; 路由層級 <code>React.lazy</code> + <code>Suspense</code> 拆分 code
+            splitting，首屏只載入當前頁面<br />
+            &bull; 搜尋/篩選輸入加入 <code>useDeferredValue</code> 防止高頻 re-render<br />
+            <strong>效益</strong>：萬級訊息頁面 FPS 維持 60，首屏 JS bundle 預估減少 40%<br />
+            <strong>影響</strong>：ChatMonitoringPage + router config + 搜尋元件
+          </div>
+        </div>
+      </div>
+      <div class="grid-3 fade-in" style="margin-bottom: 16px">
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">預估 1 天</div>
+          <div class="ac-title">CI/CD Pipeline</div>
+          <div class="ac-body">
+            <strong>問題</strong>：測試通過完全依賴開發者手動執行<br />
+            <strong>方案</strong>：GitHub Actions — lint → vitest run → npm run build，push to main
+            / PR 時自動觸發<br />
+            <strong>進階</strong>：E2E 為可選步驟，PR 標題帶 <code>[e2e]</code> 時觸發 Playwright on
+            CI<br />
+            <strong>影響</strong>：新增 .github/workflows/ci.yml
+          </div>
+        </div>
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">預估 2 天</div>
+          <div class="ac-title">Unit Test 覆蓋率提升</div>
+          <div class="ac-body">
+            <strong>問題</strong>：Unit test 僅 4 個，utility functions 未覆蓋<br />
+            <strong>方案</strong>：補齊 ResponseHelper / AppError / zodToAntdRules / Zod schemas
+            邊界值<br />
+            <strong>目標</strong>：middleware ≥ 90%、utility ≥ 85%、整體 statement coverage ≥ 70%
+          </div>
+        </div>
+        <div class="accent-card" data-color="blue">
+          <div class="ac-label">預估 2 天</div>
+          <div class="ac-title">共用 Component 抽取</div>
+          <div class="ac-body">
+            <strong>問題</strong>：10 個頁面僅 2 個 reusable component，相似 UI pattern 各自實作<br />
+            <strong>方案</strong>：抽取 ConfirmActionModal / SearchFilterForm / StatusTag /
+            DataTable（統一分頁/排序）<br />
+            <strong>原則</strong>：確認 3+ 使用場景才抽取，每個元件附帶 Storybook-like 範例
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── P3 ─── -->
+      <h3
+        style="font-family: var(--font-tc); font-size: 18px; font-weight: 600; margin: 40px 0 16px"
+        class="fade-in"
+      >
+        <span class="priority priority-p3">P3</span>&nbsp; 規模化演進
+      </h3>
+      <div class="grid-3 fade-in" style="margin-bottom: 16px">
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">預估 3–5 天</div>
+          <div class="ac-title">資料庫遷移：SQLite → PostgreSQL</div>
+          <div class="ac-body">
+            <strong>觸發指標</strong>：同時在線管理員 &gt;5 人且出現 <code>SQLITE_BUSY</code> 錯誤，
+            或單表資料量超過 50 萬筆查詢回應 &gt;200ms<br />
+            <strong>為何遷移</strong>：<br />
+            &bull; SQLite 單寫入鎖 — 多管理員同時操作聊天/黑名單/廣播時會產生寫入排隊<br />
+            &bull; 無原生全文搜尋 — 聊天訊息搜尋只能 LIKE，效能線性退化<br />
+            &bull; 無連線池 — 無法水平擴展至多 server instance<br />
+            <strong>方案（分階段降低風險）</strong>：<br />
+            <strong>Step 1</strong>：本地建立 PostgreSQL，修改 Knex config 切換 dialect（Knex
+            抽象層已到位）<br />
+            <strong>Step 2</strong>：跑全部 14 個 migration，驗證 SQL 相容性（已知問題：DATETIME →
+            TIMESTAMP、BOOLEAN → BOOLEAN、autoIncrement 差異）<br />
+            <strong>Step 3</strong>：撰寫資料遷移 script — pg_dump / knex seed 匯入既有資料<br />
+            <strong>Step 4</strong>：E2E 全量回歸測試確認功能一致<br />
+            <strong>附加效益</strong>：可啟用 pg_trgm 做模糊搜尋、JSONB 存結構化 log、支援
+            connection pooling<br />
+            <strong>風險</strong>：部署環境需額外維運 PostgreSQL（可用 managed service 如 Supabase /
+            Neon 降低維運成本）
+          </div>
+        </div>
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">預估 2 天</div>
+          <div class="ac-title">WebSocket 進階功能</div>
+          <div class="ac-body">
+            <strong>觸發指標</strong>：P1 WebSocket 基礎版上線後，管理員反映需要更多即時協作功能<br />
+            <strong>方案</strong>：<br />
+            &bull;
+            <strong>在線狀態追蹤</strong>：顯示哪些管理員正在監控哪個聊天室，避免重複操作<br />
+            &bull; <strong>打字指示器</strong>：管理員在輸入廣播/回覆時，其他人看到 "XXX
+            正在輸入…"<br />
+            &bull;
+            <strong>操作衝突預警</strong>：當兩位管理員同時編輯同一筆黑名單/廣播時，彈出提示<br />
+            &bull; <strong>即時通知中心</strong>：新檢舉、新玩家申請暱稱等事件推送至 Notification
+            Bell<br />
+            <strong>影響</strong>：擴展 socket event 頻道 + 新增 AdminPresence 元件 +
+            NotificationCenter
+          </div>
+        </div>
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">視用戶反饋決定</div>
+          <div class="ac-title">JWT Refresh Token</div>
+          <div class="ac-body">
+            <strong>觸發指標</strong>：用戶反映頻繁被登出（當前 JWT 4 小時過期）<br />
+            <strong>方案</strong>：Access Token 15min + Refresh Token 7d rotation，Axios interceptor
+            自動在 401 時 用 Refresh Token 換發新 Access Token<br />
+            <strong>安全設計</strong>：Refresh Token 存 HttpOnly Cookie（獨立 path
+            /api/auth/refresh）， 單次使用後即失效（rotation），偷取舊 token 無法重放<br />
+            <strong>影響</strong>：auth module 全面重構 + client interceptor + 新增 refresh
+            migration
+          </div>
+        </div>
+      </div>
+      <div class="grid-3 fade-in">
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">視資料量決定</div>
+          <div class="ac-title">Broadcast 狀態持久化</div>
+          <div class="ac-body">
+            <strong>觸發指標</strong>：廣播數量超過 1000 筆，列表查詢回應 &gt;500ms<br />
+            <strong>方案</strong>：新增 status column + cron 定時更新（node-cron 每分鐘），或結合 P1
+            的 cache 層做 computed cache<br />
+            <strong>影響</strong>：新增 migration + broadcast/service.ts
+          </div>
+        </div>
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">視查詢效能決定</div>
+          <div class="ac-title">資料庫 Index 優化</div>
+          <div class="ac-body">
+            <strong>觸發指標</strong>：任一查詢 API p95 回應時間 &gt;200ms<br />
+            <strong>候選欄位</strong>：<br />
+            &bull; <code>chat_messages(chatroom_id, created_at)</code> — 聊天室訊息時序查詢<br />
+            &bull; <code>blacklist(target_type, target)</code> — 黑名單比對<br />
+            &bull; <code>operation_logs(created_at)</code> — 操作日誌時間範圍查詢<br />
+            &bull; <code>reports(status, created_at)</code> — 待處理檢舉篩選<br />
+            <strong>方案</strong>：透過 Knex migration 新增複合索引，搭配
+            <code>EXPLAIN QUERY PLAN</code> 驗證命中
+          </div>
+        </div>
+        <div class="accent-card" data-color="emerald">
+          <div class="ac-label">預估 2 天</div>
+          <div class="ac-title">操作日誌儀表板</div>
+          <div class="ac-body">
+            <strong>觸發指標</strong>：管理團隊 &gt;3 人，需追蹤操作趨勢與異常行為<br />
+            <strong>方案</strong>：新增 Dashboard 頁面 — 每日操作量趨勢圖（Ant Design Charts）、
+            操作類型分佈圓餅圖、管理員活躍度排行、異常操作高亮（短時間大量刪除/封鎖）<br />
+            <strong>資料來源</strong>：operation_logs 現有欄位即可支撐，不需新增 schema<br />
+            <strong>影響</strong>：新增 DashboardPage + 對應 API 聚合查詢
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer>
+      <p>Chat Management Backstage — System Design Document</p>
+      <p style="margin-top: 8px">
+        Generated 2026-03-19 · 12 Phases Complete · 9 Modules · 48 Test Files
+      </p>
+    </footer>
+
+    <!-- ═══════════════ JS ═══════════════ -->
+    <script>
+      // Scroll fade-in
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('visible');
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+      document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+
+      // Nav active state
+      const navLinks = document.querySelectorAll('.nav a');
+      const sections = document.querySelectorAll('section[id]');
+      window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach((s) => {
+          if (window.scrollY >= s.offsetTop - 120) current = s.id;
+        });
+        navLinks.forEach((a) => {
+          a.classList.remove('active');
+          if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+        });
+      });
+    </script>
+
+    <!-- Scroll to Top -->
+    <button class="scroll-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Scroll to top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5" /><path d="M5 12l7-7 7 7" />
+      </svg>
+    </button>
+    <script>
+      const scrollTopBtn = document.querySelector('.scroll-top');
+      window.addEventListener('scroll', () => {
+        scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+      });
+    </script>
+  </body>
+</html>

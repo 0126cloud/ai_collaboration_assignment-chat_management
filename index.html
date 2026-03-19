@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Cowork — Chat Management Backstage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-primary: #f8f7f4;
+        --bg-secondary: #f0efe9;
+        --bg-card: #ffffff;
+        --bg-card-hover: #fafaf8;
+        --border: #e2e0d8;
+        --border-accent: #d0cec4;
+        --text-primary: #1a1a2e;
+        --text-secondary: #555566;
+        --text-muted: #8a8998;
+        --accent-indigo: #5b4cd6;
+        --accent-indigo-dim: rgba(91, 76, 214, 0.08);
+        --accent-teal: #0f9b8e;
+        --accent-teal-dim: rgba(15, 155, 142, 0.07);
+        --accent-amber: #c8920a;
+        --accent-amber-dim: rgba(200, 146, 10, 0.08);
+        --accent-rose: #d44a7a;
+        --accent-rose-dim: rgba(212, 74, 122, 0.07);
+        --accent-emerald: #2e8b60;
+        --accent-emerald-dim: rgba(46, 139, 96, 0.07);
+        --accent-blue: #3b7dd8;
+        --accent-blue-dim: rgba(59, 125, 216, 0.08);
+        --font-display: 'DM Serif Display', serif;
+        --font-body: 'IBM Plex Sans', 'Noto Sans TC', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --font-tc: 'Noto Sans TC', sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: var(--font-body);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+      }
+      ::selection {
+        background: var(--accent-indigo);
+        color: white;
+      }
+
+      /* ─── Background ─── */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 600px 400px at 25% 30%, rgba(91, 76, 214, 0.06), transparent),
+          radial-gradient(ellipse 500px 500px at 75% 65%, rgba(15, 155, 142, 0.05), transparent),
+          radial-gradient(ellipse 400px 300px at 50% 50%, rgba(200, 146, 10, 0.03), transparent);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(91, 76, 214, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(91, 76, 214, 0.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+        mask-image: radial-gradient(ellipse 80% 70% at center, black, transparent);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      /* ─── Content ─── */
+      .container {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        max-width: 880px;
+        padding: 60px 24px;
+        text-align: center;
+      }
+
+      .top-label {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent-indigo);
+        margin-bottom: 24px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.2s;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-size: clamp(38px, 6vw, 72px);
+        font-weight: 400;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        margin-bottom: 16px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.4s;
+      }
+      h1 em {
+        font-style: italic;
+        color: var(--accent-indigo);
+      }
+
+      .subtitle {
+        font-family: var(--font-tc);
+        font-size: 18px;
+        font-weight: 300;
+        color: var(--text-secondary);
+        max-width: 480px;
+        margin: 0 auto 64px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.6s;
+      }
+
+      /* ─── Cards ─── */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.8s;
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 40px 32px 36px;
+        text-align: left;
+        text-decoration: none;
+        color: inherit;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+      }
+      .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        border-radius: 16px 16px 0 0;
+        opacity: 0;
+        transition: opacity 0.35s ease;
+      }
+      .card:hover {
+        border-color: var(--border-accent);
+        transform: translateY(-4px);
+        box-shadow:
+          0 8px 30px rgba(0, 0, 0, 0.06),
+          0 2px 8px rgba(0, 0, 0, 0.03);
+      }
+      .card:hover::before {
+        opacity: 1;
+      }
+
+      .card--system::before {
+        background: linear-gradient(90deg, var(--accent-indigo), var(--accent-teal));
+      }
+      .card--collab::before {
+        background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose));
+      }
+
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+        font-size: 22px;
+      }
+      .card--system .card-icon {
+        background: var(--accent-indigo-dim);
+        color: var(--accent-indigo);
+      }
+      .card--collab .card-icon {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+      }
+
+      .card-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+
+      .card h2 {
+        font-family: var(--font-display);
+        font-size: 26px;
+        font-weight: 400;
+        line-height: 1.2;
+        margin-bottom: 12px;
+      }
+
+      .card p {
+        font-family: var(--font-tc);
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 24px;
+      }
+
+      .card-arrow {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: gap 0.3s ease;
+      }
+      .card--system .card-arrow {
+        color: var(--accent-indigo);
+      }
+      .card--collab .card-arrow {
+        color: var(--accent-amber);
+      }
+      .card:hover .card-arrow {
+        gap: 14px;
+      }
+
+      /* ─── Footer ─── */
+      .footer {
+        position: relative;
+        z-index: 1;
+        margin-top: 48px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 1s;
+      }
+      .footer span {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      /* ─── Animations ─── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 640px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
+        .card {
+          padding: 32px 24px 28px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+
+    <div class="container">
+      <div class="top-label">AI Cowork</div>
+      <h1>Chat Management <em>Backstage</em></h1>
+      <p class="subtitle">聊天管理後台系統 — 專案文件總覽</p>
+
+      <div class="cards">
+        <a href="system-design.html" class="card card--system">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <path d="M8 21h8" />
+              <path d="M12 17v4" />
+              <path d="M7 8h2" />
+              <path d="M7 11h4" />
+            </svg>
+          </div>
+          <div class="card-label">Architecture</div>
+          <h2>System Design</h2>
+          <p>系統架構設計與完成度總覽 — 涵蓋前後端架構、資料庫設計、RBAC 權限系統與測試策略</p>
+          <span class="card-arrow">View &rarr;</span>
+        </a>
+
+        <a href="collaboration-insight.html" class="card card--collab">
+          <div class="card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div class="card-label">Analytics</div>
+          <h2>Collaboration Insight</h2>
+          <p>AI 協作分析與洞察 — 開發時程、協作數據、Session 細節與 AI 協作評估</p>
+          <span class="card-arrow">View &rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>AI Cowork &middot; 2025</span>
+    </div>
+  </body>
+</html>

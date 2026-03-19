@@ -1,0 +1,4101 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Cowork — Collaboration Insight</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-primary: #f8f7f4;
+        --bg-secondary: #f0efe9;
+        --bg-card: #ffffff;
+        --bg-card-hover: #fafaf8;
+        --border: #e2e0d8;
+        --border-accent: #d0cec4;
+        --text-primary: #1a1a2e;
+        --text-secondary: #555566;
+        --text-muted: #8a8998;
+        --accent-indigo: #5b4cd6;
+        --accent-indigo-dim: rgba(91, 76, 214, 0.08);
+        --accent-teal: #0f9b8e;
+        --accent-teal-dim: rgba(15, 155, 142, 0.07);
+        --accent-amber: #c8920a;
+        --accent-amber-dim: rgba(200, 146, 10, 0.08);
+        --accent-rose: #d44a7a;
+        --accent-rose-dim: rgba(212, 74, 122, 0.07);
+        --accent-emerald: #2e8b60;
+        --accent-blue: #3b7dd8;
+        --font-display: 'DM Serif Display', serif;
+        --font-body: 'IBM Plex Sans', 'Noto Sans TC', sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --font-tc: 'Noto Sans TC', sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.7;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+
+      ::selection {
+        background: var(--accent-indigo);
+        color: white;
+      }
+
+      /* ─── Hero ─── */
+      .hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        padding: 60px 24px;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 600px 400px at 30% 20%, rgba(91, 76, 214, 0.06), transparent),
+          radial-gradient(ellipse 500px 500px at 70% 70%, rgba(15, 155, 142, 0.05), transparent),
+          radial-gradient(ellipse 400px 300px at 50% 50%, rgba(200, 146, 10, 0.04), transparent);
+        pointer-events: none;
+      }
+
+      .hero-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(91, 76, 214, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(91, 76, 214, 0.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+        mask-image: radial-gradient(ellipse 80% 70% at center, black, transparent);
+        pointer-events: none;
+      }
+
+      .hero-label {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent-indigo);
+        margin-bottom: 24px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.3s;
+      }
+
+      .hero h1 {
+        font-family: var(--font-display);
+        font-size: clamp(44px, 7vw, 90px);
+        font-weight: 400;
+        line-height: 1.1;
+        letter-spacing: -1px;
+        margin-bottom: 20px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.5s;
+      }
+
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent-indigo);
+      }
+
+      .hero-sub {
+        font-family: var(--font-tc);
+        font-size: 19px;
+        font-weight: 300;
+        color: var(--text-secondary);
+        max-width: 520px;
+        margin-bottom: 48px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.7s;
+      }
+
+      .hero-stats {
+        display: flex;
+        gap: 48px;
+        flex-wrap: wrap;
+        justify-content: center;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 0.9s;
+      }
+
+      .hero-stat {
+        text-align: center;
+      }
+
+      .hero-stat .num {
+        font-family: var(--font-display);
+        font-size: 42px;
+        color: var(--text-primary);
+        display: block;
+      }
+
+      .hero-stat .unit {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 4px;
+        display: block;
+      }
+
+      .hero-scroll {
+        position: absolute;
+        bottom: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        opacity: 0;
+        animation: fadeUp 0.8s ease forwards 1.2s;
+      }
+
+      .hero-scroll span {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+
+      .hero-scroll .line {
+        width: 1px;
+        height: 40px;
+        background: linear-gradient(to bottom, var(--accent-indigo), transparent);
+        animation: scrollPulse 2s ease infinite;
+      }
+
+      @keyframes scrollPulse {
+        0%,
+        100% {
+          opacity: 0.3;
+          transform: scaleY(0.6);
+        }
+        50% {
+          opacity: 1;
+          transform: scaleY(1);
+        }
+      }
+
+      /* ─── Navigation ─── */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(248, 247, 244, 0.88);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        padding: 0 24px;
+      }
+
+      .nav-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .nav-inner::-webkit-scrollbar {
+        display: none;
+      }
+
+      .nav a {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-decoration: none;
+        padding: 16px 20px;
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+      }
+
+      .nav a:hover,
+      .nav a.active {
+        color: var(--accent-indigo);
+        border-bottom-color: var(--accent-indigo);
+      }
+
+      /* ─── Sections ─── */
+      section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 100px 24px;
+      }
+
+      .section-header {
+        margin-bottom: 60px;
+      }
+
+      .section-label {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        color: var(--accent-indigo);
+        margin-bottom: 12px;
+      }
+
+      .section-title {
+        font-family: var(--font-display);
+        font-size: clamp(30px, 4vw, 46px);
+        font-weight: 400;
+        line-height: 1.2;
+        margin-bottom: 16px;
+      }
+
+      .section-desc {
+        font-size: 17px;
+        color: var(--text-secondary);
+        max-width: 640px;
+        font-weight: 300;
+      }
+
+      /* ─── Summary Cards ─── */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 60px;
+      }
+
+      .kpi-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      .kpi-card:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-card-hover);
+        transform: translateY(-2px);
+      }
+
+      .kpi-card .label {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+
+      .kpi-card .value {
+        font-family: var(--font-display);
+        font-size: 34px;
+        color: var(--text-primary);
+      }
+
+      .kpi-card .sub {
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+      }
+
+      .kpi-card[data-accent='indigo'] {
+        border-left: 3px solid var(--accent-indigo);
+      }
+      .kpi-card[data-accent='teal'] {
+        border-left: 3px solid var(--accent-teal);
+      }
+      .kpi-card[data-accent='amber'] {
+        border-left: 3px solid var(--accent-amber);
+      }
+      .kpi-card[data-accent='rose'] {
+        border-left: 3px solid var(--accent-rose);
+      }
+      .kpi-card[data-accent='emerald'] {
+        border-left: 3px solid var(--accent-emerald);
+      }
+
+      /* ─── Charts ─── */
+      .chart-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        margin-bottom: 32px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+      }
+
+      .chart-panel h3 {
+        font-family: var(--font-body);
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+
+      .chart-panel .chart-sub {
+        font-size: 15px;
+        color: var(--text-muted);
+        margin-bottom: 24px;
+      }
+
+      .chart-wrapper {
+        position: relative;
+        height: 360px;
+      }
+
+      .chart-insight {
+        margin-top: 24px;
+        padding: 20px 24px;
+        background: var(--accent-indigo-dim);
+        border-left: 3px solid var(--accent-indigo);
+        border-radius: 0 10px 10px 0;
+        font-size: 15px;
+        line-height: 1.8;
+        color: var(--text-secondary);
+      }
+
+      .chart-insight strong {
+        color: var(--accent-indigo);
+        font-weight: 600;
+      }
+
+      .chart-insight .hl {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-weight: 600;
+        font-family: var(--font-mono);
+        font-size: 12px;
+      }
+
+      .chart-insight ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .chart-insight li {
+        margin-bottom: 4px;
+      }
+
+      /* ─── Timeline ─── */
+      .timeline {
+        position: relative;
+        padding-left: 40px;
+      }
+
+      .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: linear-gradient(
+          to bottom,
+          var(--accent-indigo),
+          var(--accent-teal),
+          var(--accent-amber),
+          var(--accent-rose)
+        );
+      }
+
+      .tl-day {
+        margin-bottom: 48px;
+        position: relative;
+      }
+
+      .tl-day-label {
+        position: relative;
+        font-family: var(--font-display);
+        font-size: 24px;
+        margin-bottom: 24px;
+        padding-top: 4px;
+      }
+
+      .tl-day-label::before {
+        content: '';
+        position: absolute;
+        left: -29px;
+        top: 10px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent-indigo);
+        box-shadow: 0 0 10px rgba(91, 76, 214, 0.3);
+      }
+
+      .tl-day-sub {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-left: 12px;
+        font-style: normal;
+        font-weight: 400;
+      }
+
+      .tl-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .tl-item::before {
+        content: '';
+        position: absolute;
+        left: -29px;
+        top: 24px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--text-muted);
+      }
+
+      .tl-item:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-card-hover);
+      }
+
+      .tl-item-num {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--accent-indigo);
+        margin-bottom: 4px;
+      }
+
+      .tl-item h4 {
+        font-family: var(--font-tc);
+        font-size: 17px;
+        font-weight: 500;
+        margin-bottom: 8px;
+        line-height: 1.4;
+      }
+
+      .tl-item ul {
+        padding-left: 18px;
+        font-size: 15px;
+        color: var(--text-secondary);
+      }
+
+      .tl-item li {
+        margin-bottom: 3px;
+      }
+
+      .tl-item code {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        background: rgba(123, 108, 246, 0.1);
+        color: var(--accent-indigo);
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+
+      .tl-phase-tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-bottom: 8px;
+      }
+
+      .tl-phase-tag[data-phase='research'] {
+        background: var(--accent-indigo-dim);
+        color: var(--accent-indigo);
+      }
+      .tl-phase-tag[data-phase='build'] {
+        background: var(--accent-teal-dim);
+        color: var(--accent-teal);
+      }
+      .tl-phase-tag[data-phase='polish'] {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+      }
+      .tl-phase-tag[data-phase='review'] {
+        background: var(--accent-rose-dim);
+        color: var(--accent-rose);
+      }
+
+      /* ─── Insights ─── */
+      .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+      }
+
+      .insight-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      .insight-card:hover {
+        border-color: var(--border-accent);
+        transform: translateY(-3px);
+      }
+
+      .insight-card .icon {
+        font-size: 28px;
+        margin-bottom: 16px;
+        display: block;
+      }
+
+      .insight-card h4 {
+        font-family: var(--font-display);
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+
+      .insight-card p {
+        font-size: 16px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+      }
+
+      /* ─── Score ─── */
+      .score-hero {
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+      .score-ring {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto 24px;
+      }
+
+      .score-ring svg {
+        width: 200px;
+        height: 200px;
+        transform: rotate(-90deg);
+      }
+
+      .score-ring circle {
+        fill: none;
+        stroke-width: 6;
+      }
+
+      .score-ring .track {
+        stroke: var(--border);
+      }
+      .score-ring .fill {
+        stroke: var(--accent-indigo);
+        stroke-dasharray: 565;
+        stroke-dashoffset: 67.8;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 8px rgba(91, 76, 214, 0.3));
+        transition: stroke-dashoffset 1.5s ease;
+      }
+
+      .score-ring .score-num {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .score-ring .score-num span:first-child {
+        font-family: var(--font-display);
+        font-size: 56px;
+        line-height: 1;
+      }
+
+      .score-ring .score-num span:last-child {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-muted);
+        letter-spacing: 2px;
+      }
+
+      .score-breakdown {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      .score-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .score-item:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-card-hover);
+      }
+
+      .score-item .score-val {
+        font-family: var(--font-display);
+        font-size: 28px;
+        min-width: 48px;
+        text-align: center;
+      }
+
+      .score-item .score-detail h5 {
+        font-family: var(--font-tc);
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      .score-item .score-detail p {
+        font-size: 14px;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
+      .score-bar {
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+
+      .score-bar .fill {
+        height: 100%;
+        border-radius: 2px;
+        background: var(--accent-indigo);
+        transition: width 1s ease;
+      }
+
+      /* ─── Suggestions ─── */
+      .suggest-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 20px;
+      }
+
+      .suggest-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 28px;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      .suggest-card:hover {
+        border-color: var(--border-accent);
+        background: var(--bg-card-hover);
+      }
+
+      .suggest-card .tag {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--accent-teal);
+        margin-bottom: 10px;
+        display: block;
+      }
+
+      .suggest-card h4 {
+        font-family: var(--font-tc);
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 12px;
+      }
+
+      .suggest-card p {
+        font-size: 15px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+      }
+
+      .suggest-card .current {
+        font-size: 14px;
+        color: var(--text-muted);
+        padding: 10px 14px;
+        background: rgba(0, 0, 0, 0.02);
+        border-radius: 8px;
+        margin-top: 14px;
+        border-left: 2px solid var(--border-accent);
+      }
+
+      .suggest-card .current strong {
+        color: var(--text-secondary);
+      }
+
+      /* ─── Phase Progress ─── */
+      .phase-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 6px;
+        font-size: 16px;
+      }
+
+      .phase-table th {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+        padding: 8px 16px;
+        font-weight: 400;
+      }
+
+      .phase-table td {
+        padding: 14px 16px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .phase-table td:first-child {
+        border-left: 1px solid var(--border);
+        border-radius: 10px 0 0 10px;
+      }
+
+      .phase-table td:last-child {
+        border-right: 1px solid var(--border);
+        border-radius: 0 10px 10px 0;
+      }
+
+      .phase-table tr:hover td {
+        background: var(--bg-card-hover);
+        border-color: var(--border-accent);
+      }
+
+      .status-badge {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        display: inline-block;
+      }
+
+      .status-badge.done {
+        background: rgba(76, 175, 132, 0.15);
+        color: var(--accent-emerald);
+      }
+      .status-badge.wip {
+        background: var(--accent-amber-dim);
+        color: var(--accent-amber);
+      }
+      .status-badge.doc {
+        background: var(--accent-indigo-dim);
+        color: var(--accent-indigo);
+      }
+
+      /* ─── Session Table ─── */
+      .session-table-wrap {
+        overflow-x: auto;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+      }
+
+      .session-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 1000px;
+      }
+
+      .session-table th {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        text-align: left;
+        padding: 14px 10px;
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        background: var(--bg-card);
+        font-weight: 400;
+      }
+
+      .session-table td {
+        padding: 10px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        color: var(--text-secondary);
+      }
+
+      .session-table tr:hover td {
+        background: var(--bg-card-hover);
+        color: var(--text-primary);
+      }
+
+      .model-tag {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+      }
+
+      .model-tag.opus {
+        background: rgba(139, 92, 246, 0.1);
+        color: #7c3aed;
+      }
+      .model-tag.sonnet {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+      }
+
+      .table-scroll-hint {
+        text-align: center;
+        padding: 12px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+        letter-spacing: 1px;
+      }
+
+      /* ─── Workflow ─── */
+      .workflow-steps {
+        display: flex;
+        gap: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin: 40px 0;
+      }
+
+      .workflow-step {
+        display: flex;
+        align-items: center;
+        gap: 0;
+      }
+
+      .workflow-step .step-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 14px 20px;
+        text-align: center;
+        font-family: var(--font-tc);
+        font-size: 13px;
+        font-weight: 500;
+        min-width: 100px;
+        transition: all 0.3s ease;
+      }
+
+      .workflow-step .step-box:hover {
+        border-color: var(--accent-indigo);
+        transform: translateY(-2px);
+      }
+
+      .workflow-step .arrow {
+        color: var(--text-muted);
+        font-size: 18px;
+        padding: 0 8px;
+      }
+
+      /* ─── Skills ─── */
+      .skill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .skill-tag {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+        cursor: default;
+      }
+
+      .skill-tag:hover {
+        border-color: var(--accent-indigo);
+        color: var(--accent-indigo);
+        background: var(--accent-indigo-dim);
+      }
+
+      /* ─── Footer ─── */
+      .footer {
+        text-align: center;
+        padding: 60px 24px;
+        border-top: 1px solid var(--border);
+        font-size: 15px;
+        color: var(--text-muted);
+      }
+
+      .footer .quote {
+        font-family: var(--font-display);
+        font-size: 24px;
+        font-style: italic;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto 24px;
+        line-height: 1.5;
+      }
+
+      /* ─── Animations ─── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s ease;
+      }
+
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ─── Responsive ─── */
+      @media (max-width: 768px) {
+        .hero-stats {
+          gap: 24px;
+        }
+        .hero-stat .num {
+          font-size: 28px;
+        }
+        section {
+          padding: 60px 16px;
+        }
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .insight-grid,
+        .suggest-grid {
+          grid-template-columns: 1fr;
+        }
+        .score-breakdown {
+          grid-template-columns: 1fr;
+        }
+        .timeline {
+          padding-left: 30px;
+        }
+        .workflow-steps {
+          flex-direction: column;
+          align-items: center;
+        }
+        .workflow-step .arrow {
+          transform: rotate(90deg);
+          padding: 4px 0;
+        }
+      }
+
+      /* ─── Divider ─── */
+      .section-divider {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      .section-divider hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--border-accent), transparent);
+      }
+
+      /* ─── At a Glance ─── */
+      .glance-wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 64px 24px 48px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+
+      @media (max-width: 768px) {
+        .glance-wrap {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .glance-block {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 24px 28px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      .glance-block.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .glance-block-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 14px;
+      }
+
+      .glance-desc {
+        font-family: var(--font-tc);
+        font-size: 16px;
+        color: var(--text-secondary);
+        line-height: 1.85;
+      }
+
+      /* Phase rhythm bar */
+      .phase-rhythm {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        height: 44px;
+        margin-bottom: 12px;
+      }
+
+      .phase-rhythm-segment {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.5px;
+        line-height: 1.3;
+        padding: 0 10px;
+        text-align: center;
+        color: white;
+        font-weight: 500;
+      }
+
+      .phase-rhythm-segment.research {
+        background: var(--accent-indigo);
+        flex: 2;
+      }
+      .phase-rhythm-segment.burst {
+        background: var(--accent-teal);
+        flex: 1;
+      }
+      .phase-rhythm-segment.converge {
+        background: var(--accent-amber);
+        flex: 1;
+      }
+      .phase-rhythm-segment.wrap {
+        background: var(--accent-rose);
+        flex: 0.5;
+      }
+
+      .phase-rhythm-labels {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+
+      .phase-rhythm-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      .phase-rhythm-label span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+
+      /* Module grid */
+      .module-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .module-item {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-family: var(--font-tc);
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-align: center;
+        transition: all 0.2s ease;
+      }
+
+      .module-item:hover {
+        border-color: var(--accent-indigo);
+        color: var(--accent-indigo);
+        background: var(--accent-indigo-dim);
+      }
+
+      /* Workflow mini */
+      .workflow-mini {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0;
+      }
+
+      .workflow-mini-step {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-secondary);
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        white-space: nowrap;
+      }
+
+      .workflow-mini-arrow {
+        color: var(--text-muted);
+        font-size: 14px;
+        padding: 0 4px;
+      }
+
+      /* Tech badges */
+      .tech-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tech-badge {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        transition: all 0.2s ease;
+        cursor: default;
+      }
+
+      .tech-badge:hover {
+        border-color: var(--accent-indigo);
+        color: var(--accent-indigo);
+        background: var(--accent-indigo-dim);
+      }
+
+      .tech-badge.fe {
+        border-color: rgba(91, 76, 214, 0.3);
+        color: var(--accent-indigo);
+        background: var(--accent-indigo-dim);
+      }
+      .tech-badge.be {
+        border-color: rgba(15, 155, 142, 0.3);
+        color: var(--accent-teal);
+        background: var(--accent-teal-dim);
+      }
+      .tech-badge.test {
+        border-color: rgba(200, 146, 10, 0.3);
+        color: var(--accent-amber);
+        background: var(--accent-amber-dim);
+      }
+
+      /* ─── Derived Charts ─── */
+      .chart-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 32px;
+      }
+
+      @media (max-width: 768px) {
+        .chart-grid-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .chart-wrapper-sm {
+        position: relative;
+        height: 260px;
+      }
+
+      /* Heatmap */
+      .heatmap-container {
+        overflow-x: auto;
+      }
+
+      .heatmap-grid-wrap {
+        display: flex;
+        gap: 12px;
+        min-width: 560px;
+      }
+
+      .heatmap-y-labels {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-top: 24px;
+        padding-bottom: 4px;
+      }
+
+      .heatmap-y-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--text-muted);
+        line-height: 1;
+        text-align: right;
+        height: 28px;
+        display: flex;
+        align-items: center;
+      }
+
+      .heatmap-main {
+        flex: 1;
+      }
+
+      .heatmap-x-labels {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        margin-bottom: 4px;
+      }
+
+      .heatmap-x-label {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--text-muted);
+        text-align: center;
+      }
+
+      .heatmap-cells {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(8, 28px);
+        gap: 3px;
+      }
+
+      .heatmap-cell {
+        border-radius: 4px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        transition: all 0.2s ease;
+        cursor: default;
+        position: relative;
+      }
+
+      .heatmap-cell[data-level='0'] {
+        background: var(--bg-secondary);
+        border-color: var(--border);
+      }
+      .heatmap-cell[data-level='1'] {
+        background: rgba(91, 76, 214, 0.15);
+        border-color: rgba(91, 76, 214, 0.2);
+      }
+      .heatmap-cell[data-level='2'] {
+        background: rgba(91, 76, 214, 0.35);
+        border-color: rgba(91, 76, 214, 0.4);
+      }
+      .heatmap-cell[data-level='3'] {
+        background: rgba(91, 76, 214, 0.65);
+        border-color: rgba(91, 76, 214, 0.7);
+      }
+
+      .heatmap-cell:hover::after {
+        content: attr(data-tip);
+        position: absolute;
+        bottom: calc(100% + 4px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--text-primary);
+        color: white;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .heatmap-legend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 10px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--text-muted);
+      }
+
+      .heatmap-legend-box {
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
+        border: 1px solid transparent;
+      }
+
+      /* ─── What's Next ─── */
+      .next-desc {
+        font-family: var(--font-tc);
+        font-size: 17px;
+        color: var(--text-secondary);
+        margin-bottom: 32px;
+        font-weight: 300;
+      }
+      /* ─── Back to Home ─── */
+      .back-home {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.3s ease;
+        z-index: 10;
+      }
+      .back-home:hover {
+        color: var(--accent-indigo);
+      }
+      .back-home svg {
+        transition: transform 0.3s ease;
+      }
+      .back-home:hover svg {
+        transform: translateX(-3px);
+      }
+
+      /* ─── Scroll to Top ─── */
+      .scroll-top {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+      .scroll-top.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      .scroll-top:hover {
+        border-color: var(--accent-indigo);
+        color: var(--accent-indigo);
+        box-shadow: 0 4px 16px rgba(91, 76, 214, 0.12);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════════════════ HERO ════════════════════ -->
+    <div class="hero" id="top">
+      <div class="hero-grid"></div>
+      <a href="index.html" class="back-home">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5" /><path d="M12 19l-7-7 7-7" />
+        </svg>
+        Home
+      </a>
+      <div class="hero-label">AI Cowork · Chat Management Backstage</div>
+      <h1>Collaboration <em>Insight</em></h1>
+      <p class="hero-sub">
+        後台聊天管理系統 — 6 天 77 個 session 的人機協作全紀錄<br />
+        2026-03-14 ~ 2026-03-19
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="num">77</span><span class="unit">Sessions</span></div>
+        <div class="hero-stat"><span class="num">583.5M</span><span class="unit">Tokens</span></div>
+        <div class="hero-stat"><span class="num">12</span><span class="unit">Phases</span></div>
+      </div>
+      <div class="hero-scroll">
+        <span>Scroll</span>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ DATA SOURCE NOTE ════════════════════ -->
+    <div style="max-width: 1200px; margin: -40px auto 0; padding: 0 24px">
+      <div
+        style="
+          background: var(--accent-indigo-dim);
+          border: 1px solid rgba(91, 76, 214, 0.15);
+          border-radius: 12px;
+          padding: 18px 24px;
+          font-family: var(--font-tc);
+          font-size: 14px;
+          color: var(--text-secondary);
+          line-height: 1.8;
+          text-align: center;
+        "
+      >
+        本報告所有數據均來自
+        <strong style="color: var(--accent-indigo)">Claude Code</strong>
+        對話紀錄的自動抓取與分析，包含 session 時間、token 用量、對話主題等原始資料，再由 AI
+        進行統計、歸納與視覺化呈現。
+      </div>
+    </div>
+
+    <!-- ════════════════════ AT A GLANCE ════════════════════ -->
+    <div class="glance-wrap fade-in">
+      <div class="glance-block full-width">
+        <div class="glance-block-label">Project</div>
+        <p class="glance-desc">
+          聊天管理後台系統 —
+          供管理人員即時監控聊天訊息、管理玩家黑名單、審核暱稱變更、發送系統廣播訊息，以及追蹤所有管理操作紀錄。
+        </p>
+      </div>
+
+      <div class="glance-block">
+        <div class="glance-block-label">Three-Phase Rhythm</div>
+        <div class="phase-rhythm">
+          <div class="phase-rhythm-segment research">研究期<br />3/14, 3/16</div>
+          <div class="phase-rhythm-segment burst">爆發期<br />3/17 — 6 modules</div>
+          <div class="phase-rhythm-segment converge">收斂期<br />3/18</div>
+          <div class="phase-rhythm-segment wrap">收尾<br />3/19</div>
+        </div>
+        <div class="phase-rhythm-labels">
+          <span class="phase-rhythm-label"
+            ><span style="background: var(--accent-indigo)"></span>研究 2天</span
+          >
+          <span class="phase-rhythm-label"
+            ><span style="background: var(--accent-teal)"></span>爆發 1天</span
+          >
+          <span class="phase-rhythm-label"
+            ><span style="background: var(--accent-amber)"></span>收斂 1天</span
+          >
+          <span class="phase-rhythm-label"
+            ><span style="background: var(--accent-rose)"></span>收尾</span
+          >
+        </div>
+      </div>
+
+      <div class="glance-block">
+        <div class="glance-block-label">9 Functional Modules</div>
+        <div class="module-grid">
+          <div class="module-item">認證登入</div>
+          <div class="module-item">聊天監控</div>
+          <div class="module-item">聊天室管理</div>
+          <div class="module-item">黑名單管理</div>
+          <div class="module-item">IP 封鎖</div>
+          <div class="module-item">操作紀錄</div>
+          <div class="module-item">系統廣播</div>
+          <div class="module-item">暱稱審核</div>
+          <div class="module-item">玩家檢舉</div>
+        </div>
+      </div>
+
+      <div class="glance-block full-width">
+        <div class="glance-block-label">Core Methodology — Document-Driven Flow</div>
+        <div class="workflow-mini">
+          <div class="workflow-mini-step">素材</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">PRD</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">RFC</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">Gherkin</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">Tasks</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">Code</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">Test</div>
+          <div class="workflow-mini-arrow">→</div>
+          <div class="workflow-mini-step">Commit</div>
+        </div>
+      </div>
+
+      <div class="glance-block full-width">
+        <div class="glance-block-label">Tech Stack</div>
+        <div class="tech-badges">
+          <span class="tech-badge fe">React 18</span>
+          <span class="tech-badge fe">Vite</span>
+          <span class="tech-badge fe">TypeScript</span>
+          <span class="tech-badge fe">Ant Design 6</span>
+          <span class="tech-badge be">Express.js</span>
+          <span class="tech-badge be">SQLite</span>
+          <span class="tech-badge be">Knex.js</span>
+          <span class="tech-badge be">JWT</span>
+          <span class="tech-badge test">Playwright</span>
+          <span class="tech-badge test">Vitest</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════ NAV ════════════════════ -->
+    <nav class="nav">
+      <div class="nav-inner">
+        <a href="#derived">Derived</a>
+        <a href="#timeline">Timeline</a>
+        <a href="#insights">Insights</a>
+        <a href="#evaluation">Evaluation</a>
+        <a href="#sessions">Sessions</a>
+      </div>
+    </nav>
+
+    <!-- ════════════════════ DERIVED DATA ════════════════════ -->
+    <section id="derived">
+      <div class="section-header fade-in">
+        <div class="section-label">Part 1</div>
+        <h2 class="section-title">Derived Data</h2>
+        <p class="section-desc">
+          從原始 session 資料計算出的次級指標 — 模型分布、時段熱力圖、並行協作曲線、各 Phase
+          投入量。
+        </p>
+      </div>
+
+      <!-- A. Activity Heatmap -->
+      <div class="chart-panel fade-in">
+        <h3>Activity Heatmap</h3>
+        <p class="chart-sub">每日 × 每 3 小時時段的 session 數量（深色 = 高活躍度）</p>
+        <div class="heatmap-container">
+          <div class="heatmap-grid-wrap">
+            <div class="heatmap-y-labels" id="heatmapYLabels"></div>
+            <div class="heatmap-main">
+              <div class="heatmap-x-labels" id="heatmapXLabels"></div>
+              <div class="heatmap-cells" id="heatmapGrid"></div>
+            </div>
+          </div>
+        </div>
+        <div class="heatmap-legend">
+          <span>少</span>
+          <div
+            class="heatmap-legend-box"
+            style="background: var(--bg-secondary); border-color: var(--border)"
+          ></div>
+          <div
+            class="heatmap-legend-box"
+            style="background: rgba(91, 76, 214, 0.15); border-color: rgba(91, 76, 214, 0.2)"
+          ></div>
+          <div
+            class="heatmap-legend-box"
+            style="background: rgba(91, 76, 214, 0.35); border-color: rgba(91, 76, 214, 0.4)"
+          ></div>
+          <div
+            class="heatmap-legend-box"
+            style="background: rgba(91, 76, 214, 0.65); border-color: rgba(91, 76, 214, 0.7)"
+          ></div>
+          <span>多</span>
+        </div>
+        <div class="chart-insight">
+          <strong>Insight — 開發節奏一目了然</strong>：3/14 僅有下午單格活動，3/15 完全空白，3/16
+          從早到晚均勻分布，3/17–18 呈現密集連續區塊。 最暗的格子是 3/18 06:00–09:00（10
+          sessions）與 3/18 21:00–00:00（8 sessions），代表兩個高峰爆發期。
+        </div>
+      </div>
+
+      <!-- B. Session Concurrency -->
+      <div class="chart-panel fade-in">
+        <h3>Session Concurrency per 3-hour Bucket</h3>
+        <p class="chart-sub">
+          每個 3 小時時段中，同時進行中的 session 數量（跨越該時段的 session 計入）
+        </p>
+        <div class="chart-wrapper"><canvas id="concurrencyChart"></canvas></div>
+        <div class="chart-insight">
+          <strong>Insight — 平行 Agent 協作模式</strong>：多數時段有 3–6 個 session 同時進行，最高峰
+          3/18 09:00–12:00 達到 <strong>11 個並行 session</strong>。 這正是「平行
+          Agent」協作模式的直接體現 — 多個獨立任務同步推進。
+        </div>
+      </div>
+
+      <!-- D. Per-Phase Investment -->
+      <div class="chart-panel fade-in">
+        <h3>Per-Phase Token Investment</h3>
+        <p class="chart-sub">各 Phase 的 total tokens 加總（依 topicMap 分類）</p>
+        <div class="chart-wrapper"><canvas id="phaseChart"></canvas></div>
+        <div class="chart-insight">
+          <strong>Insight — 投入量反映任務複雜度</strong>：測試實踐（Phase 11）以 118.7M tokens
+          遙遙領先，主要因為包含一個 102.8M 的超長 Opus session；認證與回應格式（Phase 1）以 97.8M
+          位居第二，因為該階段建立了整體框架與 19 個相關 session。Docs/Research 的 66.3M
+          則反映了前期大量研究投入的價值。
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"><hr /></div>
+
+    <!-- ════════════════════ TIMELINE ════════════════════ -->
+    <section id="timeline">
+      <div class="section-header fade-in">
+        <div class="section-label">Part 2</div>
+        <h2 class="section-title">Collaboration Timeline</h2>
+        <p class="section-desc">從需求拆解到產品收斂，60+ 個 session 的完整協作紀錄。</p>
+      </div>
+
+      <div class="timeline">
+        <!-- 3/14 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-14 <span class="tl-day-sub">專案起點：需求拆解與架構規劃</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="research">Research</span>
+            <div class="tl-item-num">#1</div>
+            <h4>拆分模組理解關聯</h4>
+            <ul>
+              <li>
+                將 <code>design-draft.md</code> 中的 6 個功能模組拆分成獨立的
+                <code>module-*.md</code> 檔案
+              </li>
+              <li>
+                先自己理解整體關聯與需求，針對每個模組大概設計 API endpoint、資料結構、tech stack
+              </li>
+            </ul>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="research">Research</span>
+            <div class="tl-item-num">#2</div>
+            <h4>整體架構規劃</h4>
+            <ul>
+              <li>
+                以「資深 JS 架構師」角度請 Claude 規劃整體方案，產出 <code>claude-plan.md</code>
+              </li>
+              <li>向 AI 提出技術選型的新增或調整</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/16 上午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-16 上午 <span class="tl-day-sub">技術研究與協作方法論</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="research">Research</span>
+            <div class="tl-item-num">#3</div>
+            <h4>技術 Best Practice & Skill 研究</h4>
+            <ul>
+              <li>初步規範 RBAC、coding style、design system、error handle、response message</li>
+            </ul>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="research">Research</span>
+            <div class="tl-item-num">#4</div>
+            <h4>文件架構確立</h4>
+            <ul>
+              <li>確認文件架構：PRD → Gherkin .feature → RFC → Tasks</li>
+              <li>討論如何最有效率地和 Claude 協作（最少 token、最可預測的產出）</li>
+              <li>思考哪些內容該寫入 global memory vs 專案文件</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/16 下午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">2026-03-16 下午 <span class="tl-day-sub">工具鏈搭建</span></div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="research">Research</span>
+            <div class="tl-item-num">#5–6</div>
+            <h4>規劃 AI 協作方式 & 安裝外部 Skill</h4>
+            <ul>
+              <li>反覆確認 Claude Code 工作習慣，確定將每個功能模組拆解，一次只規劃一個模組</li>
+              <li>詢問 plugin 跟 skill 的差別，學習如何安裝 Claude Code skill</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/17 上午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-17 上午 <span class="tl-day-sub">建立工作流 & Phase 0</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#7</div>
+            <h4>建立 /generate-docs Custom Skill（文件產生工作流）</h4>
+            <ul>
+              <li>流程：素材 → CLAUDE.md → PRD → RFC → Gherkin .feature → Tasks</li>
+              <li>使用 <code>skill-creator</code> 建立 project-level skill</li>
+              <li>設定要求：task 粒度以一個 commit 為標準</li>
+            </ul>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#8</div>
+            <h4>Phase 0：專案初始化</h4>
+            <ul>
+              <li>執行 <code>phase0-init-tasks.md</code> 的初始化任務</li>
+              <li>將前端頁面 inline style 模組化，改用 Antd custom 設定</li>
+              <li>討論 commit 粒度 best practice</li>
+            </ul>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#9–10</div>
+            <h4>產生 Phase 1 文件 & 設定 npm/npx 權限</h4>
+            <ul>
+              <li>
+                執行
+                <code>/generate-docs</code
+                >，輸入素材：response-and-error.md、module-authentication.md、testing-strategy.md
+              </li>
+              <li>更新 hooks 設定（config）</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/17 中午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-17 中午 <span class="tl-day-sub">Phase 1 開發</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#11</div>
+            <h4>執行 Phase 1：認證與回應格式</h4>
+            <ul>
+              <li>
+                執行 <code>tasks_01-auth-and-response.md</code>，要求在文件中新增 progress 追蹤
+              </li>
+              <li>指定執行到 Task 1.7t 先停止，更新 CLAUDE.md progress</li>
+            </ul>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#12</div>
+            <h4>Token 安全性 & Auth 調整</h4>
+            <ul>
+              <li>
+                需求：不要使用 localStorage 驗證；已登入者進入 login 頁要跳轉主頁；未定義路徑顯示
+                NotFoundPage
+              </li>
+              <li>確認 POST /api/auth/login 仍回覆 token（方便 Postman 測試）</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/17 下午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-17 下午 <span class="tl-day-sub">Phase 1 完成 & 文件產出</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#13–15</div>
+            <h4>完成 Phase 1 & Debug</h4>
+            <ul>
+              <li>執行 tasks_01 的 task 1.12 到最後</li>
+              <li>產生 Phase 2 文件（操作紀錄）</li>
+              <li>
+                Debug：Client 登入頁 authContext getMe 一直觸發 rerender，使用
+                <code>systematic-debugging</code> skill 除錯
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/17 傍晚 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-17 傍晚 <span class="tl-day-sub">Phase 2 & Phase 3</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#16–20</div>
+            <h4>操作紀錄 → 聊天室與聊天模組</h4>
+            <ul>
+              <li>
+                執行 Phase 2（操作紀錄）：新增 login/logout 操作紀錄 task，討論 OPERATION_TYPES 跟
+                permission 的關係
+              </li>
+              <li>按 doc → shared → server → client 順序分批 commit</li>
+              <li>執行 Phase 3（聊天室與聊天）：多次要求 continue 繼續執行</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/17 晚間 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-17 晚間 <span class="tl-day-sub">Phase 3 Commit & Phase 4</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#21–25</div>
+            <h4>黑名單 & IP 封鎖 → 暱稱審核文件</h4>
+            <ul>
+              <li>Phase 3 commit plan + 執行 7 個 commits</li>
+              <li>
+                執行 Phase 4：討論 blacklist block/unblock 邏輯（<code>deleted_at</code> 軟刪除 vs
+                <code>is_blocked</code> boolean）
+              </li>
+              <li>討論 DB unique 限制與最佳設計</li>
+              <li>產生 Phase 5 文件（暱稱審核 & 檢舉）</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/17 深夜 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-17 深夜 <span class="tl-day-sub">Phase 5 & 收尾</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#26–31</div>
+            <h4>暱稱審核與檢舉 → 使用者管理頁面</h4>
+            <ul>
+              <li>使用 <code>writing-plans</code> skill 建立實作計畫</li>
+              <li>頁面列表搜尋加上 status selector，列表新增 status 欄位</li>
+              <li>產生 Phase 6 文件（廣播訊息）</li>
+              <li>檢查 Gherkin 與 DB 一致性</li>
+              <li>新增 ManagerPage（使用者管理頁面）任務</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/18 凌晨 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-18 凌晨 <span class="tl-day-sub">Phase 5 Commit & Design System</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="polish">Polish</span>
+            <div class="tl-item-num">#32–35</div>
+            <h4>Design System：Dark & Light Mode</h4>
+            <ul>
+              <li>參考 iOS 介面風格結合 Ant Design token</li>
+              <li>逐步微調 dark mode（input 白色背景、focus 樣式修正）</li>
+              <li>反覆調色 primary 藍色 — 想要「接近莫蘭迪但又接近正色」，來回調深調淺</li>
+              <li>
+                移除 <code>ant-menu border-inline-end</code>，調整主題切換 transition duration
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/18 凌晨 ~01:40 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-18 凌晨 <span class="tl-day-sub">E2E Test & Video Compose & 需求對照</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#36–37</div>
+            <h4>E2E Test & Video Compose 功能文件化</h4>
+            <ul>
+              <li>討論可行性：整合到 E2E 測試、最後產生影片</li>
+              <li>要求寫成文件（RFC + Tasks），更新 <code>project_tech_stack</code></li>
+              <li>對照 assignment 需求 vs 已實作功能（打勾清單）</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/18 上午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-18 上午 <span class="tl-day-sub">Phase 8：E2E 測試與 Demo 影片</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#38–42</div>
+            <h4>E2E 測試 + Demo 影片</h4>
+            <ul>
+              <li>使用 <code>executing-plans</code> skill 開始執行</li>
+              <li>Demo 影片除錯：中文標題卡 fontfile 路徑問題，安裝 imagemagick 後修復</li>
+              <li>要求提升 Playwright 錄影解析度、放慢動作</li>
+              <li>發現 data-testId 問題：Playwright 很多錯誤都是「找不到元件」</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/18 下午 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-18 下午 <span class="tl-day-sub">測試開發準則 & Phase 9 UI 統一</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="polish">Polish</span>
+            <div class="tl-item-num">#43–47</div>
+            <h4>測試準則設計 → UI 行為統一優化</h4>
+            <ul>
+              <li>設計 data-testid 命名規範，決定用 Gherkin 作為測試唯一真相來源</li>
+              <li>
+                Phase 9 優化：表單禁用 enter 送出、搜尋改為「點按鈕才觸發 API」、Selector 固定寬度
+                250px
+              </li>
+              <li>多次 context overflow 需 <code>/compact</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/18 傍晚 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-18 傍晚 <span class="tl-day-sub">Phase 10 & DB 審查</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="build">Build</span>
+            <div class="tl-item-num">#48–51</div>
+            <h4>系統設定 → NicknameReview 重構</h4>
+            <ul>
+              <li>執行 Phase 10（系統設定 / 環境變數）</li>
+              <li>DB 結構審查：找出文件內欄位名稱與實作不一致的地方</li>
+              <li>NicknameReview 邏輯移入 player module，API 路徑調整</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/18 晚間 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-18 晚間 <span class="tl-day-sub">文件審查 & Bug 修復 & 架構圖</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="review">Review</span>
+            <div class="tl-item-num">#52–57</div>
+            <h4>全面審查 → Bug 修復</h4>
+            <ul>
+              <li>確認所有 tasks 文件可刪除（知識已轉移到 RFC/Feature/PRD）</li>
+              <li>PRD & RFC 完整性檢查，Assignment 符合度二次確認</li>
+              <li>專案設計亮點分析</li>
+              <li>Bug 修復：訊息列表暱稱更新問題、自己不能重設自己密碼、Selector focus 字消失</li>
+            </ul>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="review">Review</span>
+            <div class="tl-item-num">#58–59</div>
+            <h4>系統架構圖 & 資料庫設計圖</h4>
+            <ul>
+              <li>使用 <code>excalidraw-diagram-skill</code> 產出系統架構圖</li>
+              <li>反覆調整多次，最終產出滿意的版本</li>
+              <li>接續產生資料庫設計圖（table、column、type、relation）</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 3/19 凌晨 -->
+        <div class="tl-day fade-in">
+          <div class="tl-day-label">
+            2026-03-19 凌晨 <span class="tl-day-sub">專案評分 & Production 設定</span>
+          </div>
+
+          <div class="tl-item">
+            <span class="tl-phase-tag" data-phase="review">Review</span>
+            <div class="tl-item-num">#60–63</div>
+            <h4>專案評分 → Production 模式 → 測試實踐</h4>
+            <ul>
+              <li>請 Claude 以「資深架構師」角度評分整個專案</li>
+              <li>規劃優點文件 + 缺點文件（附帶改善方案）</li>
+              <li>指出專案缺少 production mode 設定與 local 運行步驟</li>
+              <li>Phase 11：先選 nickname 做示範，為 component 加上 data-testId</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"><hr /></div>
+
+    <!-- ════════════════════ INSIGHTS ════════════════════ -->
+    <section id="insights">
+      <div class="section-header fade-in">
+        <div class="section-label">Part 3</div>
+        <h2 class="section-title">Collaboration Insights</h2>
+        <p class="section-desc">從 60+ 個對話 session 中提煉的協作模式與深度觀察。</p>
+      </div>
+
+      <div class="insight-grid">
+        <div class="insight-card fade-in">
+          <span class="icon">🔬</span>
+          <h4>研究 → 爆發 → 收斂</h4>
+          <p>
+            花了兩天「只研究不動手」，甚至在研究期間就設計了可重用的
+            <code>/generate-docs</code> skill。這讓爆發期的產出密度異常高 — 一天完成 6
+            個模組不是因為趕工，是因為前置準備做足了。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">🔄</span>
+          <h4>Builder → Auditor 角色切換</h4>
+          <p>
+            3/17 是 builder：一路往前衝，Phase 接著 Phase。3/18 轉變為 auditor：對照 assignment
+            需求（兩次）、檢查 Gherkin/DB 一致性、審查 PRD/RFC、請 Claude 以架構師角度評分。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">⚡</span>
+          <h4>「中斷-重導」主動監督</h4>
+          <p>
+            大量
+            <code>[Request interrupted by user]</code
+            >。看到方向不對立刻打斷，看到產出品質不夠立刻調整。全程主動監督 AI
+            的產出，不是把它當黑盒子。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">🏗️</span>
+          <h4>遇到問題 → 制度化</h4>
+          <p>
+            Playwright 找不到元件 → 設計完整的 data-testid 命名規範。搜尋行為不一致 → 設計 Phase 9
+            統一所有頁面。不修症狀修根因，不加 patch 而是建規則。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">📈</span>
+          <h4>AI 使用方式在演化</h4>
+          <p>
+            前期：探索式（「plugin 跟 skill 的差別？」）→ 中期：流程化（固定 workflow）→
+            後期：彈性判斷（選擇性地使用不同 skill，質疑建議）。一個完整的工具掌握曲線。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">🎨</span>
+          <h4>美學品味是手動控制的</h4>
+          <p>
+            顏色經歷：莫蘭迪 → 「接近莫蘭迪但接近正色」→ 「再深一點」。transition、header
+            灰度、selector 寬度反覆調整。設計品味始終握在自己手上，AI 是執行工具。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">📄</span>
+          <h4>文件是跨 Session 的持久記憶</h4>
+          <p>
+            context overflow 頻繁發生，應對策略是讓 task
+            文件本身承載狀態（而不是依賴對話記憶）。這也解釋了堅持「文件驅動」的原因 — 文件是跨
+            session 的持久記憶，對話不是。
+          </p>
+        </div>
+
+        <div class="insight-card fade-in">
+          <span class="icon">🧪</span>
+          <h4>這是一場方法論實驗</h4>
+          <p>
+            不只是「用 AI 寫了一個專案」。在測試「文件驅動 + AI
+            協作」是否可行，把協作流程本身也當作產品在迭代，最後做了自我評審形成完整 PDCA 循環。
+          </p>
+        </div>
+      </div>
+
+      <!-- Workflow -->
+      <div class="fade-in" style="margin-top: 60px">
+        <h3
+          style="
+            text-align: center;
+            font-family: var(--font-display);
+            font-size: 24px;
+            margin-bottom: 8px;
+          "
+        >
+          工作流程
+        </h3>
+        <p
+          style="text-align: center; font-size: 13px; color: var(--text-muted); margin-bottom: 32px"
+        >
+          每個 Phase 的固定執行模式
+        </p>
+        <div class="workflow-steps">
+          <div class="workflow-step">
+            <div class="step-box">素材</div>
+            <span class="arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="step-box">/generate-docs</div>
+            <span class="arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="step-box">Tasks</div>
+            <span class="arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="step-box">executing-plans</div>
+            <span class="arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="step-box">Commit Plan</div>
+            <span class="arrow">→</span>
+          </div>
+          <div class="workflow-step"><div class="step-box">Commit</div></div>
+        </div>
+      </div>
+
+      <!-- Skills Used -->
+      <div class="fade-in" style="margin-top: 48px">
+        <h3 style="font-family: var(--font-display); font-size: 20px; margin-bottom: 6px">
+          使用的 Claude Code Skills
+        </h3>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px">
+          7+ 種 skill 靈活搭配使用
+        </p>
+        <div class="skill-list">
+          <span class="skill-tag">skill-creator</span>
+          <span class="skill-tag">writing-plans</span>
+          <span class="skill-tag">executing-plans</span>
+          <span class="skill-tag">systematic-debugging</span>
+          <span class="skill-tag">react-best-practices</span>
+          <span class="skill-tag">brainstorming</span>
+          <span class="skill-tag">excalidraw-diagram-skill</span>
+          <span class="skill-tag">/generate-docs（自建）</span>
+        </div>
+      </div>
+
+      <!-- Phase Progress -->
+      <div class="fade-in" style="margin-top: 60px">
+        <h3 style="font-family: var(--font-display); font-size: 20px; margin-bottom: 20px">
+          開發進度總覽
+        </h3>
+        <div style="overflow-x: auto">
+          <table class="phase-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>模組</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>0</td>
+                <td>專案初始化</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>1</td>
+                <td>認證與回應格式</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>操作紀錄</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>聊天室與聊天</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>黑名單與 IP 封鎖</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>暱稱審核與檢舉</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>廣播訊息</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>Design System</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>E2E 測試與 Demo 影片</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>UI 統一行為優化</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>系統設定（環境變數）</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>11</td>
+                <td>測試實踐 + data-testId</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>12</td>
+                <td>Production 模式</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>—</td>
+                <td>使用者管理頁面</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>—</td>
+                <td>NicknameReview 重構</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+              <tr>
+                <td>—</td>
+                <td>架構圖 & 資料庫設計圖</td>
+                <td><span class="status-badge done">完成</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"><hr /></div>
+
+    <!-- ════════════════════ AI EVALUATION ════════════════════ -->
+    <section id="evaluation">
+      <div class="section-header fade-in">
+        <div class="section-label">Part 4</div>
+        <h2 class="section-title">AI Collaboration Evaluation</h2>
+        <p class="section-desc">
+          以下評分與建議皆由 AI 基於 77 個對話 session 的完整紀錄分析產出，非人工自評。
+        </p>
+      </div>
+
+      <div class="score-hero fade-in">
+        <div class="score-ring">
+          <svg viewBox="0 0 200 200">
+            <circle class="track" cx="100" cy="100" r="90" />
+            <circle class="fill" cx="100" cy="100" r="90" />
+          </svg>
+          <div class="score-num">
+            <span>88</span>
+            <span>/ 100</span>
+          </div>
+        </div>
+        <p
+          style="
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0 auto 8px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            letter-spacing: 1px;
+          "
+        >
+          AI GENERATED SCORE
+        </p>
+        <p style="font-size: 16px; color: var(--text-secondary); max-width: 520px; margin: 0 auto">
+          「方法論先行」的人第一次跟 AI 深度協作的紀錄，完成度和思考深度都遠超預期。
+        </p>
+      </div>
+
+      <div class="score-breakdown fade-in">
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-teal)">95</div>
+          <div class="score-detail">
+            <h5>前置規劃</h5>
+            <p>兩天純研究再動手，文件架構（PRD→RFC→Gherkin→Tasks）設計完整</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 95%; background: var(--accent-teal)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-teal)">92</div>
+          <div class="score-detail">
+            <h5>品質控制</h5>
+            <p>雙重 assignment 對照、Gherkin/DB 一致性檢查、架構師評分</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 92%; background: var(--accent-teal)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-indigo)">90</div>
+          <div class="score-detail">
+            <h5>工具鏈建設</h5>
+            <p>自建 /generate-docs skill、熟練運用 7+ 種 skill</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 90%; background: var(--accent-indigo)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-indigo)">90</div>
+          <div class="score-detail">
+            <h5>AI 監督力</h5>
+            <p>全程主動監督，不盲從建議，美學判斷握在自己手上</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 90%; background: var(--accent-indigo)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-amber)">85</div>
+          <div class="score-detail">
+            <h5>文件紀律</h5>
+            <p>每個 Phase 都先文件再 code，後期出現文件與實作不一致需校正</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 85%; background: var(--accent-amber)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-amber)">75</div>
+          <div class="score-detail">
+            <h5>指令效率</h5>
+            <p>核心需求明確，但調色和架構圖各花 5+ 輪來回</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 75%; background: var(--accent-amber)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-amber)">70</div>
+          <div class="score-detail">
+            <h5>Context 管理</h5>
+            <p>大量 /compact 和 overflow，屬於被動應對而非主動規劃</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 70%; background: var(--accent-amber)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="score-item">
+          <div class="score-val" style="color: var(--accent-rose)">65</div>
+          <div class="score-detail">
+            <h5>可持續性</h5>
+            <p>40 小時 marathon 產出驚人，但這個節奏不可複製</p>
+            <div class="score-bar">
+              <div class="fill" style="width: 65%; background: var(--accent-rose)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Improvement Suggestions -->
+      <div class="fade-in" style="margin-top: 80px">
+        <h3 style="font-family: var(--font-display); font-size: 24px; margin-bottom: 8px">
+          AI 優化建議
+        </h3>
+        <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 32px">
+          基於協作紀錄分析，把已經在做的好事自動化、系統化的方向。
+        </p>
+      </div>
+
+      <div class="suggest-grid">
+        <div class="suggest-card fade-in">
+          <span class="tag">01 — Skill 自動化</span>
+          <h4>把重複流程包裝成 Skill</h4>
+          <p>
+            「依照合適的 commit 粒度先產生 commit plan 確認後再執行」這句話在 60+ session
+            中出現了至少 8 次。將它包裝成 <code>/commit-phase</code> skill（含自動讀取 git diff、按
+            doc→shared→server→client 分類），每次 Phase 結束一鍵完成。
+          </p>
+          <div class="current">
+            <strong>同理可包裝：</strong><code>/check-consistency</code>（Gherkin vs DB、Feature vs
+            實作）、<code>/start-phase</code>（讀 task 文件、載入 RFC、設定 progress tracking）
+          </div>
+        </div>
+
+        <div class="suggest-card fade-in">
+          <span class="tag">02 — Context 管理</span>
+          <h4>從被動應對到主動規劃</h4>
+          <p>
+            25 個 session 中多次出現 context overflow 和 <code>/compact</code>。改為主動規劃：一個
+            session 對應一個交付物，結束前要求產出 handoff summary 存到文件，下一個 session
+            開頭直接讀取。
+          </p>
+          <div class="current">
+            <strong>經驗法則：</strong>預期需要 3 次以上 /compact 的任務，一開始就拆成多個 session。
+          </div>
+        </div>
+
+        <div class="suggest-card fade-in">
+          <span class="tag">03 — 指令精準度</span>
+          <h4>先小樣再放量</h4>
+          <p>
+            Design System 調色和 Excalidraw 架構圖各花了 5+ 輪來回。改為：先提供具體參考（hex
+            色碼範圍、參考圖），先要求只做一個模組的示意確認風格，再展開全圖。
+          </p>
+          <div class="current">
+            <strong>核心：</strong>Claude
+            對具體數值的理解遠比抽象美學概念準確。用「不要什麼」框定範圍比用「要什麼」更精確。
+          </div>
+        </div>
+
+        <div class="suggest-card fade-in">
+          <span class="tag">04 — 給 Claude 更多「為什麼」</span>
+          <h4>附上原因讓原則可泛化</h4>
+          <p>
+            當給出看似反直覺的決策時，附上原因能讓 Claude
+            在後續類似情境自行判斷。例如：「BlacklistPage useEffect 不要改 —
+            <strong>因為我們的設計原則是所有搜尋都手動觸發</strong>」。
+          </p>
+          <div class="current">
+            <strong>效果：</strong>多給一句「為什麼」，Claude
+            就能把這個原則泛化到其他地方，減少重複糾正次數。這些也適合寫入 CLAUDE.md 或 memory。
+          </div>
+        </div>
+
+        <div class="suggest-card fade-in">
+          <span class="tag">05 — 錯誤處理</span>
+          <h4>讓 Claude 自己除錯</h4>
+          <p>
+            在 task 文件中加入驗證步驟（「完成後執行 npm test 確認無錯誤」），建立「失敗後的
+            SOP」寫入 CLAUDE.md：先讀取錯誤訊息 → 檢查相關檔案 → 嘗試修復 → 再跑一次 →
+            仍失敗才回報。
+          </p>
+          <div class="current">
+            <strong>原則：</strong>發現一個 bug 就立即處理，避免 bug 之間的交互影響。善用
+            systematic-debugging skill。
+          </div>
+        </div>
+
+        <div class="suggest-card fade-in">
+          <span class="tag">06 — 協作節奏</span>
+          <h4>區分「需要盯」和「可以放著跑」</h4>
+          <p>
+            40 小時 marathon 產出驚人，但不可複製。設定每 2-3 小時 checkpoint
+            commit，區分需要判斷的任務（Design System 調色）和可委託的任務（CRUD 開發），後者用
+            background agent。
+          </p>
+          <div class="current">
+            <strong>原則：</strong>CRUD
+            類任務放著跑，設計決策類任務才需要盯。即使任務還沒完成，checkpoint commit
+            也保護進度不會因中斷而丟失。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"><hr /></div>
+
+    <!-- ════════════════════ SESSIONS TABLE ════════════════════ -->
+    <section id="sessions">
+      <div class="section-header fade-in">
+        <div class="section-label">Part 5</div>
+        <h2 class="section-title">All Sessions Detail</h2>
+        <p class="section-desc">77 個 session 的完整明細。</p>
+      </div>
+
+      <div class="session-table-wrap fade-in" style="max-height: 600px; overflow-y: auto">
+        <table class="session-table" id="sessionTable">
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>Start (UTC+8)</th>
+              <th>End (UTC+8)</th>
+              <th>Model</th>
+              <th>User</th>
+              <th>Asst</th>
+              <th>Topic</th>
+              <th>Output</th>
+              <th>Cache Create</th>
+              <th>Cache Read</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="table-scroll-hint">← Scroll horizontally for more →</div>
+    </section>
+
+    <!-- ════════════════════ FOOTER ════════════════════ -->
+    <div class="footer">
+      <p class="quote">
+        "你不是在用 AI 寫 code，你是在設計一套<br />「人機協作的軟體開發方法論」。"
+      </p>
+      <p>AI Cowork · Chat Management Backstage · 2026-03-14 ~ 2026-03-19</p>
+      <p
+        style="margin-top: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px"
+      >
+        Generated with Claude Code — 77 sessions · 583.5M tokens · 88/100 score
+      </p>
+    </div>
+
+    <!-- ════════════════════ SCRIPTS ════════════════════ -->
+    <script>
+      // ─── Chart Data ───
+      const labels = [
+        '03/13 00:00',
+        '03/13 03:00',
+        '03/13 06:00',
+        '03/13 09:00',
+        '03/13 12:00',
+        '03/13 15:00',
+        '03/13 18:00',
+        '03/13 21:00',
+        '03/14 00:00',
+        '03/14 03:00',
+        '03/14 06:00',
+        '03/14 09:00',
+        '03/14 12:00',
+        '03/14 15:00',
+        '03/14 18:00',
+        '03/14 21:00',
+        '03/15 00:00',
+        '03/15 03:00',
+        '03/15 06:00',
+        '03/15 09:00',
+        '03/15 12:00',
+        '03/15 15:00',
+        '03/15 18:00',
+        '03/15 21:00',
+        '03/16 00:00',
+        '03/16 03:00',
+        '03/16 06:00',
+        '03/16 09:00',
+        '03/16 12:00',
+        '03/16 15:00',
+        '03/16 18:00',
+        '03/16 21:00',
+        '03/17 00:00',
+        '03/17 03:00',
+        '03/17 06:00',
+        '03/17 09:00',
+        '03/17 12:00',
+        '03/17 15:00',
+        '03/17 18:00',
+        '03/17 21:00',
+        '03/18 00:00',
+        '03/18 03:00',
+        '03/18 06:00',
+        '03/18 09:00',
+        '03/18 12:00',
+        '03/18 15:00',
+        '03/18 18:00',
+        '03/18 21:00',
+        '03/19 00:00',
+        '03/19 03:00',
+        '03/19 06:00',
+        '03/19 09:00',
+        '03/19 12:00',
+        '03/19 15:00',
+        '03/19 18:00',
+        '03/19 21:00',
+      ];
+
+      const sessionCounts = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 2,
+        4, 0, 0, 0, 4, 4, 9, 4, 5, 3, 2, 10, 2, 1, 3, 3, 8, 4, 1, 0, 2, 0, 0, 0, 0,
+      ];
+
+      const outputByBucket = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35071, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        41774, 58112, 32894, 62664, 0, 0, 0, 157030, 83231, 153311, 130155, 156651, 78807, 68162,
+        155022, 81093, 16527, 145664, 104561, 286164, 201766, 1778, 0, 10230, 0, 0, 0, 0,
+      ];
+      const cacheCreateByBucket = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 385988, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        219450, 473921, 415790, 1263804, 0, 0, 0, 2363999, 887557, 2386530, 1720460, 1287619,
+        745836, 688325, 1350521, 760132, 167669, 1261303, 1242699, 3702719, 1112831, 87964, 0,
+        139002, 0, 0, 0, 0,
+      ];
+      const cacheReadByBucket = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3240302, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        5370323, 5722946, 6325640, 18074481, 0, 0, 0, 63877334, 21472381, 45779676, 31908738,
+        38023525, 13512248, 11320314, 32289829, 23002984, 3551695, 45641923, 29400284, 127998615,
+        30095269, 482944, 0, 1519229, 0, 0, 0, 0,
+      ];
+      const tokenCounts = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3661513, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        5631697, 6258223, 6774497, 19403341, 0, 0, 0, 66399177, 22443552, 48324834, 33787987,
+        39469374, 14338362, 12179840, 33797399, 23844639, 3735979, 47049581, 30768198, 132029032,
+        31410554, 572721, 0, 1669292, 0, 0, 0, 0,
+      ];
+
+      const startIdx = labels.indexOf('03/14 15:00');
+      const endIdx = labels.indexOf('03/19 12:00') + 1;
+      const fLabels = labels.slice(startIdx, endIdx);
+      const fSessions = sessionCounts.slice(startIdx, endIdx);
+      const fTokens = tokenCounts.slice(startIdx, endIdx);
+      const fOutputB = outputByBucket.slice(startIdx, endIdx);
+      const fCacheCreate = cacheCreateByBucket.slice(startIdx, endIdx);
+      const fCacheRead = cacheReadByBucket.slice(startIdx, endIdx);
+
+      function avgNonZero(arr) {
+        const active = arr.filter((v) => v > 0);
+        return active.length ? active.reduce((a, b) => a + b, 0) / active.length : 0;
+      }
+
+      function avgLine(arr, label, color) {
+        const avg = avgNonZero(arr);
+        return {
+          label:
+            label +
+            ' (' +
+            (avg >= 1e6
+              ? (avg / 1e6).toFixed(1) + 'M'
+              : avg >= 1000
+                ? (avg / 1000).toFixed(1) + 'K'
+                : avg.toFixed(1)) +
+            ')',
+          data: arr.map(() => avg),
+          type: 'line',
+          borderColor: color,
+          borderWidth: 2,
+          borderDash: [6, 4],
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          fill: false,
+          order: 0,
+        };
+      }
+
+      const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              font: { size: 11, family: "'IBM Plex Sans', sans-serif" },
+              color: '#555566',
+              boxWidth: 12,
+              padding: 16,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 60,
+              font: { size: 9, family: "'JetBrains Mono', monospace" },
+              color: '#8a8998',
+            },
+            grid: { color: 'rgba(0,0,0,0.06)' },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { font: { size: 10, family: "'JetBrains Mono', monospace" }, color: '#8a8998' },
+            grid: { color: 'rgba(0,0,0,0.06)' },
+          },
+        },
+      };
+
+      // ─── Session Table ───
+      const sessions = [
+        {
+          session_id: '98606111',
+          start_time: '2026-03-14T07:30:45.964Z',
+          end_time: '2026-03-15T11:14:46.868Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 60,
+          assistant_msgs: 84,
+          output_tokens: 35071,
+          cache_create_tokens: 385988,
+          cache_read_tokens: 3240302,
+          total_tokens: 3661513,
+        },
+        {
+          session_id: 'bbaf96d7',
+          start_time: '2026-03-16T05:55:49.920Z',
+          end_time: '2026-03-16T06:44:49.357Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 49,
+          assistant_msgs: 81,
+          output_tokens: 33160,
+          cache_create_tokens: 173768,
+          cache_read_tokens: 4566913,
+          total_tokens: 4773944,
+        },
+        {
+          session_id: '14ee603c',
+          start_time: '2026-03-16T06:45:06.736Z',
+          end_time: '2026-03-16T07:01:05.107Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 19,
+          assistant_msgs: 27,
+          output_tokens: 8614,
+          cache_create_tokens: 45682,
+          cache_read_tokens: 803410,
+          total_tokens: 857753,
+        },
+        {
+          session_id: '99b2d1af',
+          start_time: '2026-03-16T07:02:25.968Z',
+          end_time: '2026-03-16T07:30:39.869Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 20,
+          assistant_msgs: 34,
+          output_tokens: 12208,
+          cache_create_tokens: 87373,
+          cache_read_tokens: 888112,
+          total_tokens: 990803,
+        },
+        {
+          session_id: '1e7ddaa5',
+          start_time: '2026-03-16T08:00:29.180Z',
+          end_time: '2026-03-16T12:27:48.148Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 52,
+          assistant_msgs: 78,
+          output_tokens: 43846,
+          cache_create_tokens: 372227,
+          cache_read_tokens: 4628075,
+          total_tokens: 5044257,
+        },
+        {
+          session_id: 'edd285c4',
+          start_time: '2026-03-16T08:54:51.724Z',
+          end_time: '2026-03-16T08:59:48.676Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 7,
+          assistant_msgs: 11,
+          output_tokens: 2058,
+          cache_create_tokens: 14321,
+          cache_read_tokens: 206759,
+          total_tokens: 223163,
+        },
+        {
+          session_id: '9e57f961',
+          start_time: '2026-03-16T12:10:11.453Z',
+          end_time: '2026-03-16T12:33:59.561Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 15,
+          assistant_msgs: 17,
+          output_tokens: 2507,
+          cache_create_tokens: 56168,
+          cache_read_tokens: 267415,
+          total_tokens: 326123,
+        },
+        {
+          session_id: '73bc1fe5',
+          start_time: '2026-03-16T12:51:53.582Z',
+          end_time: '2026-03-17T02:37:26.459Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 66,
+          assistant_msgs: 97,
+          output_tokens: 30387,
+          cache_create_tokens: 359622,
+          cache_read_tokens: 6058225,
+          total_tokens: 6448374,
+        },
+        {
+          session_id: '8b1790cf',
+          start_time: '2026-03-16T13:31:59.818Z',
+          end_time: '2026-03-17T02:13:17.727Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 161,
+          assistant_msgs: 235,
+          output_tokens: 41533,
+          cache_create_tokens: 1047260,
+          cache_read_tokens: 14936771,
+          total_tokens: 16025839,
+        },
+        {
+          session_id: '0083e890',
+          start_time: '2026-03-16T14:51:31.261Z',
+          end_time: '2026-03-16T15:00:11.641Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 8,
+          assistant_msgs: 10,
+          output_tokens: 1555,
+          cache_create_tokens: 23419,
+          cache_read_tokens: 185184,
+          total_tokens: 210178,
+        },
+        {
+          session_id: '15c80f0f',
+          start_time: '2026-03-16T15:04:56.067Z',
+          end_time: '2026-03-16T15:30:32.884Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 38,
+          assistant_msgs: 55,
+          output_tokens: 19369,
+          cache_create_tokens: 188496,
+          cache_read_tokens: 2937714,
+          total_tokens: 3147673,
+        },
+        {
+          session_id: '812fe529',
+          start_time: '2026-03-16T15:50:36.995Z',
+          end_time: '2026-03-16T15:50:51.524Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 1,
+          assistant_msgs: 1,
+          output_tokens: 207,
+          cache_create_tokens: 4629,
+          cache_read_tokens: 14812,
+          total_tokens: 19651,
+        },
+        {
+          session_id: 'cadd6dcb',
+          start_time: '2026-03-17T01:56:49.996Z',
+          end_time: '2026-03-17T01:56:56.685Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 1,
+          assistant_msgs: 2,
+          output_tokens: 76,
+          cache_create_tokens: 25520,
+          cache_read_tokens: 13516,
+          total_tokens: 39118,
+        },
+        {
+          session_id: '10ba0329',
+          start_time: '2026-03-17T02:41:38.828Z',
+          end_time: '2026-03-17T03:38:07.453Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 109,
+          assistant_msgs: 173,
+          output_tokens: 62908,
+          cache_create_tokens: 717495,
+          cache_read_tokens: 14571529,
+          total_tokens: 15352159,
+        },
+        {
+          session_id: '1febd59b',
+          start_time: '2026-03-17T03:40:22.143Z',
+          end_time: '2026-03-17T09:28:27.111Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 352,
+          assistant_msgs: 509,
+          output_tokens: 93043,
+          cache_create_tokens: 1522136,
+          cache_read_tokens: 48994565,
+          total_tokens: 50610298,
+        },
+        {
+          session_id: '4a971b68',
+          start_time: '2026-03-17T03:47:23.760Z',
+          end_time: '2026-03-17T03:49:54.719Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 11,
+          assistant_msgs: 11,
+          output_tokens: 1003,
+          cache_create_tokens: 98848,
+          cache_read_tokens: 297724,
+          total_tokens: 397602,
+        },
+        {
+          session_id: 'c13c84fa',
+          start_time: '2026-03-17T04:41:38.736Z',
+          end_time: '2026-03-17T04:49:36.823Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 22,
+          assistant_msgs: 29,
+          output_tokens: 3441,
+          cache_create_tokens: 58878,
+          cache_read_tokens: 644134,
+          total_tokens: 706504,
+        },
+        {
+          session_id: '412a9fdc',
+          start_time: '2026-03-17T06:01:23.333Z',
+          end_time: '2026-03-17T07:05:22.426Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 45,
+          assistant_msgs: 59,
+          output_tokens: 29908,
+          cache_create_tokens: 269422,
+          cache_read_tokens: 4434419,
+          total_tokens: 4733830,
+        },
+        {
+          session_id: '5599ffdd',
+          start_time: '2026-03-17T06:09:29.743Z',
+          end_time: '2026-03-17T06:28:52.564Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 42,
+          assistant_msgs: 65,
+          output_tokens: 22718,
+          cache_create_tokens: 259514,
+          cache_read_tokens: 3585650,
+          total_tokens: 3867981,
+        },
+        {
+          session_id: '6e2ca7c6',
+          start_time: '2026-03-17T06:29:24.745Z',
+          end_time: '2026-03-17T06:45:47.055Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 91,
+          assistant_msgs: 142,
+          output_tokens: 27164,
+          cache_create_tokens: 299743,
+          cache_read_tokens: 12808178,
+          total_tokens: 13135237,
+        },
+        {
+          session_id: '8827fc39',
+          start_time: '2026-03-17T07:13:12.309Z',
+          end_time: '2026-03-17T07:26:32.298Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 24,
+          assistant_msgs: 31,
+          output_tokens: 4009,
+          cache_create_tokens: 99738,
+          cache_read_tokens: 765703,
+          total_tokens: 870173,
+        },
+        {
+          session_id: 'abd4cae0',
+          start_time: '2026-03-17T07:32:10.653Z',
+          end_time: '2026-03-17T07:40:01.292Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 15,
+          assistant_msgs: 26,
+          output_tokens: 3957,
+          cache_create_tokens: 82340,
+          cache_read_tokens: 938283,
+          total_tokens: 1024612,
+        },
+        {
+          session_id: 'ec4c759a',
+          start_time: '2026-03-17T07:44:52.500Z',
+          end_time: '2026-03-17T07:48:18.233Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 20,
+          assistant_msgs: 31,
+          output_tokens: 3241,
+          cache_create_tokens: 52415,
+          cache_read_tokens: 697661,
+          total_tokens: 753360,
+        },
+        {
+          session_id: 'c784d642',
+          start_time: '2026-03-17T07:49:07.442Z',
+          end_time: '2026-03-17T09:02:21.601Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 175,
+          assistant_msgs: 276,
+          output_tokens: 54643,
+          cache_create_tokens: 577886,
+          cache_read_tokens: 23300463,
+          total_tokens: 23937126,
+        },
+        {
+          session_id: '7c148446',
+          start_time: '2026-03-17T08:23:15.631Z',
+          end_time: '2026-03-17T08:46:52.315Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 48,
+          assistant_msgs: 68,
+          output_tokens: 40048,
+          cache_create_tokens: 372423,
+          cache_read_tokens: 5567923,
+          total_tokens: 5980482,
+        },
+        {
+          session_id: '3b769871',
+          start_time: '2026-03-17T09:07:42.838Z',
+          end_time: '2026-03-17T09:11:06.434Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 20,
+          assistant_msgs: 32,
+          output_tokens: 4973,
+          cache_create_tokens: 99160,
+          cache_read_tokens: 735676,
+          total_tokens: 839853,
+        },
+        {
+          session_id: '23024708',
+          start_time: '2026-03-17T09:28:45.344Z',
+          end_time: '2026-03-17T09:32:23.305Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 14,
+          assistant_msgs: 20,
+          output_tokens: 1657,
+          cache_create_tokens: 49745,
+          cache_read_tokens: 380498,
+          total_tokens: 431938,
+        },
+        {
+          session_id: 'c7576c1c',
+          start_time: '2026-03-17T09:32:46.697Z',
+          end_time: '2026-03-17T09:33:05.881Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 5,
+          assistant_msgs: 7,
+          output_tokens: 679,
+          cache_create_tokens: 47837,
+          cache_read_tokens: 98077,
+          total_tokens: 146608,
+        },
+        {
+          session_id: 'fc470f82',
+          start_time: '2026-03-17T09:34:01.749Z',
+          end_time: '2026-03-17T09:55:25.972Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 117,
+          assistant_msgs: 177,
+          output_tokens: 40104,
+          cache_create_tokens: 1004986,
+          cache_read_tokens: 13295392,
+          total_tokens: 14340682,
+        },
+        {
+          session_id: '159a7721',
+          start_time: '2026-03-17T11:25:07.798Z',
+          end_time: '2026-03-17T11:35:19.854Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 19,
+          assistant_msgs: 25,
+          output_tokens: 5966,
+          cache_create_tokens: 48763,
+          cache_read_tokens: 639864,
+          total_tokens: 694642,
+        },
+        {
+          session_id: 'b310c7a0',
+          start_time: '2026-03-17T11:36:43.479Z',
+          end_time: '2026-03-17T11:37:10.253Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 6,
+          assistant_msgs: 7,
+          output_tokens: 517,
+          cache_create_tokens: 26586,
+          cache_read_tokens: 125241,
+          total_tokens: 152357,
+        },
+        {
+          session_id: '2a5d3008',
+          start_time: '2026-03-17T11:38:15.509Z',
+          end_time: '2026-03-17T12:17:26.004Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 39,
+          assistant_msgs: 54,
+          output_tokens: 35963,
+          cache_create_tokens: 340977,
+          cache_read_tokens: 4357121,
+          total_tokens: 4760899,
+        },
+        {
+          session_id: 'f625c5f4',
+          start_time: '2026-03-17T12:18:19.134Z',
+          end_time: '2026-03-17T13:17:58.674Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 197,
+          assistant_msgs: 301,
+          output_tokens: 87709,
+          cache_create_tokens: 1304134,
+          cache_read_tokens: 26786512,
+          total_tokens: 28180089,
+        },
+        {
+          session_id: 'c89e816e',
+          start_time: '2026-03-17T13:18:22.102Z',
+          end_time: '2026-03-17T13:56:30.315Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 45,
+          assistant_msgs: 69,
+          output_tokens: 44053,
+          cache_create_tokens: 270836,
+          cache_read_tokens: 5002782,
+          total_tokens: 5317766,
+        },
+        {
+          session_id: 'ac5e9023',
+          start_time: '2026-03-17T14:26:01.864Z',
+          end_time: '2026-03-17T14:28:51.390Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 15,
+          assistant_msgs: 19,
+          output_tokens: 4094,
+          cache_create_tokens: 58884,
+          cache_read_tokens: 507547,
+          total_tokens: 571385,
+        },
+        {
+          session_id: '3c71ddaf',
+          start_time: '2026-03-17T14:29:06.519Z',
+          end_time: '2026-03-17T14:33:06.604Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 28,
+          assistant_msgs: 36,
+          output_tokens: 2577,
+          cache_create_tokens: 219314,
+          cache_read_tokens: 1463048,
+          total_tokens: 1684984,
+        },
+        {
+          session_id: 'dcdb9f07',
+          start_time: '2026-03-17T14:33:18.407Z',
+          end_time: '2026-03-17T16:57:12.284Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 220,
+          assistant_msgs: 324,
+          output_tokens: 102636,
+          cache_create_tokens: 683901,
+          cache_read_tokens: 30642203,
+          total_tokens: 31429116,
+        },
+        {
+          session_id: 'bdfe1184',
+          start_time: '2026-03-17T15:07:45.905Z',
+          end_time: '2026-03-17T15:11:39.396Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 12,
+          assistant_msgs: 19,
+          output_tokens: 3291,
+          cache_create_tokens: 54684,
+          cache_read_tokens: 407945,
+          total_tokens: 466123,
+        },
+        {
+          session_id: '89165eb8',
+          start_time: '2026-03-17T16:58:52.563Z',
+          end_time: '2026-03-17T17:15:16.672Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 37,
+          assistant_msgs: 55,
+          output_tokens: 26772,
+          cache_create_tokens: 288436,
+          cache_read_tokens: 3449352,
+          total_tokens: 3764635,
+        },
+        {
+          session_id: 'da205a55',
+          start_time: '2026-03-17T17:08:15.815Z',
+          end_time: '2026-03-17T17:19:01.701Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 28,
+          assistant_msgs: 42,
+          output_tokens: 13201,
+          cache_create_tokens: 153019,
+          cache_read_tokens: 1847732,
+          total_tokens: 2015220,
+        },
+        {
+          session_id: 'a6f5301c',
+          start_time: '2026-03-17T17:22:37.100Z',
+          end_time: '2026-03-17T17:49:15.642Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 54,
+          assistant_msgs: 90,
+          output_tokens: 38834,
+          cache_create_tokens: 304381,
+          cache_read_tokens: 8215164,
+          total_tokens: 8558507,
+        },
+        {
+          session_id: 'db440973',
+          start_time: '2026-03-17T20:15:56.649Z',
+          end_time: '2026-03-17T21:26:58.078Z',
+          model: 'synthetic',
+          user_msgs: 77,
+          assistant_msgs: 104,
+          output_tokens: 31912,
+          cache_create_tokens: 277743,
+          cache_read_tokens: 6823451,
+          total_tokens: 7231149,
+        },
+        {
+          session_id: 'e7f2276e',
+          start_time: '2026-03-17T20:16:12.395Z',
+          end_time: '2026-03-18T01:50:48.791Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 51,
+          assistant_msgs: 81,
+          output_tokens: 36250,
+          cache_create_tokens: 410582,
+          cache_read_tokens: 4496863,
+          total_tokens: 4948691,
+        },
+        {
+          session_id: '97155a77',
+          start_time: '2026-03-17T22:57:31.236Z',
+          end_time: '2026-03-17T23:02:50.955Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 23,
+          assistant_msgs: 30,
+          output_tokens: 7043,
+          cache_create_tokens: 83183,
+          cache_read_tokens: 949782,
+          total_tokens: 1040056,
+        },
+        {
+          session_id: '6e7f677e',
+          start_time: '2026-03-17T23:03:09.467Z',
+          end_time: '2026-03-17T23:42:05.640Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 106,
+          assistant_msgs: 152,
+          output_tokens: 36687,
+          cache_create_tokens: 300313,
+          cache_read_tokens: 10640289,
+          total_tokens: 10977465,
+        },
+        {
+          session_id: 'c55c4fdf',
+          start_time: '2026-03-17T23:18:08.745Z',
+          end_time: '2026-03-17T23:26:16.505Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 22,
+          assistant_msgs: 44,
+          output_tokens: 16587,
+          cache_create_tokens: 120290,
+          cache_read_tokens: 1547699,
+          total_tokens: 1684642,
+        },
+        {
+          session_id: '1a1c473b',
+          start_time: '2026-03-17T23:39:56.741Z',
+          end_time: '2026-03-17T23:40:11.443Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 3,
+          assistant_msgs: 2,
+          output_tokens: 166,
+          cache_create_tokens: 23440,
+          cache_read_tokens: 17828,
+          total_tokens: 41440,
+        },
+        {
+          session_id: '1c544b8d',
+          start_time: '2026-03-17T23:42:17.979Z',
+          end_time: '2026-03-17T23:43:50.891Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 14,
+          assistant_msgs: 17,
+          output_tokens: 3274,
+          cache_create_tokens: 44183,
+          cache_read_tokens: 408452,
+          total_tokens: 455934,
+        },
+        {
+          session_id: '58a2fc09',
+          start_time: '2026-03-17T23:44:19.717Z',
+          end_time: '2026-03-17T23:54:42.327Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 77,
+          assistant_msgs: 124,
+          output_tokens: 26926,
+          cache_create_tokens: 179698,
+          cache_read_tokens: 6934321,
+          total_tokens: 7141080,
+        },
+        {
+          session_id: '9462767f',
+          start_time: '2026-03-17T23:59:05.776Z',
+          end_time: '2026-03-18T00:01:25.079Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 15,
+          assistant_msgs: 19,
+          output_tokens: 3283,
+          cache_create_tokens: 41718,
+          cache_read_tokens: 457118,
+          total_tokens: 502150,
+        },
+        {
+          session_id: 'f989e65d',
+          start_time: '2026-03-18T00:02:20.479Z',
+          end_time: '2026-03-18T01:18:19.875Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 103,
+          assistant_msgs: 157,
+          output_tokens: 49599,
+          cache_create_tokens: 289613,
+          cache_read_tokens: 10102462,
+          total_tokens: 10441907,
+        },
+        {
+          session_id: 'a7a9e197',
+          start_time: '2026-03-18T00:07:08.261Z',
+          end_time: '2026-03-18T00:07:39.462Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 1,
+          assistant_msgs: 2,
+          output_tokens: 219,
+          cache_create_tokens: 23322,
+          cache_read_tokens: 17828,
+          total_tokens: 41375,
+        },
+        {
+          session_id: 'ed9eaf76',
+          start_time: '2026-03-18T00:08:23.231Z',
+          end_time: '2026-03-18T01:45:17.544Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 16,
+          assistant_msgs: 25,
+          output_tokens: 11238,
+          cache_create_tokens: 244761,
+          cache_read_tokens: 1214050,
+          total_tokens: 1471350,
+        },
+        {
+          session_id: '36fd94f6',
+          start_time: '2026-03-18T01:39:54.367Z',
+          end_time: '2026-03-18T01:43:14.549Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 17,
+          assistant_msgs: 21,
+          output_tokens: 4825,
+          cache_create_tokens: 53580,
+          cache_read_tokens: 568839,
+          total_tokens: 627277,
+        },
+        {
+          session_id: '1a21ed3b',
+          start_time: '2026-03-18T01:51:33.653Z',
+          end_time: '2026-03-18T07:23:49.741Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 170,
+          assistant_msgs: 285,
+          output_tokens: 76268,
+          cache_create_tokens: 706552,
+          cache_read_tokens: 22434145,
+          total_tokens: 23217362,
+        },
+        {
+          session_id: '470ba945',
+          start_time: '2026-03-18T06:48:19.976Z',
+          end_time: '2026-03-18T07:16:45.897Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 34,
+          assistant_msgs: 62,
+          output_tokens: 16527,
+          cache_create_tokens: 167669,
+          cache_read_tokens: 3551695,
+          total_tokens: 3735979,
+        },
+        {
+          session_id: '515e4ee8',
+          start_time: '2026-03-18T07:43:09.031Z',
+          end_time: '2026-03-18T08:59:38.888Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 54,
+          assistant_msgs: 79,
+          output_tokens: 23031,
+          cache_create_tokens: 183760,
+          cache_read_tokens: 3499932,
+          total_tokens: 3706873,
+        },
+        {
+          session_id: '0114b291',
+          start_time: '2026-03-18T07:47:44.214Z',
+          end_time: '2026-03-18T07:49:30.024Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 8,
+          assistant_msgs: 11,
+          output_tokens: 2277,
+          cache_create_tokens: 35412,
+          cache_read_tokens: 230481,
+          total_tokens: 268189,
+        },
+        {
+          session_id: 'cc768561',
+          start_time: '2026-03-18T08:04:16.125Z',
+          end_time: '2026-03-18T10:26:48.876Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 312,
+          assistant_msgs: 454,
+          output_tokens: 120356,
+          cache_create_tokens: 1042131,
+          cache_read_tokens: 41911510,
+          total_tokens: 43074519,
+        },
+        {
+          session_id: '26b780f8',
+          start_time: '2026-03-18T10:27:27.657Z',
+          end_time: '2026-03-18T10:33:57.829Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 32,
+          assistant_msgs: 37,
+          output_tokens: 10191,
+          cache_create_tokens: 108890,
+          cache_read_tokens: 1539732,
+          total_tokens: 1658860,
+        },
+        {
+          session_id: 'f4766f76',
+          start_time: '2026-03-18T10:29:19.841Z',
+          end_time: '2026-03-18T11:02:47.775Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 61,
+          assistant_msgs: 79,
+          output_tokens: 22019,
+          cache_create_tokens: 263860,
+          cache_read_tokens: 4820882,
+          total_tokens: 5106882,
+        },
+        {
+          session_id: 'fda89573',
+          start_time: '2026-03-18T11:29:31.816Z',
+          end_time: '2026-03-18T13:42:32.453Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 212,
+          assistant_msgs: 282,
+          output_tokens: 72351,
+          cache_create_tokens: 869949,
+          cache_read_tokens: 23039670,
+          total_tokens: 24002456,
+        },
+        {
+          session_id: 'a0e0f04a',
+          start_time: '2026-03-18T13:42:01.422Z',
+          end_time: '2026-03-18T14:01:59.460Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 50,
+          assistant_msgs: 70,
+          output_tokens: 19508,
+          cache_create_tokens: 160440,
+          cache_read_tokens: 4041525,
+          total_tokens: 4221567,
+        },
+        {
+          session_id: 'c8029e04',
+          start_time: '2026-03-18T14:01:45.203Z',
+          end_time: '2026-03-18T14:57:45.254Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 48,
+          assistant_msgs: 84,
+          output_tokens: 60590,
+          cache_create_tokens: 647091,
+          cache_read_tokens: 5502261,
+          total_tokens: 6218169,
+        },
+        {
+          session_id: '499d7916',
+          start_time: '2026-03-18T14:10:14.358Z',
+          end_time: '2026-03-18T14:10:55.180Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 2,
+          assistant_msgs: 1,
+          output_tokens: 8,
+          cache_create_tokens: 13052,
+          cache_read_tokens: 8914,
+          total_tokens: 21977,
+        },
+        {
+          session_id: '70c32468',
+          start_time: '2026-03-18T14:11:33.840Z',
+          end_time: '2026-03-18T14:34:50.362Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 28,
+          assistant_msgs: 46,
+          output_tokens: 10991,
+          cache_create_tokens: 408590,
+          cache_read_tokens: 4086600,
+          total_tokens: 4523327,
+        },
+        {
+          session_id: '4eff468d',
+          start_time: '2026-03-18T14:42:22.190Z',
+          end_time: '2026-03-18T14:51:47.437Z',
+          model: 'claude-sonnet-4-6',
+          user_msgs: 32,
+          assistant_msgs: 41,
+          output_tokens: 8407,
+          cache_create_tokens: 140048,
+          cache_read_tokens: 1453516,
+          total_tokens: 1602024,
+        },
+        {
+          session_id: 'c312630f',
+          start_time: '2026-03-18T14:52:10.140Z',
+          end_time: '2026-03-18T15:33:59.356Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 89,
+          assistant_msgs: 138,
+          output_tokens: 32863,
+          cache_create_tokens: 313326,
+          cache_read_tokens: 10222510,
+          total_tokens: 10568873,
+        },
+        {
+          session_id: 'e7d06e64',
+          start_time: '2026-03-18T15:35:01.683Z',
+          end_time: '2026-03-18T18:08:30.875Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 296,
+          assistant_msgs: 459,
+          output_tokens: 123123,
+          cache_create_tokens: 1766942,
+          cache_read_tokens: 100947304,
+          total_tokens: 102843788,
+        },
+        {
+          session_id: 'a4f6f0da',
+          start_time: '2026-03-18T15:37:14.887Z',
+          end_time: '2026-03-18T15:54:36.948Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 29,
+          assistant_msgs: 31,
+          output_tokens: 30674,
+          cache_create_tokens: 253230,
+          cache_read_tokens: 1735985,
+          total_tokens: 2029307,
+        },
+        {
+          session_id: '52e457bb',
+          start_time: '2026-03-18T16:02:43.384Z',
+          end_time: '2026-03-18T16:39:46.150Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 24,
+          assistant_msgs: 40,
+          output_tokens: 82761,
+          cache_create_tokens: 362133,
+          cache_read_tokens: 3209582,
+          total_tokens: 3654546,
+        },
+        {
+          session_id: '2b7859b3',
+          start_time: '2026-03-18T16:13:36.761Z',
+          end_time: '2026-03-18T16:41:38.284Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 21,
+          assistant_msgs: 27,
+          output_tokens: 16846,
+          cache_create_tokens: 125119,
+          cache_read_tokens: 1547135,
+          total_tokens: 1689149,
+        },
+        {
+          session_id: '56b94878',
+          start_time: '2026-03-18T16:52:27.794Z',
+          end_time: '2026-03-18T19:01:21.207Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 193,
+          assistant_msgs: 283,
+          output_tokens: 56324,
+          cache_create_tokens: 335965,
+          cache_read_tokens: 17199561,
+          total_tokens: 17592213,
+        },
+        {
+          session_id: 'dd5a4112',
+          start_time: '2026-03-18T18:10:46.728Z',
+          end_time: '2026-03-19T01:48:55.102Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 101,
+          assistant_msgs: 138,
+          output_tokens: 45835,
+          cache_create_tokens: 289614,
+          cache_read_tokens: 8138991,
+          total_tokens: 8474646,
+        },
+        {
+          session_id: '136bae3e',
+          start_time: '2026-03-18T19:03:06.292Z',
+          end_time: '2026-03-18T19:09:46.303Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 13,
+          assistant_msgs: 19,
+          output_tokens: 1778,
+          cache_create_tokens: 87964,
+          cache_read_tokens: 482944,
+          total_tokens: 572721,
+        },
+        {
+          session_id: 'dd1c8b11',
+          start_time: '2026-03-19T01:11:39.144Z',
+          end_time: '2026-03-19T01:40:52.348Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 32,
+          assistant_msgs: 38,
+          output_tokens: 6624,
+          cache_create_tokens: 92560,
+          cache_read_tokens: 1068190,
+          total_tokens: 1168176,
+        },
+        {
+          session_id: '35840dfe',
+          start_time: '2026-03-19T01:49:27.577Z',
+          end_time: '2026-03-19T02:10:04.517Z',
+          model: 'claude-opus-4-6',
+          user_msgs: 12,
+          assistant_msgs: 19,
+          output_tokens: 3606,
+          cache_create_tokens: 46442,
+          cache_read_tokens: 451039,
+          total_tokens: 501116,
+        },
+      ];
+
+      const topicMap = {
+        98606111: 'PRD 模組拆分 & 架構規劃',
+        bbaf96d7: 'RBAC DB 設計 & 測試 tech stack',
+        '14ee603c': 'Antd Design System 客製化',
+        '99b2d1af': '文件架構 & AI 協作 best practice',
+        '1e7ddaa5': '從 0 開始建專案（Phase 0）',
+        edd285c4: 'Logging & Monitoring 規劃',
+        '9e57f961': '安裝 & 設定 Skills',
+        '73bc1fe5': '建立 /generate-docs skill',
+        '8b1790cf': 'Phase 0 初始化 & 前端模組化',
+        '0083e890': 'Plugin vs Skill 差異 & Code Review',
+        '15c80f0f': '用新 Skill 重新檢視 00_doc',
+        '812fe529': '.gitkeep 是什麼',
+        cadd6dcb: 'test',
+        '10ba0329': '/generate-docs 文件產出',
+        '1febd59b': '執行 tasks_01 Auth & Response',
+        '4a971b68': '設定 npm/npx 權限',
+        c13c84fa: '後端 hot reload port 衝突',
+        '412a9fdc': '/generate-docs 文件產出',
+        '5599ffdd': 'LocalStorage 安全性 & Auth 調整',
+        '6e2ca7c6': '執行 tasks_01 (1.12~完)',
+        '8827fc39': 'AuthContext getMe 重複 render',
+        abd4cae0: 'Sidebar Logout 按鈕',
+        ec4c759a: '合併 commit',
+        c784d642: '執行 tasks_02 Operation Logs',
+        '7c148446': '/generate-docs 文件產出',
+        '3b769871': '合併 commit',
+        23024708: 'commit & Node 版本設定',
+        c7576c1c: 'commit',
+        fc470f82: '執行 tasks_03 Chatroom & Chat',
+        '159a7721': 'commit & coverage 檢查',
+        b310c7a0: 'commit',
+        '2a5d3008': '/generate-docs 文件產出',
+        f625c5f4: '執行 tasks_04 Blacklist & IP Blocking',
+        c89e816e: '/generate-docs 文件產出',
+        ac5e9023: 'commit',
+        '3c71ddaf': '執行 tasks_05 Nickname & Report',
+        dcdb9f07: '執行 tasks_05 + nickname 選擇性',
+        bdfe1184: 'TS 編譯錯誤修復',
+        '89165eb8': '/generate-docs 文件產出',
+        da205a55: 'Gherkin DB 欄位名稱校正',
+        a6f5301c: 'ManagerPage 使用者管理功能',
+        db440973: 'iOS 風格 Dark/Light Design System',
+        e7f2276e: 'E2E 自動錄影 Demo 影片',
+        '97155a77': 'commit (doc + broadcast)',
+        '6e7f677e': '執行 tasks_06 Broadcast Message',
+        c55c4fdf: 'NicknameReviewPage 測試修復',
+        '1a1c473b': 'commit',
+        '1c544b8d': 'commit',
+        '58a2fc09': '執行 tasks_01 Phase 1D ManagerPage',
+        '9462767f': 'commit',
+        f989e65d: '執行 tasks_07 Design System',
+        a7a9e197: '測試讀取 Google Docs',
+        ed9eaf76: 'Assignment 功能需求比對',
+        '36fd94f6': 'commit',
+        '1a21ed3b': '執行 tasks_08 E2E & Demo Video',
+        '470ba945': 'Demo 影片合成除錯',
+        '515e4ee8': '測試開發準則 data-testid 設計',
+        '0114b291': 'commit',
+        cc768561: '多模組文件審查 & UI 統一',
+        '26b780f8': 'commit',
+        f4766f76: '執行 tasks_10 System Config',
+        fda89573: 'DB 結構文件裝補 & nickname 選擇性',
+        a0e0f04a: 'Tasks 完成度檢查 & 文件同步',
+        c8029e04: 'Assignment 符合度 & 測試調整',
+        '499d7916': '專案設計亮點分析',
+        '70c32468': '專案設計亮點 — 文件裝補',
+        '4eff468d': 'Bug: 暱稱/密碼/selector 修復',
+        c312630f: 'Bug: 暱稱/密碼/selector 修復 (續)',
+        e7d06e64: '執行 tasks_11 + data-testid 實踐',
+        a4f6f0da: 'Excalidraw 架構圖',
+        '52e457bb': '系統架構圖審查 & 調整',
+        '2b7859b3': '專案評估 & 優缺點分析',
+        '56b94878': 'Production mode & 部署流程',
+        dd5a4112: 'E2E 登入優化 & timeout 修復',
+        '136bae3e': 'E2E test 修復 & commit',
+        dd1c8b11: 'E2E 與 unit test 衝突檢查',
+        '35840dfe': 'Demo 影片字幕卡調整',
+      };
+
+      function toUTC8(iso) {
+        const d = new Date(iso);
+        d.setHours(d.getHours() + 8);
+        return d.toISOString().replace('T', ' ').slice(5, 16);
+      }
+
+      function fmt(n) {
+        return n.toLocaleString();
+      }
+
+      const tbody = document.querySelector('#sessionTable tbody');
+      sessions.forEach((s) => {
+        const tr = document.createElement('tr');
+        const modelShort = s.model.includes('opus')
+          ? 'opus'
+          : s.model.includes('sonnet')
+            ? 'sonnet'
+            : s.model;
+        const modelClass = s.model.includes('opus') ? 'opus' : 'sonnet';
+        const topic = topicMap[s.session_id] || '—';
+        tr.innerHTML = `
+    <td style="font-family:var(--font-mono);font-size:11px">${s.session_id}</td>
+    <td style="white-space:nowrap">${toUTC8(s.start_time)}</td>
+    <td style="white-space:nowrap">${toUTC8(s.end_time)}</td>
+    <td><span class="model-tag ${modelClass}">${modelShort}</span></td>
+    <td>${s.user_msgs}</td>
+    <td>${s.assistant_msgs}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${topic}">${topic}</td>
+    <td>${fmt(s.output_tokens)}</td>
+    <td>${fmt(s.cache_create_tokens)}</td>
+    <td>${fmt(s.cache_read_tokens)}</td>
+    <td>${fmt(s.total_tokens)}</td>
+  `;
+        tbody.appendChild(tr);
+      });
+
+      // ─── Derived Data: Heatmap ───
+      (function () {
+        const days = [
+          '3/14 (Thu)',
+          '3/15 (Fri)',
+          '3/16 (Sat)',
+          '3/17 (Sun)',
+          '3/18 (Mon)',
+          '3/19 (Tue)',
+        ];
+        const timeSlots = ['00-03', '03-06', '06-09', '09-12', '12-15', '15-18', '18-21', '21-24'];
+
+        // Map label prefix to day index: 0=3/14 .. 5=3/19
+        function dayIndexForLabel(label) {
+          if (label.startsWith('03/14')) return 0;
+          if (label.startsWith('03/15')) return 1;
+          if (label.startsWith('03/16')) return 2;
+          if (label.startsWith('03/17')) return 3;
+          if (label.startsWith('03/18')) return 4;
+          if (label.startsWith('03/19')) return 5;
+          return -1;
+        }
+        function slotIndexForLabel(label) {
+          const hour = parseInt(label.slice(6, 8), 10);
+          return Math.floor(hour / 3);
+        }
+
+        // Build 6-day × 8-slot grid (rows=slots, cols=days)
+        const grid = Array.from({ length: 8 }, () => Array(6).fill(0));
+        labels.forEach((lbl, i) => {
+          const d = dayIndexForLabel(lbl);
+          const s = slotIndexForLabel(lbl);
+          if (d >= 0 && d < 6 && s >= 0 && s < 8) {
+            grid[s][d] = sessionCounts[i];
+          }
+        });
+
+        function level(v) {
+          if (v === 0) return 0;
+          if (v <= 2) return 1;
+          if (v <= 5) return 2;
+          return 3;
+        }
+
+        // X labels
+        const xLabels = document.getElementById('heatmapXLabels');
+        days.forEach((d) => {
+          const el = document.createElement('div');
+          el.className = 'heatmap-x-label';
+          el.textContent = d.split(' ')[0];
+          xLabels.appendChild(el);
+        });
+
+        // Y labels
+        const yLabels = document.getElementById('heatmapYLabels');
+        timeSlots.forEach((t) => {
+          const el = document.createElement('div');
+          el.className = 'heatmap-y-label';
+          el.textContent = t;
+          yLabels.appendChild(el);
+        });
+
+        // Cells — grid is col-major: iterate slot (row) then day (col), but CSS grid fills row by row
+        const cellsEl = document.getElementById('heatmapGrid');
+        for (let slot = 0; slot < 8; slot++) {
+          for (let day = 0; day < 6; day++) {
+            const v = grid[slot][day];
+            const cell = document.createElement('div');
+            cell.className = 'heatmap-cell';
+            cell.setAttribute('data-level', level(v));
+            cell.setAttribute(
+              'data-tip',
+              days[day].split(' ')[0] + ' ' + timeSlots[slot] + ': ' + v + ' sessions',
+            );
+            cellsEl.appendChild(cell);
+          }
+        }
+      })();
+
+      // ─── Derived Data: Concurrency Chart ───
+      (function () {
+        // For each bucket in fLabels, count sessions overlapping with [bucketStart, bucketStart+3hr)
+        function parseBucketStart(lbl) {
+          // lbl like "03/17 06:00"
+          const [datePart, timePart] = lbl.split(' ');
+          const [m, d] = datePart.split('/').map(Number);
+          const [h] = timePart.split(':').map(Number);
+          return new Date(2026, m - 1, d, h, 0, 0).getTime();
+        }
+
+        const bucketMs = 3 * 60 * 60 * 1000;
+        const concurrency = fLabels.map((lbl) => {
+          const bs = parseBucketStart(lbl);
+          const be = bs + bucketMs;
+          return sessions.filter((s) => {
+            const ss = new Date(s.start_time).getTime() + 8 * 3600000;
+            const se = new Date(s.end_time).getTime() + 8 * 3600000;
+            return ss < be && se > bs;
+          }).length;
+        });
+
+        new Chart(document.getElementById('concurrencyChart'), {
+          type: 'line',
+          data: {
+            labels: fLabels,
+            datasets: [
+              {
+                label: 'Concurrent Sessions',
+                data: concurrency,
+                borderColor: 'rgba(15,155,142,0.85)',
+                backgroundColor: 'rgba(15,155,142,0.08)',
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(15,155,142,0.8)',
+                fill: true,
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            ...chartDefaults,
+            scales: {
+              x: { ...chartDefaults.scales.x },
+              y: {
+                ...chartDefaults.scales.y,
+                ticks: { ...chartDefaults.scales.y.ticks, stepSize: 1 },
+              },
+            },
+          },
+        });
+      })();
+
+      // ─── Derived Data: Per-Phase Investment ───
+      (function () {
+        const phaseGroups = {
+          'Phase 0-Init': ['1e7ddaa5', '8b1790cf', 'cadd6dcb'],
+          'Phase 1-Auth': [
+            '10ba0329',
+            '1febd59b',
+            '4a971b68',
+            'c13c84fa',
+            '5599ffdd',
+            '6e2ca7c6',
+            '8827fc39',
+            'abd4cae0',
+            'ec4c759a',
+            '3b769871',
+            '23024708',
+            'c7576c1c',
+            '159a7721',
+            'b310c7a0',
+            '58a2fc09',
+            '9462767f',
+            '36fd94f6',
+            '1a1c473b',
+            '1c544b8d',
+          ],
+          'Phase 2-Logs': ['c784d642'],
+          'Phase 3-Chat': ['fc470f82'],
+          'Phase 4-Blacklist': ['f625c5f4'],
+          'Phase 5-Nickname': ['3c71ddaf', 'dcdb9f07', 'bdfe1184', 'fda89573'],
+          'Phase 6-Broadcast': ['6e7f677e', 'c55c4fdf'],
+          'Phase 7-Design': ['f989e65d', 'db440973'],
+          'Phase 8-E2E': [
+            'e7f2276e',
+            '1a21ed3b',
+            '470ba945',
+            'dd5a4112',
+            '136bae3e',
+            'dd1c8b11',
+            '35840dfe',
+          ],
+          'Phase 9-UI': ['cc768561', 'a0e0f04a', '26b780f8'],
+          'Phase 10-Config': ['f4766f76'],
+          'Phase 11-Test': ['515e4ee8', 'e7d06e64', '4eff468d', 'c312630f'],
+          'Phase 12-Prod': ['56b94878', 'c8029e04', '499d7916', '70c32468'],
+          'Docs/Research': [
+            '98606111',
+            'bbaf96d7',
+            '14ee603c',
+            '99b2d1af',
+            'edd285c4',
+            '9e57f961',
+            '73bc1fe5',
+            '0083e890',
+            '15c80f0f',
+            '812fe529',
+            '412a9fdc',
+            '7c148446',
+            '2a5d3008',
+            'c89e816e',
+            '89165eb8',
+            'da205a55',
+            'a6f5301c',
+            '97155a77',
+            'a7a9e197',
+            'ed9eaf76',
+            'ac5e9023',
+            'a4f6f0da',
+            '52e457bb',
+            '2b7859b3',
+          ],
+        };
+
+        const sessionTokenMap = {};
+        sessions.forEach((s) => {
+          sessionTokenMap[s.session_id] = s.total_tokens;
+        });
+
+        const phaseLabels = Object.keys(phaseGroups);
+        const phaseTokens = phaseLabels.map((phase) =>
+          phaseGroups[phase].reduce((sum, id) => sum + (sessionTokenMap[id] || 0), 0),
+        );
+
+        // Sort by tokens descending
+        const sorted = phaseLabels
+          .map((l, i) => ({ label: l, tokens: phaseTokens[i] }))
+          .sort((a, b) => b.tokens - a.tokens);
+
+        new Chart(document.getElementById('phaseChart'), {
+          type: 'bar',
+          data: {
+            labels: sorted.map((s) => s.label),
+            datasets: [
+              {
+                label: 'Total Tokens',
+                data: sorted.map((s) => s.tokens),
+                backgroundColor: sorted.map((s, i) => {
+                  const colors = [
+                    'rgba(91,76,214,0.65)',
+                    'rgba(15,155,142,0.6)',
+                    'rgba(200,146,10,0.6)',
+                    'rgba(212,74,122,0.6)',
+                    'rgba(59,125,216,0.6)',
+                    'rgba(46,139,96,0.6)',
+                  ];
+                  return colors[i % colors.length];
+                }),
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            ...chartDefaults,
+            indexAxis: 'y',
+            plugins: { ...chartDefaults.plugins },
+            scales: {
+              x: {
+                ...chartDefaults.scales.x,
+                ticks: {
+                  ...chartDefaults.scales.x.ticks,
+                  callback: (v) => (v / 1e6).toFixed(0) + 'M',
+                },
+              },
+              y: {
+                ticks: {
+                  font: { size: 10, family: "'JetBrains Mono', monospace" },
+                  color: '#555566',
+                },
+                grid: { color: 'rgba(0,0,0,0.06)' },
+              },
+            },
+          },
+        });
+      })();
+
+      // ─── Scroll animations ───
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('visible');
+            }
+          });
+        },
+        { threshold: 0.1 },
+      );
+
+      document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+
+      // ─── Nav active state ───
+      const navLinks = document.querySelectorAll('.nav a');
+      const sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              const id = e.target.id;
+              navLinks.forEach((l) =>
+                l.classList.toggle('active', l.getAttribute('href') === '#' + id),
+              );
+            }
+          });
+        },
+        { threshold: 0.2 },
+      );
+
+      document.querySelectorAll('section[id]').forEach((s) => sectionObserver.observe(s));
+    </script>
+
+    <!-- Scroll to Top -->
+    <button class="scroll-top" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" aria-label="Scroll to top">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 19V5" /><path d="M5 12l7-7 7 7" />
+      </svg>
+    </button>
+    <script>
+      const scrollTopBtn = document.querySelector('.scroll-top');
+      window.addEventListener('scroll', () => {
+        scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+      });
+    </script>
+  </body>
+</html>
