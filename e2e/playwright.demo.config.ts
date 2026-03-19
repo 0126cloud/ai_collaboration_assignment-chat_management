@@ -11,7 +11,7 @@ export default defineConfig({
     baseURL: 'http://localhost:5173',
     video: { mode: 'on', size: { width: 1920, height: 1080 } },
     viewport: { width: 1920, height: 1080 },
-    launchOptions: { slowMo: 1000 },
+    launchOptions: { slowMo: 1500 },
     screenshot: 'only-on-failure',
   },
   webServer: {

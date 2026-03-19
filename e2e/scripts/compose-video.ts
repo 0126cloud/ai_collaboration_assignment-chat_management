@@ -73,20 +73,26 @@ function escapeIMText(text: string): string {
     .replace(/\$/g, '\\$');
 }
 
-// 生成 2 秒黑底白字標題卡（ImageMagick + ffmpeg）
-function createTitleCard(title: string, outputPath: string): void {
+// 生成標題卡（ImageMagick + ffmpeg）
+// style: 'dark' = 黑底白字（模組標題）、'light' = 白底黑字（測試標題）
+function createTitleCard(
+  title: string,
+  outputPath: string,
+  style: 'dark' | 'light' = 'dark',
+): void {
   const pngPath = outputPath.replace('.mp4', '.png');
+  const bg = style === 'dark' ? 'black' : 'white';
+  const fg = style === 'dark' ? 'white' : 'black';
+  const duration = style === 'dark' ? 2 : 2.5;
   try {
-    // 黑底白字置中 PNG，尺寸與測試影片相同（1920x1080）
     execSync(
-      `${MAGICK_CMD} -size 1920x1080 xc:black ` +
-        `-fill white -font "${FONT}" -pointsize 72 ` +
+      `${MAGICK_CMD} -size 1920x1080 xc:${bg} ` +
+        `-fill ${fg} -font "${FONT}" -pointsize 72 ` +
         `-gravity Center -annotate 0 "${escapeIMText(title)}" "${pngPath}"`,
       { stdio: 'pipe' },
     );
-    // PNG 轉 2 秒影片
     execSync(
-      `ffmpeg -y -loop 1 -i "${pngPath}" -t 2 -r 25 -c:v libx264 -pix_fmt yuv420p "${outputPath}"`,
+      `ffmpeg -y -loop 1 -i "${pngPath}" -t ${duration} -r 25 -c:v libx264 -pix_fmt yuv420p "${outputPath}"`,
       { stdio: 'pipe' },
     );
   } finally {
@@ -94,34 +100,9 @@ function createTitleCard(title: string, outputPath: string): void {
   }
 }
 
-// WebM 轉 MP4 並燒入字幕（ImageMagick 生成字幕條 + ffmpeg overlay）
-function convertWithSubtitle(
-  webmPath: string,
-  subtitle: string,
-  status: string,
-  outputPath: string,
-): void {
-  const statusIcon = status === 'passed' ? '✓' : '✗';
-  const text = `${statusIcon} ${subtitle}`;
-  const pngPath = outputPath.replace('.mp4', '_sub.png');
-  try {
-    // 半透明黑底白字字幕條（寬度略小於影片寬度 1920px）
-    execSync(
-      `${MAGICK_CMD} -size 1880x56 xc:"rgba(0,0,0,153)" ` +
-        `-fill white -font "${FONT}" -pointsize 36 ` +
-        `-gravity West -annotate +16+0 "${escapeIMText(text)}" "${pngPath}"`,
-      { stdio: 'pipe' },
-    );
-    // 疊加字幕條至影片右下角上方
-    execSync(
-      `ffmpeg -y -i "${webmPath}" -i "${pngPath}" ` +
-        `-filter_complex "[0:v][1:v]overlay=20:H-h-20" ` +
-        `-c:v libx264 -c:a aac "${outputPath}"`,
-      { stdio: 'pipe' },
-    );
-  } finally {
-    if (fs.existsSync(pngPath)) fs.unlinkSync(pngPath);
-  }
+// WebM 轉 MP4
+function convertToMp4(webmPath: string, outputPath: string): void {
+  execSync(`ffmpeg -y -i "${webmPath}" -c:v libx264 -c:a aac "${outputPath}"`, { stdio: 'pipe' });
 }
 
 // 主流程
@@ -160,17 +141,30 @@ async function main(): Promise<void> {
       console.warn(`   ⚠️  標題卡生成失敗，跳過：${e}`);
     }
 
-    // 各 test 片段
+    // 各 test 片段：先插入白底黑字標題卡，再接測試影片
     for (const result of suiteResults) {
       if (!result.webmPath) {
         console.warn(`   ⚠️  ${result.testName} 無影片，跳過`);
         continue;
       }
 
-      const segPath = path.join(TEMP_DIR, `seg_${segIndex++}.mp4`);
+      const statusIcon = result.status === 'passed' ? '✓' : '✗';
+      const cardText = `${statusIcon} ${result.testName}`;
       console.log(`   ${result.status === 'passed' ? '✅' : '❌'} ${result.testName}`);
+
+      // 白底黑字標題卡
+      const testTitlePath = path.join(TEMP_DIR, `test_title_${segIndex++}.mp4`);
       try {
-        convertWithSubtitle(result.webmPath, result.testName, result.status, segPath);
+        createTitleCard(cardText, testTitlePath, 'light');
+        segments.push(testTitlePath);
+      } catch (e) {
+        console.warn(`   ⚠️  測試標題卡生成失敗，跳過：${e}`);
+      }
+
+      // 測試影片
+      const segPath = path.join(TEMP_DIR, `seg_${segIndex++}.mp4`);
+      try {
+        convertToMp4(result.webmPath, segPath);
         segments.push(segPath);
       } catch (e) {
         console.warn(`   ⚠️  轉換失敗，跳過：${e}`);
