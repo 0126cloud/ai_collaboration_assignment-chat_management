@@ -33,7 +33,9 @@ export function getTheme(mode: 'light' | 'dark'): ThemeConfig {
   return {
     cssVar: {},
     hashed: false,
-    algorithm: isDark ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
+    algorithm: isDark
+      ? [antdTheme.darkAlgorithm, antdTheme.compactAlgorithm]
+      : [antdTheme.defaultAlgorithm, antdTheme.compactAlgorithm],
     token: {
       ...(isDark ? darkSemanticTokens : lightSeedTokens),
       ...typographyTokens,

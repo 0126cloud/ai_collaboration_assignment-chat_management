@@ -10,7 +10,7 @@ export const spacingTokens = {
   borderRadius: 10,
   borderRadiusLG: 14,
   borderRadiusSM: 8,
-  controlHeight: 36,
+  controlHeight: 30,
   motionDurationFast: '0.1s',
   motionDurationMid: '0s',
   motionDurationSlow: '0s',

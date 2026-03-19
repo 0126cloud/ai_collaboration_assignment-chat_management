@@ -26,12 +26,12 @@ const useStyles = createStyles(({ token }) => ({
   },
   siderTitle: {
     color: token.colorText,
-    padding: `26px ${token.padding}px ${token.padding}px 28px`,
+    padding: `20px ${token.padding}px 24px 28px`,
     display: 'block',
-    marginBottom: '0px',
+    marginBottom: `${token.paddingLG}px`,
   },
   header: {
-    padding: `0 ${token.paddingLG}px`,
+    padding: `30px ${token.paddingLG}px`,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -128,7 +128,7 @@ const AdminLayout = () => {
 
   return (
     <Layout className={styles.layout}>
-      <Sider width={180}>
+      <Sider width={140}>
         <Typography.Title level={5} className={styles.siderTitle}>
           聊天管理後台
         </Typography.Title>

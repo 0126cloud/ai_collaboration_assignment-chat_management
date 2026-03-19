@@ -7,6 +7,4 @@ export const formTheme: TFormToken = {
   itemMarginBottom: 24,
 };
 
-export const inputTheme: TInputToken = {
-  controlHeight: 36,
-};
+export const inputTheme: TInputToken = {};
