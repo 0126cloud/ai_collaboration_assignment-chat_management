@@ -34,7 +34,7 @@
 ## Quick Start (Development)
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/0126cloud/ai_collaboration_assignment-chat_management.git
 cd chat-management
 cp server/.env.example server/.env.development   # 預設值可直接使用
 npm run setup:dev                                 # 安裝依賴 + 建立 DB + seed
@@ -89,7 +89,7 @@ docker compose up -d
 docker compose exec app sh -c "cd server && npx knex seed:run"
 ```
 
-App available at http://localhost:3000
+App available at http://localhost:3333
 
 ### Rebuild after code changes
 
