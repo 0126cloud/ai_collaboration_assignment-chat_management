@@ -13,6 +13,16 @@
 **原則：不重複測同一件事。**
 登入 API 邏輯在 unit/integration 測，E2E 只驗「登入後能看到 sidebar」，不驗 API 細節。
 
+### 測試環境資源
+
+| 資源     | Server Vitest               | Client Vitest | E2E (Playwright)                       |
+| -------- | --------------------------- | ------------- | -------------------------------------- |
+| Database | `:memory:` in-memory SQLite | 無（jsdom）   | `server/db/dev.sqlite`（透過 resetDb） |
+| HTTP     | supertest（不佔 port）      | 無            | dev server（port 3000 + 5173）         |
+| 隔離性   | 完全隔離                    | 完全隔離      | 與 dev 環境共用 DB 及 port             |
+
+**已知限制：** E2E 目前與 dev 環境共用 `dev.sqlite` 及 port（3000/5173）。若同時執行 `npm run dev` 與 `npm run test:e2e`，`resetDb()` 會重置開發中的資料。未來可透過新增 `.env.test`（獨立 `test.sqlite`）解決。
+
 ### Vitest 設定重點
 
 **Client (`client/vitest.config.ts`)**
