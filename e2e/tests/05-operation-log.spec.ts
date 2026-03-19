@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable, confirmModal } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable, confirmModal } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 // Scenario: 管理員查看操作紀錄列表並依類型篩選 (00_doc/operation-log.feature)
@@ -9,7 +9,7 @@ test.describe('操作紀錄模組', () => {
   });
 
   test('查看操作紀錄列表 → 每筆包含 operation_type、operator', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '操作紀錄');
     await waitForTable(page);
 
@@ -28,7 +28,7 @@ test.describe('操作紀錄模組', () => {
 
   test('依操作類型篩選 → 只顯示對應紀錄', async ({ page }) => {
     // 先產生一筆 DELETE_MESSAGE log：登入後刪除一筆訊息
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
 

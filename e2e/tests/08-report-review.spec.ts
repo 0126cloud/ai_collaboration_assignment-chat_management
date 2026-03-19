@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable, expectMessage, confirmModal } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable, expectMessage, confirmModal } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 // Scenario: 管理員核准檢舉，被檢舉玩家自動加入黑名單 (00_doc/report-review.feature)
@@ -9,7 +9,7 @@ test.describe('玩家檢舉審核模組', () => {
   });
 
   test('查看待審核檢舉列表', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '玩家檢舉');
     await waitForTable(page);
 
@@ -19,7 +19,7 @@ test.describe('玩家檢舉審核模組', () => {
   });
 
   test('核准檢舉 → 被檢舉玩家出現在黑名單', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '玩家檢舉');
     await waitForTable(page);
 
@@ -44,7 +44,7 @@ test.describe('玩家檢舉審核模組', () => {
   });
 
   test('駁回檢舉 → status 顯示 rejected', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '玩家檢舉');
     await waitForTable(page);
 

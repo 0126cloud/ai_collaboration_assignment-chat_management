@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../helpers/fixtures';
 import { loginAs, navigateTo, waitForTable, expectMessage } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
@@ -10,7 +10,7 @@ test.describe('廣播訊息模組', () => {
   });
 
   test('senior_manager 發送廣播 → 列表顯示 active 狀態', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '系統廣播');
     await waitForTable(page);
 
@@ -55,11 +55,16 @@ test.describe('廣播訊息模組', () => {
     await expect(page.getByTestId('broadcast__table')).toContainText('System maintenance');
   });
 
-  test('general_manager sidebar 無廣播選項', async ({ page }) => {
-    await loginAs(page, 'admin02', '123456');
+  // admin02 無廣播權限，需清除 storageState 後以 admin02 重新登入
+  test.describe('一般管理員權限', () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
 
-    // 確認 sidebar 中無「系統廣播」
-    const menuItem = page.getByRole('menuitem', { name: '系統廣播' });
-    await expect(menuItem).toHaveCount(0);
+    test('general_manager sidebar 無廣播選項', async ({ page }) => {
+      await loginAs(page, 'admin02', '123456');
+
+      // 確認 sidebar 中無「系統廣播」
+      const menuItem = page.getByRole('menuitem', { name: '系統廣播' });
+      await expect(menuItem).toHaveCount(0);
+    });
   });
 });

@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable, confirmModal, expectMessage } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable, confirmModal, expectMessage } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 test.describe('黑名單模組', () => {
@@ -8,7 +8,7 @@ test.describe('黑名單模組', () => {
   });
 
   test('玩家黑名單預設顯示封鎖中記錄', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '黑名單管理');
     await waitForTable(page);
     const table = page.getByTestId('blacklist__table');
@@ -18,7 +18,7 @@ test.describe('黑名單模組', () => {
   });
 
   test('新增玩家封鎖成功', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '黑名單管理');
     await waitForTable(page);
     await page.getByRole('button', { name: /新增封鎖/ }).click();
@@ -36,7 +36,7 @@ test.describe('黑名單模組', () => {
   });
 
   test('解封玩家成功', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '黑名單管理');
     await waitForTable(page);
     const table = page.getByTestId('blacklist__table');
@@ -47,7 +47,7 @@ test.describe('黑名單模組', () => {
   });
 
   test('切換至 IP 封鎖類型', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '黑名單管理');
     await waitForTable(page);
     // 點選類型 Select（使用 data-testid）
@@ -62,7 +62,7 @@ test.describe('黑名單模組', () => {
   });
 
   test('新增 IP 封鎖成功', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '黑名單管理');
     await waitForTable(page);
     await page.getByTestId('blacklist__type-select').click();
@@ -80,7 +80,7 @@ test.describe('黑名單模組', () => {
   });
 
   test('依封鎖原因篩選記錄', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '黑名單管理');
     await waitForTable(page);
     // 封鎖原因 Select（使用 data-testid）

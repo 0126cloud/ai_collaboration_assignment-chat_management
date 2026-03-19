@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable, confirmModal, expectMessage } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable, confirmModal, expectMessage } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 test.describe('聊天監控模組', () => {
@@ -8,7 +8,7 @@ test.describe('聊天監控模組', () => {
   });
 
   test('訊息列表載入並顯示最新訊息', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
     const table = page.getByTestId('chat-monitor__table');
@@ -16,7 +16,7 @@ test.describe('聊天監控模組', () => {
   });
 
   test('依玩家帳號篩選訊息', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
     await page.getByPlaceholder('玩家帳號').fill('player001');
@@ -30,7 +30,7 @@ test.describe('聊天監控模組', () => {
   });
 
   test('依聊天室篩選訊息', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
     // 點擊聊天室下拉選單並選擇選項
@@ -43,7 +43,7 @@ test.describe('聊天監控模組', () => {
   });
 
   test('刪除訊息後顯示成功提示', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
     // 點擊第一筆資料的刪除按鈕
@@ -53,7 +53,7 @@ test.describe('聊天監控模組', () => {
   });
 
   test('封鎖玩家 Modal 正確帶入玩家帳號', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
     const firstRow = page
@@ -70,7 +70,7 @@ test.describe('聊天監控模組', () => {
   });
 
   test('重置篩選條件清空表單', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
     await page.getByPlaceholder('玩家帳號').fill('player001');

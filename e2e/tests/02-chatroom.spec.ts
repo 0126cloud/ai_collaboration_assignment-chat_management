@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 test.describe('聊天室模組', () => {
@@ -8,7 +8,7 @@ test.describe('聊天室模組', () => {
   });
 
   test('聊天室列表顯示所有聊天室', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天室');
     await waitForTable(page);
     await expect(
@@ -17,7 +17,7 @@ test.describe('聊天室模組', () => {
   });
 
   test('搜尋聊天室名稱篩選結果', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天室');
     await waitForTable(page);
     await page.getByPlaceholder('名稱或 ID 搜尋').fill('Baccarat');
@@ -32,7 +32,7 @@ test.describe('聊天室模組', () => {
   });
 
   test('重置篩選條件清空表單', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天室');
     await waitForTable(page);
     await page.getByPlaceholder('名稱或 ID 搜尋').fill('Baccarat');

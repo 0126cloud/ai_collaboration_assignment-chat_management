@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable, expectMessage } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable, expectMessage } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 // Scenario: 高級管理員建立新管理員帳號 (00_doc/manager.feature)
@@ -10,7 +10,7 @@ test.describe('管理員帳號管理模組', () => {
   });
 
   test('建立新管理員帳號 → 列表出現', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '帳號管理');
     await waitForTable(page);
 
@@ -46,7 +46,7 @@ test.describe('管理員帳號管理模組', () => {
   });
 
   test('禁用管理員 → 無法登入', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '帳號管理');
     await waitForTable(page);
 

@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { loginAs, navigateTo, waitForTable, expectMessage, confirmModal } from '../helpers/shared';
+import { test, expect } from '../helpers/fixtures';
+import { navigateTo, waitForTable, expectMessage, confirmModal } from '../helpers/shared';
 import { resetDb } from '../helpers/db';
 
 // Scenario: 管理員核准暱稱申請完整流程 (00_doc/nickname-review.feature)
@@ -10,7 +10,7 @@ test.describe('暱稱審核模組', () => {
   });
 
   test('查看待審核暱稱列表', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '暱稱審核');
     await waitForTable(page);
 
@@ -21,7 +21,7 @@ test.describe('暱稱審核模組', () => {
   });
 
   test('核准暱稱申請 → 列表消失', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '暱稱審核');
     await waitForTable(page);
 
@@ -42,7 +42,7 @@ test.describe('暱稱審核模組', () => {
   });
 
   test('駁回暱稱申請 → 暱稱重設為帳號名稱', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '暱稱審核');
     await waitForTable(page);
 
@@ -55,7 +55,7 @@ test.describe('暱稱審核模組', () => {
   });
 
   test('從聊天監控頁重設暱稱 → 成功 toast', async ({ page }) => {
-    await loginAs(page, 'admin01', '123456');
+    await page.goto('/');
     await navigateTo(page, '聊天監控');
     await waitForTable(page);
 
