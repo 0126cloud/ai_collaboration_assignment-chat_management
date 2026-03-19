@@ -1,6 +1,17 @@
 # Chat Management Backstage
 
-聊天管理後台系統 — Admin panel for chat monitoring, player management, and broadcast.
+聊天管理後台系統
+
+欲了解專案實作過程可以從 [專案文件總覽入口](https://0126cloud.github.io/ai_collaboration_assignment-chat_management/) 進去，或根據下方列表對照交付項目。
+
+## 交付文件總覽
+
+| 交付項目        | 線上瀏覽                                                                                                            | 本地檔案                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 系統設計圖      | [線上檢視](https://0126cloud.github.io/ai_collaboration_assignment-chat_management/system-design.html#architecture) | [system-design.html](system-design.html) + [assets/00_system-design.png](assets/00_system-design.png) |
+| Database Schema | [線上檢視](https://0126cloud.github.io/ai_collaboration_assignment-chat_management/system-design.html#database)     | [assets/00_chat-managemant-db.png](assets/00_chat-managemant-db.png)                                  |
+| 介面截圖        | [線上檢視](https://0126cloud.github.io/ai_collaboration_assignment-chat_management/system-design.html#frontend)     | [assets/02\_\*.png](assets/)                                                                          |
+| AI 協作過程     | [線上檢視](https://0126cloud.github.io/ai_collaboration_assignment-chat_management/collaboration-insight.html)      | [assets/demo.mp4](assets/demo.mp4)                                                                    |
 
 ## Tech Stack
 
@@ -8,6 +19,10 @@
 - **Backend**: Express.js + TypeScript + SQLite (better-sqlite3) + Knex.js
 - **Auth**: JWT + bcryptjs
 - **Testing**: Vitest + Playwright
+
+## Tech Docs
+
+- 00_doc/\*
 
 ## Prerequisites
 
